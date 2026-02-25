@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paper Trading Dashboard</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg-dark: #0d1117;
+  --bg-card: #161b22;
+  --bg-card2: #1a1a2e;
+  --bg-header: #16213e;
+  --border: #30363d;
+  --teal: #4ecdc4;
+  --red: #e94560;
+  --green: #2ea043;
+  --yellow: #d29922;
+  --text: #e6edf3;
+  --text-dim: #8b949e;
+  --text-bright: #ffffff;
+}
+body { font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace; background: var(--bg-dark); color: var(--text); min-height: 100vh; }
+a { color: var(--teal); text-decoration: none; }
+
+/* Header */
+.header { background: var(--bg-header); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.header h1 { font-size: 18px; color: var(--teal); letter-spacing: 2px; }
+.header .meta { font-size: 12px; color: var(--text-dim); text-align: right; }
+.header .meta .live { color: var(--green); }
+.header .trial-badge { background: var(--yellow); color: #000; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+
+/* Layout */
+.dashboard { display: grid; grid-template-columns: 1fr 300px; gap: 16px; padding: 16px; max-width: 1600px; margin: 0 auto; }
+@media (max-width: 1024px) { .dashboard { grid-template-columns: 1fr; } }
+.main { display: flex; flex-direction: column; gap: 16px; }
+
+/* Cards */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: border-color 0.2s; }
+.card:hover { border-color: #484f58; }
+.card-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.card-header h2 { font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.card-body { padding: 16px; }
+
+/* Portfolio Overview */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.stat { background: var(--bg-card2); padding: 14px; border-radius: 6px; }
+.stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.stat-value { font-size: 22px; font-weight: 700; color: var(--text-bright); }
+.stat-value.positive { color: var(--green); }
+.stat-value.negative { color: var(--red); }
+.stat-value.teal { color: var(--teal); }
+.stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px 12px; color: var(--text-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+td { padding: 10px 12px; border-bottom: 1px solid #1c2129; }
+tr:hover td { background: rgba(78, 205, 196, 0.03); }
+.ticker { font-weight: 700; color: var(--teal); }
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+
+/* Trade Detail Card */
+.trade-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.trade-detail .full { grid-column: 1 / -1; }
+.detail-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1c2129; }
+.detail-label { color: var(--text-dim); font-size: 12px; }
+.detail-value { font-weight: 600; font-size: 13px; }
+
+/* Price Bar */
+.price-bar-container { padding: 16px 0; }
+.price-bar-labels { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; }
+.price-bar { height: 24px; background: linear-gradient(90deg, var(--red) 0%, #1a1a2e 20%, #1a1a2e 80%, var(--green) 100%); border-radius: 12px; position: relative; overflow: visible; }
+.price-marker { position: absolute; top: -4px; width: 4px; height: 32px; background: var(--text-bright); border-radius: 2px; transform: translateX(-50%); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+.price-marker-label { position: absolute; top: -22px; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--text-bright); white-space: nowrap; }
+.entry-marker { position: absolute; top: -4px; width: 2px; height: 32px; background: var(--yellow); border-radius: 1px; transform: translateX(-50%); opacity: 0.7; }
+.entry-marker-label { position: absolute; top: 34px; transform: translateX(-50%); font-size: 9px; color: var(--yellow); white-space: nowrap; }
+
+/* Conviction Meter */
+.conviction-meter { display: flex; gap: 3px; align-items: center; }
+.conviction-bar { width: 18px; height: 10px; border-radius: 2px; background: #1c2129; }
+.conviction-bar.filled { background: var(--teal); }
+.conviction-bar.filled.high { background: var(--green); }
+.conviction-score { margin-left: 8px; font-weight: 700; font-size: 14px; }
+
+/* Sidebar */
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+.rule { padding: 8px 0; border-bottom: 1px solid #1c2129; font-size: 12px; }
+.rule-name { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.rule-value { font-weight: 600; margin-top: 2px; }
+
+/* Watchlist */
+.watch-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1c2129; }
+.watch-ticker { font-weight: 700; color: var(--teal); font-size: 14px; }
+.watch-condition { font-size: 11px; color: var(--text-dim); max-width: 180px; text-align: right; }
+.watch-status { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.watch-status.waiting { background: rgba(210,153,34,0.15); color: var(--yellow); }
+.watch-status.active { background: rgba(46,160,67,0.15); color: var(--green); }
+
+/* P&L Chart */
+.chart { display: flex; align-items: flex-end; gap: 6px; height: 100px; padding-top: 12px; }
+.chart-bar { flex: 1; border-radius: 3px 3px 0 0; position: relative; min-height: 2px; transition: height 0.3s; }
+.chart-bar.pos { background: var(--green); }
+.chart-bar.neg { background: var(--red); }
+.chart-bar.zero { background: var(--border); height: 2px !important; }
+.chart-label { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--text-dim); white-space: nowrap; }
+
+/* Thesis */
+.thesis { background: var(--bg-card2); padding: 12px; border-radius: 6px; font-size: 12px; line-height: 1.6; color: var(--text-dim); border-left: 3px solid var(--teal); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📊 PAPER TRADING DASHBOARD</h1>
+    <div class="meta">Momentum Swing Trading · 2–10 Day Holds</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="trial-badge" id="trialBadge">30-DAY TRIAL</span>
+    <div class="meta">
+      <div class="live">● PAPER MODE</div>
+      <div id="lastUpdated">Last updated: —</div>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="main">
+
+    <!-- Portfolio Overview -->
+    <div class="card">
+      <div class="card-header"><h2>Portfolio Overview</h2><span id="dayCount" style="font-size:12px;color:var(--teal);"></span></div>
+      <div class="card-body">
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-label">Starting Capital</div>
+            <div class="stat-value">$10,000</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Current Value</div>
+            <div class="stat-value teal" id="currentValue">$10,000.00</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Cash</div>
+            <div class="stat-value">$7,569.29</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Invested</div>
+            <div class="stat-value">$2,430.71</div>
+            <div class="stat-sub">24.3% deployed</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Total P&L</div>
+            <div class="stat-value" id="totalPnl">$0.00</div>
+            <div class="stat-sub" id="totalPnlPct">0.00%</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Max Drawdown</div>
+            <div class="stat-value">0.0%</div>
+            <div class="stat-sub">Limit: 20%</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Win Rate</div>
+            <div class="stat-value" style="color:var(--text-dim);">—</div>
+            <div class="stat-sub">0 closed trades</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Days Remaining</div>
+            <div class="stat-value teal" id="daysRemaining">—</div>
+            <div class="stat-sub">Go-live if profitable</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Open Positions -->
+    <div class="card">
+      <div class="card-header"><h2>Open Positions</h2><span style="font-size:12px;color:var(--text-dim);">1 position</span></div>
+      <div class="card-body" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Entry</th>
+              <th>Current</th>
+              <th>Shares</th>
+              <th>Value</th>
+              <th>Stop</th>
+              <th>Target</th>
+              <th>R:R</th>
+              <th>Score</th>
+              <th>Unrl. P&L</th>
+              <th>% to Stop</th>
+              <th>% to Target</th>
+              <th>Days</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="ticker">IGV</td>
+              <td>$78.41</td>
+              <td id="igvCurrent">$78.41</td>
+              <td>31</td>
+              <td id="igvValue">$2,430.71</td>
+              <td class="neg">$75.50</td>
+              <td class="pos">$92.00</td>
+              <td>4.7:1</td>
+              <td><span style="color:var(--green);font-weight:700;">8/10</span></td>
+              <td id="igvPnl">$0.00</td>
+              <td id="igvToStop">-3.7%</td>
+              <td id="igvToTarget">+17.3%</td>
+              <td id="igvDays">1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Active Trade Detail: IGV -->
+    <div class="card">
+      <div class="card-header"><h2>Active Trade: IGV</h2><span style="font-size:12px;color:var(--green);">● OPEN</span></div>
+      <div class="card-body">
+        <div class="trade-detail">
+          <div>
+            <div class="detail-row"><span class="detail-label">Ticker</span><span class="detail-value ticker">IGV</span></div>
+            <div class="detail-row"><span class="detail-label">Full Name</span><span class="detail-value">iShares Expanded Tech-Software ETF</span></div>
+            <div class="detail-row"><span class="detail-label">Direction</span><span class="detail-value pos">LONG</span></div>
+            <div class="detail-row"><span class="detail-label">Entry Date</span><span class="detail-value">Feb 25, 2026</span></div>
+            <div class="detail-row"><span class="detail-label">Days Held</span><span class="detail-value" id="igvDaysDetail">1</span></div>
+          </div>
+          <div>
+            <div class="detail-row"><span class="detail-label">Rec. Entry Range</span><span class="detail-value">$78.00 – $79.50</span></div>
+            <div class="detail-row"><span class="detail-label">Actual Entry</span><span class="detail-value">$78.41</span></div>
+            <div class="detail-row"><span class="detail-label">Stop Loss</span><span class="detail-value neg">$75.50</span></div>
+            <div class="detail-row"><span class="detail-label">Target</span><span class="detail-value pos">$92.00</span></div>
+            <div class="detail-row"><span class="detail-label">R:R Ratio</span><span class="detail-value" style="color:var(--teal);">4.7 : 1</span></div>
+          </div>
+
+          <!-- Price Bar -->
+          <div class="full">
+            <div class="price-bar-container">
+              <div class="price-bar-labels">
+                <span class="neg">STOP $75.50</span>
+                <span style="color:var(--text-dim);">Price Position</span>
+                <span class="pos">TARGET $92.00</span>
+              </div>
+              <div class="price-bar" style="position:relative;margin-top:28px;margin-bottom:28px;">
+                <!-- Entry marker -->
+                <div class="entry-marker" id="entryMarker" style="left:17.6%;">
+                  <div class="entry-marker-label">Entry $78.41</div>
+                </div>
+                <!-- Current price marker -->
+                <div class="price-marker" id="priceMarker" style="left:17.6%;">
+                  <div class="price-marker-label" id="priceMarkerLabel">$78.41</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conviction -->
+          <div class="full">
+            <div style="display:flex;align-items:center;gap:16px;">
+              <span class="detail-label">Conviction</span>
+              <div class="conviction-meter">
+                <div class="conviction-bar filled high"></div>
+                <div class="conviction-bar filled high"></div>
+                <div class="conviction-bar filled high"></div>
+                <div class="conviction-bar filled high"></div>
+                <div class="conviction-bar filled high"></div>
+                <div class="conviction-bar filled high"></div>
+                <div class="conviction-bar filled high"></div>
+                <div class="conviction-bar filled high"></div>
+                <div class="conviction-bar"></div>
+                <div class="conviction-bar"></div>
+                <span class="conviction-score" style="color:var(--green);">8 / 10</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thesis -->
+          <div class="full">
+            <div class="detail-label" style="margin-bottom:8px;">Thesis</div>
+            <div class="thesis">
+              <strong>"SaaSpocalypse" overreaction bounce.</strong> Software sector lost $2T in market cap — IGV dropped 32%, RSI hit 18 (most oversold since 1990). Panic selling exhausted. JPMorgan/Jefferies coined scary names, retail dumped. We're buying their capitulation. AI needs software to run — the "AI replaces software" narrative is logically broken. NVDA earnings catalyst could accelerate recovery.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trade History -->
+    <div class="card">
+      <div class="card-header"><h2>Trade History</h2><span style="font-size:12px;color:var(--text-dim);">0 closed</span></div>
+      <div class="card-body">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Ticker</th><th>Direction</th><th>Entry</th><th>Exit</th><th>Shares</th><th>P&L</th><th>%</th><th>Days</th><th>Lesson</th></tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="10" style="text-align:center;color:var(--text-dim);padding:24px;">No closed trades yet. First position (IGV) is open.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Daily P&L Chart -->
+    <div class="card">
+      <div class="card-header"><h2>Daily P&L</h2><span style="font-size:12px;color:var(--text-dim);">Feb 23 – present</span></div>
+      <div class="card-body">
+        <div class="chart">
+          <div class="chart-bar zero" style="height:2px;"><div class="chart-label">Feb 23</div></div>
+          <div class="chart-bar zero" style="height:2px;"><div class="chart-label">Feb 24</div></div>
+          <div class="chart-bar pos" style="height:4px;" id="chartToday"><div class="chart-label">Feb 25</div></div>
+        </div>
+        <div style="text-align:center;margin-top:28px;font-size:11px;color:var(--text-dim);">Chart updates as trades close and prices change</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <!-- System Rules -->
+    <div class="card">
+      <div class="card-header"><h2>System Rules</h2></div>
+      <div class="card-body">
+        <div class="rule"><div class="rule-name">Strategy</div><div class="rule-value">Momentum Swing (2–10 days)</div></div>
+        <div class="rule"><div class="rule-name">Max Loss / Trade</div><div class="rule-value neg">3%</div></div>
+        <div class="rule"><div class="rule-name">Max Drawdown</div><div class="rule-value neg">20% → pause</div></div>
+        <div class="rule"><div class="rule-name">Min Reward:Risk</div><div class="rule-value">2:1</div></div>
+        <div class="rule"><div class="rule-name">Min Conviction</div><div class="rule-value">≥ 7/10</div></div>
+        <div class="rule"><div class="rule-name">Position Size</div><div class="rule-value">Max $2,500 (25%)</div></div>
+        <div class="rule"><div class="rule-name">Max Invested</div><div class="rule-value">75% (25% cash always)</div></div>
+        <div class="rule"><div class="rule-name">Max Overnight Gap</div><div class="rule-value neg">4%</div></div>
+        <div class="rule"><div class="rule-name">Go-Live</div><div class="rule-value teal" style="color:var(--teal);">30 days profitable</div></div>
+      </div>
+    </div>
+
+    <!-- Watchlist -->
+    <div class="card">
+      <div class="card-header"><h2>Watchlist</h2></div>
+      <div class="card-body">
+        <div class="watch-item">
+          <div>
+            <div class="watch-ticker">AMD</div>
+            <div style="font-size:11px;color:var(--text-dim);">$213.84</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="watch-status waiting">CONDITIONAL</div>
+            <div class="watch-condition">Enter only if NVDA beats earnings</div>
+          </div>
+        </div>
+        <div class="watch-item">
+          <div>
+            <div class="watch-ticker">MSTR</div>
+            <div style="font-size:11px;color:var(--text-dim);">$124.61</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="watch-status waiting">CONDITIONAL</div>
+            <div class="watch-condition">Enter only if BTC breaks $67K</div>
+          </div>
+        </div>
+        <div class="watch-item">
+          <div>
+            <div class="watch-ticker">NVDA</div>
+            <div style="font-size:11px;color:var(--text-dim);">Earnings tonight</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="watch-status waiting">WATCHING</div>
+            <div class="watch-condition">Catalyst for IGV + AMD</div>
+          </div>
+        </div>
+        <div class="watch-item">
+          <div>
+            <div class="watch-ticker">SPY</div>
+            <div style="font-size:11px;color:var(--text-dim);">S&P 500 ETF</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="watch-status waiting">NO ENTRY</div>
+            <div class="watch-condition">Tariff uncertainty</div>
+          </div>
+        </div>
+        <div class="watch-item">
+          <div>
+            <div class="watch-ticker">BTC</div>
+            <div style="font-size:11px;color:var(--text-dim);">~$64,200</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="watch-status waiting">NO ENTRY</div>
+            <div class="watch-condition">Broke $67.5K support</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scoring Rubric -->
+    <div class="card">
+      <div class="card-header"><h2>Scoring Rubric</h2></div>
+      <div class="card-body" style="font-size:12px;">
+        <div class="rule"><div class="rule-name">Technical (0-2)</div><div class="rule-value">RSI, trend, support/resistance</div></div>
+        <div class="rule"><div class="rule-name">Macro (0-2)</div><div class="rule-value">Market regime, sector rotation</div></div>
+        <div class="rule"><div class="rule-name">Risk/Reward (0-2)</div><div class="rule-value">R:R ratio quality</div></div>
+        <div class="rule"><div class="rule-name">Catalyst (0-2)</div><div class="rule-value">Earnings, news, events</div></div>
+        <div class="rule"><div class="rule-name">Timing (0-2)</div><div class="rule-value">Entry quality, momentum</div></div>
+        <div class="rule" style="border:none;"><div class="rule-name">Minimum to Trade</div><div class="rule-value" style="color:var(--teal);font-size:16px;">≥ 7 / 10</div></div>
+      </div>
+    </div>
+
+    <!-- Day 1 Lesson -->
+    <div class="card">
+      <div class="card-header"><h2>Lessons Learned</h2></div>
+      <div class="card-body">
+        <div class="thesis" style="border-left-color:var(--yellow);">
+          <strong>Day 1 (Feb 23):</strong> Best trade is no trade when conditions don't meet the rules. Discipline > activity.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Calculate days
+const trialStart = new Date('2026-02-23');
+const now = new Date();
+const dayNum = Math.floor((now - trialStart) / 86400000) + 1;
+const daysLeft = 30 - dayNum;
+document.getElementById('dayCount').textContent = `Day ${dayNum} of 30`;
+document.getElementById('daysRemaining').textContent = daysLeft > 0 ? daysLeft : '0';
+
+// Update timestamp
+const fmt = new Intl.DateTimeFormat('en-US', { 
+  timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', year: 'numeric',
+  hour: 'numeric', minute: '2-digit', hour12: true 
+});
+document.getElementById('lastUpdated').textContent = 'Updated: ' + fmt.format(now) + ' PT';
+
+// Price bar position calc
+function pricePct(price) {
+  const stop = 75.50, target = 92.00;
+  return Math.max(0, Math.min(100, ((price - stop) / (target - stop)) * 100));
+}
+const entry = 78.41;
+const current = 78.41; // Update with live price
+document.getElementById('entryMarker').style.left = pricePct(entry) + '%';
+document.getElementById('priceMarker').style.left = pricePct(current) + '%';
+document.getElementById('priceMarkerLabel').textContent = '$' + current.toFixed(2);
+
+// Update P&L based on current price
+function updatePnL(currentPrice) {
+  const shares = 31, entryPrice = 78.41, capital = 10000, cash = 7569.29;
+  const posValue = shares * currentPrice;
+  const pnl = (currentPrice - entryPrice) * shares;
+  const totalValue = cash + posValue;
+  const totalPnl = totalValue - capital;
+  
+  document.getElementById('igvCurrent').textContent = '$' + currentPrice.toFixed(2);
+  document.getElementById('igvValue').textContent = '$' + posValue.toFixed(2);
+  document.getElementById('igvPnl').textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+  document.getElementById('igvPnl').className = pnl >= 0 ? 'pos' : 'neg';
+  document.getElementById('igvToStop').textContent = (((75.50 - currentPrice) / currentPrice) * 100).toFixed(1) + '%';
+  document.getElementById('igvToTarget').textContent = '+' + (((92.00 - currentPrice) / currentPrice) * 100).toFixed(1) + '%';
+  document.getElementById('currentValue').textContent = '$' + totalValue.toFixed(2);
+  document.getElementById('totalPnl').textContent = (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2);
+  document.getElementById('totalPnl').className = 'stat-value ' + (totalPnl >= 0 ? 'positive' : 'negative');
+  document.getElementById('totalPnlPct').textContent = (totalPnl >= 0 ? '+' : '') + ((totalPnl / capital) * 100).toFixed(2) + '%';
+  
+  document.getElementById('priceMarker').style.left = pricePct(currentPrice) + '%';
+  document.getElementById('priceMarkerLabel').textContent = '$' + currentPrice.toFixed(2);
+}
+
+// Init with current known price
+updatePnL(78.41);
+</script>
+</body>
+</html>

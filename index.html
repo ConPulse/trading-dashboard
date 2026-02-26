@@ -3,124 +3,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Paper Trading Dashboard</title>
+<title>Trading Dashboard</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
   --bg: #0d1117; --bg2: #161b22; --bg3: #1a1a2e; --bg4: #16213e;
   --border: #30363d; --teal: #4ecdc4; --red: #e94560; --green: #2ea043;
-  --yellow: #d29922; --orange: #f0883e; --blue: #58a6ff;
+  --yellow: #d29922; --blue: #58a6ff;
   --text: #e6edf3; --dim: #8b949e; --bright: #fff;
 }
-body { font-family: 'SF Mono','Cascadia Code','Fira Code',monospace; background: var(--bg); color: var(--text); }
+body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
 /* Header */
-.hdr { background: var(--bg4); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-.hdr h1 { font-size: 16px; color: var(--teal); letter-spacing: 2px; }
-.hdr-right { display: flex; align-items: center; gap: 12px; }
-.badge { padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.hdr { background: var(--bg4); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.hdr h1 { font-size: 20px; color: var(--teal); font-weight: 700; }
+.hdr-sub { font-size: 13px; color: var(--dim); margin-top: 2px; }
+.hdr-right { text-align: right; }
+.badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 8px; }
 .badge-trial { background: var(--yellow); color: #000; }
-.badge-paper { background: rgba(46,160,67,0.2); color: var(--green); border: 1px solid var(--green); }
-.hdr .meta { font-size: 11px; color: var(--dim); text-align: right; }
+.badge-paper { background: rgba(46,160,67,0.2); color: var(--green); border: 1px solid rgba(46,160,67,0.3); }
+.hdr-time { font-size: 12px; color: var(--dim); margin-top: 4px; }
 
-/* Regime Banner */
-.regime { padding: 8px 20px; display: flex; align-items: center; gap: 16px; font-size: 12px; border-bottom: 1px solid var(--border); }
-.regime.risk-off { background: rgba(233,69,96,0.1); }
-.regime.neutral { background: rgba(210,153,34,0.1); }
-.regime.risk-on { background: rgba(46,160,67,0.1); }
-.regime-label { font-weight: 700; font-size: 13px; }
-.regime-item { display: flex; align-items: center; gap: 4px; }
-.regime-dot { width: 8px; height: 8px; border-radius: 50%; }
-
-/* Grid */
-.grid { display: grid; grid-template-columns: 1fr 1fr 280px; gap: 12px; padding: 12px; max-width: 1600px; margin: 0 auto; }
-@media (max-width: 1200px) { .grid { grid-template-columns: 1fr 1fr; } .sidebar { display: none; } }
-@media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-.col-span-2 { grid-column: span 2; }
-@media (max-width: 1200px) { .col-span-2 { grid-column: span 2; } }
-@media (max-width: 768px) { .col-span-2 { grid-column: span 1; } }
-
-/* Cards */
-.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-.card:hover { border-color: #484f58; }
-.ch { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.ch h2 { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
-.cb { padding: 12px; }
-
-/* Stats */
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.stat { background: var(--bg3); padding: 10px; border-radius: 4px; }
-.stat-l { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-v { font-size: 18px; font-weight: 700; margin-top: 2px; }
-.stat-s { font-size: 10px; color: var(--dim); margin-top: 1px; }
+/* Summary Strip */
+.strip { display: flex; gap: 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.strip-item { flex: 1; min-width: 120px; padding: 12px 16px; border-right: 1px solid var(--border); text-align: center; }
+.strip-item:last-child { border-right: none; }
+.strip-label { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.strip-val { font-size: 20px; font-weight: 700; margin-top: 2px; }
+.strip-sub { font-size: 11px; margin-top: 1px; }
 .pos { color: var(--green); } .neg { color: var(--red); } .tl { color: var(--teal); }
 
-/* Table */
-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-th { text-align: left; padding: 6px 8px; color: var(--dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-td { padding: 7px 8px; border-bottom: 1px solid #1c2129; white-space: nowrap; }
-tr:hover td { background: rgba(78,205,196,0.03); }
-.tkr { font-weight: 700; color: var(--teal); }
+/* Tabs */
+.tabs { display: flex; gap: 0; background: var(--bg2); border-bottom: 2px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tab { padding: 14px 24px; font-size: 14px; font-weight: 600; color: var(--dim); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; user-select: none; }
+.tab:hover { color: var(--text); background: rgba(78,205,196,0.05); }
+.tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+/* Tab Content */
+.tab-content { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* Cards */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; }
+.ch { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.ch h2 { font-size: 16px; font-weight: 600; }
+.ch-badge { font-size: 12px; padding: 3px 10px; border-radius: 4px; font-weight: 600; }
+.cb { padding: 18px; }
+
+/* Big Stats Grid */
+.big-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.big-stat { background: var(--bg3); padding: 16px; border-radius: 8px; }
+.big-stat-label { font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.big-stat-val { font-size: 28px; font-weight: 700; margin-top: 4px; }
+.big-stat-sub { font-size: 12px; color: var(--dim); margin-top: 2px; }
+
+/* Detail Grid */
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
+
+/* Detail Rows */
+.drow { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1c2129; font-size: 14px; }
+.drow:last-child { border-bottom: none; }
+.drow-label { color: var(--dim); }
+.drow-val { font-weight: 600; }
 
 /* Price Bar */
-.pbar-wrap { margin: 8px 0; }
-.pbar-labels { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; }
-.pbar { height: 20px; background: linear-gradient(90deg, var(--red) 0%, var(--bg3) 15%, var(--bg3) 85%, var(--green) 100%); border-radius: 10px; position: relative; }
-.pbar-marker { position: absolute; top: -3px; width: 3px; height: 26px; border-radius: 2px; transform: translateX(-50%); }
-.pbar-marker.current { background: var(--bright); box-shadow: 0 0 6px rgba(255,255,255,0.5); }
+.pbar-wrap { padding: 20px 0; }
+.pbar-labels { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+.pbar { height: 32px; background: linear-gradient(90deg, var(--red) 0%, var(--bg3) 18%, var(--bg3) 82%, var(--green) 100%); border-radius: 16px; position: relative; }
+.pbar-marker { position: absolute; top: -5px; width: 4px; height: 42px; border-radius: 2px; transform: translateX(-50%); }
+.pbar-marker.current { background: var(--bright); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
 .pbar-marker.entry { background: var(--yellow); opacity: 0.6; }
-.pbar-mlabel { position: absolute; top: -16px; transform: translateX(-50%); font-size: 9px; font-weight: 700; white-space: nowrap; }
+.pbar-mlabel { position: absolute; transform: translateX(-50%); font-size: 12px; font-weight: 700; white-space: nowrap; }
 
-/* Conviction */
-.conv { display: flex; gap: 2px; align-items: center; }
-.conv-bar { width: 14px; height: 8px; border-radius: 1px; background: #1c2129; }
-.conv-bar.on { background: var(--green); }
-.conv-score { margin-left: 6px; font-weight: 700; font-size: 12px; }
+/* Score Visual */
+.score-visual { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1c2129; }
+.score-visual:last-child { border-bottom: none; }
+.score-name { width: 120px; font-size: 14px; color: var(--dim); }
+.score-dots { display: flex; gap: 6px; }
+.score-dot { width: 24px; height: 24px; border-radius: 50%; background: #1c2129; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.score-dot.on { background: var(--teal); color: #000; }
+.score-total { font-size: 28px; font-weight: 700; padding: 16px; text-align: center; border-top: 1px solid var(--border); }
 
-/* Watchlist */
-.wl-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #1c2129; }
-.wl-tkr { font-weight: 700; color: var(--teal); font-size: 12px; }
-.wl-price { font-size: 11px; }
-.wl-chg { font-size: 11px; font-weight: 600; }
-.wl-cond { font-size: 9px; color: var(--dim); }
-.wl-status { font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
-.wl-status.wait { background: rgba(210,153,34,0.15); color: var(--yellow); }
-.wl-status.go { background: rgba(46,160,67,0.15); color: var(--green); }
+/* Watchlist Table */
+.wl-table { width: 100%; border-collapse: collapse; }
+.wl-table th { text-align: left; padding: 10px 14px; color: var(--dim); font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.wl-table td { padding: 12px 14px; border-bottom: 1px solid #1c2129; font-size: 14px; }
+.wl-table tr:hover td { background: rgba(78,205,196,0.03); }
+.tkr { font-weight: 700; color: var(--teal); font-size: 15px; }
+.wl-status { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
 .wl-status.active { background: rgba(78,205,196,0.15); color: var(--teal); }
+.wl-status.triggered { background: rgba(46,160,67,0.15); color: var(--green); }
+.wl-status.watching { background: rgba(210,153,34,0.1); color: var(--yellow); }
 
-/* Sidebar rules */
-.rule { padding: 5px 0; border-bottom: 1px solid #1c2129; font-size: 11px; }
-.rule-n { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
-.rule-v { font-weight: 600; margin-top: 1px; }
+/* Gauge */
+.gauge { margin-bottom: 16px; }
+.gauge-header { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+.gauge-bar { height: 12px; background: var(--bg3); border-radius: 6px; overflow: hidden; }
+.gauge-fill { height: 100%; border-radius: 6px; transition: width 0.5s; }
+
+/* Sentiment item */
+.sent-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1c2129; font-size: 14px; }
 
 /* Thesis */
-.thesis { background: var(--bg3); padding: 8px 10px; border-radius: 4px; font-size: 11px; line-height: 1.5; color: var(--dim); border-left: 3px solid var(--teal); }
+.thesis { background: var(--bg3); padding: 16px; border-radius: 8px; font-size: 14px; line-height: 1.7; border-left: 4px solid var(--teal); }
 
-/* Sentiment gauge */
-.gauge { display: flex; align-items: center; gap: 8px; }
-.gauge-bar { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
-.gauge-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
-.gauge-label { font-size: 11px; font-weight: 600; min-width: 40px; }
+/* Catalyst list */
+.catalyst { padding: 10px 0; border-bottom: 1px solid #1c2129; font-size: 14px; display: flex; gap: 10px; align-items: flex-start; }
+.catalyst-icon { font-size: 18px; }
 
-/* Score breakdown */
-.score-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 11px; }
-.score-dim { color: var(--dim); }
-.score-dots { display: flex; gap: 3px; }
-.score-dot { width: 10px; height: 10px; border-radius: 50%; background: #1c2129; }
-.score-dot.filled { background: var(--teal); }
+/* Rules */
+.rule { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #1c2129; font-size: 14px; }
+.rule:last-child { border-bottom: none; }
+.rule-name { color: var(--dim); }
+.rule-val { font-weight: 600; }
 
-/* Sparkline placeholder */
-.sparkline { display: flex; align-items: flex-end; gap: 2px; height: 30px; }
-.spark-bar { flex: 1; border-radius: 1px 1px 0 0; min-width: 3px; }
+/* Checklist */
+.check-item { padding: 8px 0; font-size: 15px; border-bottom: 1px solid #1c2129; }
+.check-item:last-child { border-bottom: none; }
 
-/* Scroll */
-::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+/* Lesson card */
+.lesson { background: var(--bg3); padding: 14px 16px; border-radius: 8px; border-left: 4px solid var(--yellow); margin-bottom: 12px; font-size: 14px; line-height: 1.6; }
+.lesson:last-child { margin-bottom: 0; }
 
-/* News ticker */
-.news { padding: 6px 12px; font-size: 10px; color: var(--dim); border-bottom: 1px solid var(--border); overflow: hidden; white-space: nowrap; }
-.news span { display: inline-block; animation: scroll 30s linear infinite; }
-@keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-.news-item { color: var(--text); margin-right: 40px; }
+/* Conditional */
+.cond-card { background: var(--bg3); border-radius: 8px; padding: 16px; margin-bottom: 12px; border-left: 4px solid var(--green); }
+.cond-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.cond-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; font-size: 13px; }
+.cond-label { color: var(--dim); font-size: 11px; text-transform: uppercase; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .hdr { flex-direction: column; text-align: center; gap: 8px; }
+  .hdr-right { text-align: center; }
+  .strip-item { min-width: 100px; padding: 10px 8px; }
+  .strip-val { font-size: 16px; }
+  .tab { padding: 12px 16px; font-size: 13px; }
+  .big-stat-val { font-size: 22px; }
+  .cb { padding: 14px; }
+}
 </style>
 </head>
 <body>
@@ -128,333 +149,378 @@ tr:hover td { background: rgba(78,205,196,0.03); }
 <!-- Header -->
 <div class="hdr">
   <div>
-    <h1>📊 PAPER TRADING DASHBOARD</h1>
-    <div class="meta">Momentum Swing · 2–10 Day Holds · $10K Capital</div>
+    <h1>📊 Paper Trading Dashboard</h1>
+    <div class="hdr-sub">Momentum Swing Trading · $10K Capital · 30-Day Trial</div>
   </div>
   <div class="hdr-right">
-    <span class="badge badge-trial" id="trialBadge"></span>
+    <span class="badge badge-trial" id="trialBadge">DAY 3/30</span>
     <span class="badge badge-paper">● PAPER</span>
-    <div class="meta"><div id="lastUpdated"></div></div>
+    <div class="hdr-time" id="lastUpdated"></div>
   </div>
 </div>
 
-<!-- News Ticker -->
-<div class="news">
-  <span>
-    <span class="news-item">📰 Nvidia's Jensen Huang cheers potential of data center buildout</span>
-    <span class="news-item">📰 Stock soaring on forthcoming investment by AMD</span>
-    <span class="news-item">📰 Trade Desk slides as growth slowdown unnerves Wall Street</span>
-    <span class="news-item">📰 Snowflake dips on mixed outlook</span>
-    <span class="news-item">📰 NVDA Q4: $1.62 EPS vs $1.56 est (+3.7% beat)</span>
-  </span>
+<!-- Quick Summary Strip -->
+<div class="strip">
+  <div class="strip-item">
+    <div class="strip-label">Portfolio</div>
+    <div class="strip-val pos">$10,075</div>
+    <div class="strip-sub pos">+0.76%</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Open P&L</div>
+    <div class="strip-val pos">+$75.64</div>
+    <div class="strip-sub">IGV +3.1%</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Cash</div>
+    <div class="strip-val">$7,569</div>
+    <div class="strip-sub">75.7%</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Regime</div>
+    <div class="strip-val" style="color:var(--yellow);">NEUTRAL</div>
+    <div class="strip-sub">75% sizing</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Fear & Greed</div>
+    <div class="strip-val neg">11</div>
+    <div class="strip-sub neg">Extreme Fear</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Positions</div>
+    <div class="strip-val tl">1 / 3</div>
+    <div class="strip-sub">$2,506 invested</div>
+  </div>
 </div>
 
-<!-- Market Regime Banner -->
-<div class="regime neutral" id="regimeBanner">
-  <span class="regime-label" id="regimeLabel">⚖️ NEUTRAL</span>
-  <div class="regime-item"><span class="regime-dot" style="background:var(--red);"></span> Crypto F&G: <strong>11</strong> (Extreme Fear)</div>
-  <div class="regime-item"><span class="regime-dot" style="background:var(--green);"></span> Put/Call: <strong>0.62</strong></div>
-  <div class="regime-item"><span class="regime-dot" style="background:var(--yellow);"></span> VIX: <strong>19.4</strong></div>
-  <div class="regime-item">Position Sizing: <strong>75%</strong></div>
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('portfolio')">💰 Portfolio</div>
+  <div class="tab" onclick="showTab('trade')">📋 IGV Trade</div>
+  <div class="tab" onclick="showTab('watchlist')">👁 Watchlist</div>
+  <div class="tab" onclick="showTab('sentiment')">🧠 Sentiment</div>
+  <div class="tab" onclick="showTab('conditional')">⚡ Triggers</div>
+  <div class="tab" onclick="showTab('rules')">📏 Rules</div>
+  <div class="tab" onclick="showTab('history')">📖 History</div>
 </div>
 
-<div class="grid">
-
-  <!-- Portfolio Overview -->
-  <div class="card col-span-2">
-    <div class="ch"><h2>Portfolio Overview</h2><span id="dayCount" style="font-size:11px;color:var(--teal);"></span></div>
+<!-- TAB: Portfolio -->
+<div class="tab-content active" id="tab-portfolio">
+  <div class="card">
+    <div class="ch"><h2>Portfolio Overview</h2><span id="dayCount" style="font-size:13px;color:var(--teal);"></span></div>
     <div class="cb">
-      <div class="stats">
-        <div class="stat"><div class="stat-l">Capital</div><div class="stat-v">$10,000</div></div>
-        <div class="stat"><div class="stat-l">Current Value</div><div class="stat-v tl" id="curVal">$10,075.64</div></div>
-        <div class="stat"><div class="stat-l">Cash</div><div class="stat-v">$7,569.29</div><div class="stat-s">75.7% cash</div></div>
-        <div class="stat"><div class="stat-l">Invested</div><div class="stat-v">$2,506.35</div><div class="stat-s">1 position</div></div>
-        <div class="stat"><div class="stat-l">Total P&L</div><div class="stat-v pos">+$75.64</div><div class="stat-s pos">+0.76%</div></div>
-        <div class="stat"><div class="stat-l">Max Drawdown</div><div class="stat-v">0.0%</div><div class="stat-s">Limit: 20%</div></div>
-        <div class="stat"><div class="stat-l">Win Rate</div><div class="stat-v" style="color:var(--dim);">—</div><div class="stat-s">0 closed</div></div>
-        <div class="stat"><div class="stat-l">Days Left</div><div class="stat-v tl" id="daysLeft">—</div><div class="stat-s">Go-live target</div></div>
+      <div class="big-stats">
+        <div class="big-stat"><div class="big-stat-label">Starting Capital</div><div class="big-stat-val">$10,000</div></div>
+        <div class="big-stat"><div class="big-stat-label">Current Value</div><div class="big-stat-val tl">$10,075.64</div><div class="big-stat-sub pos">+$75.64 (+0.76%)</div></div>
+        <div class="big-stat"><div class="big-stat-label">Cash Available</div><div class="big-stat-val">$7,569.29</div><div class="big-stat-sub">75.7% cash</div></div>
+        <div class="big-stat"><div class="big-stat-label">Total Invested</div><div class="big-stat-val">$2,506.35</div><div class="big-stat-sub">1 position open</div></div>
+        <div class="big-stat"><div class="big-stat-label">Max Drawdown</div><div class="big-stat-val">0.0%</div><div class="big-stat-sub">Limit: 20%</div></div>
+        <div class="big-stat"><div class="big-stat-label">Days Remaining</div><div class="big-stat-val tl" id="daysLeft">27</div><div class="big-stat-sub">Go-live if profitable</div></div>
       </div>
     </div>
   </div>
 
-  <!-- Sidebar: Rules -->
-  <div class="card sidebar" style="grid-row: span 3;">
-    <div class="ch"><h2>System Rules</h2></div>
-    <div class="cb">
-      <div class="rule"><div class="rule-n">Strategy</div><div class="rule-v">Momentum Swing</div></div>
-      <div class="rule"><div class="rule-n">Hold Period</div><div class="rule-v">2–10 days</div></div>
-      <div class="rule"><div class="rule-n">Max Loss / Trade</div><div class="rule-v neg">3% ($300)</div></div>
-      <div class="rule"><div class="rule-n">Max Position</div><div class="rule-v">$2,500 (25%)</div></div>
-      <div class="rule"><div class="rule-n">Max Invested</div><div class="rule-v">75%</div></div>
-      <div class="rule"><div class="rule-n">Max Drawdown</div><div class="rule-v neg">20% → pause</div></div>
-      <div class="rule"><div class="rule-n">Min R:R</div><div class="rule-v">2:1</div></div>
-      <div class="rule"><div class="rule-n">Min Conviction</div><div class="rule-v tl">≥ 7/10</div></div>
-      <div class="rule"><div class="rule-n">Max Gap Risk</div><div class="rule-v neg">4% overnight</div></div>
-      <div class="rule"><div class="rule-n">Max Open</div><div class="rule-v">3 positions</div></div>
-      <div class="rule" style="border:none;"><div class="rule-n">Go-Live</div><div class="rule-v tl">30 days profitable</div></div>
-    </div>
-    <div class="ch"><h2>Scoring Rubric</h2></div>
-    <div class="cb">
-      <div class="score-row"><span class="score-dim">Technical</span><span>0-2 pts</span></div>
-      <div class="score-row"><span class="score-dim">Macro/Sentiment</span><span>0-2 pts</span></div>
-      <div class="score-row"><span class="score-dim">Risk/Reward</span><span>0-2 pts</span></div>
-      <div class="score-row"><span class="score-dim">Catalyst</span><span>0-2 pts</span></div>
-      <div class="score-row"><span class="score-dim">Timing</span><span>0-2 pts</span></div>
-      <div class="score-row" style="border-top:1px solid var(--border);padding-top:6px;"><span style="font-weight:700;">Min to Trade</span><span class="tl" style="font-weight:700;font-size:14px;">≥ 7/10</span></div>
-    </div>
-    <div class="ch"><h2>No-Emotion Checklist</h2></div>
-    <div class="cb" style="font-size:10px;line-height:1.8;color:var(--dim);">
-      ☐ Score ≥ 7?<br>
-      ☐ R:R ≥ 2:1?<br>
-      ☐ Within size limits?<br>
-      ☐ PLAN not REACTION?<br>
-      ☐ Market regime OK?<br>
-      ☐ Exit set BEFORE entry?<br>
-      ☐ Would I take if down 5%?<br>
-      ☐ NOT adding to loser?
-    </div>
-  </div>
-
-  <!-- Open Positions -->
-  <div class="card col-span-2">
-    <div class="ch"><h2>Open Positions</h2><span style="font-size:11px;color:var(--dim);">1 of 3 max</span></div>
+  <div class="card">
+    <div class="ch"><h2>Open Positions</h2></div>
     <div class="cb" style="overflow-x:auto;">
-      <table>
-        <thead><tr>
-          <th>Ticker</th><th>Dir</th><th>Entry</th><th>Current</th><th>Shares</th><th>Value</th><th>Stop</th><th>Target</th><th>R:R</th><th>Score</th><th>P&L</th><th>% Stop</th><th>% Target</th><th>Days</th>
-        </tr></thead>
-        <tbody><tr>
-          <td class="tkr">IGV</td>
-          <td class="pos">LONG</td>
-          <td>$78.41</td>
-          <td><strong>$80.85</strong></td>
-          <td>31</td>
-          <td>$2,506.35</td>
-          <td class="neg">$75.50</td>
-          <td class="pos">$92.00</td>
-          <td>4.7:1</td>
-          <td class="pos"><strong>8/10</strong></td>
-          <td class="pos"><strong>+$75.64</strong></td>
-          <td>6.6%</td>
-          <td>13.8%</td>
-          <td>1</td>
-        </tr></tbody>
+      <table class="wl-table">
+        <thead><tr><th>Ticker</th><th>Direction</th><th>Entry</th><th>Current</th><th>Shares</th><th>P&L</th><th>Stop</th><th>Target</th><th>R:R</th><th>Score</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="tkr">IGV</td>
+            <td class="pos">LONG</td>
+            <td>$78.41</td>
+            <td><strong>$80.85</strong></td>
+            <td>31</td>
+            <td class="pos"><strong>+$75.64 (+3.1%)</strong></td>
+            <td class="neg">$75.50</td>
+            <td class="pos">$92.00</td>
+            <td>4.7:1</td>
+            <td class="pos"><strong>8/10</strong></td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Trade Detail: IGV -->
   <div class="card">
-    <div class="ch"><h2>Trade #1: IGV</h2><span class="pos" style="font-size:11px;">● OPEN +3.1%</span></div>
+    <div class="ch"><h2>Market Overview</h2><span style="font-size:13px;color:var(--dim);">Feb 25 Close</span></div>
     <div class="cb">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;">
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;"><span class="dim" style="color:var(--dim);">Name</span></div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;font-weight:600;">iShares Tech-Software ETF</div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;"><span style="color:var(--dim);">Rec. Range</span></div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;font-weight:600;">$78.00 – $79.50</div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;"><span style="color:var(--dim);">Actual Entry</span></div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;font-weight:600;">$78.41 ✓</div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;"><span style="color:var(--dim);">Stop Loss</span></div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;font-weight:600;color:var(--red);">$75.50 (-3.7%)</div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;"><span style="color:var(--dim);">Target</span></div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;font-weight:600;color:var(--green);">$92.00 (+17.3%)</div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;"><span style="color:var(--dim);">R:R</span></div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;font-weight:600;color:var(--teal);">4.7 : 1</div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;"><span style="color:var(--dim);">$ at Risk</span></div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;font-weight:600;color:var(--red);">-$90.21</div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;"><span style="color:var(--dim);">$ Reward</span></div>
-        <div style="padding:3px 0;border-bottom:1px solid #1c2129;font-weight:600;color:var(--green);">+$421.39</div>
-      </div>
-      <!-- Price Bar -->
-      <div class="pbar-wrap" style="margin-top:12px;">
-        <div class="pbar-labels"><span class="neg">STOP $75.50</span><span class="pos">TARGET $92.00</span></div>
-        <div class="pbar" style="margin-top:20px;margin-bottom:24px;">
-          <div class="pbar-marker entry" style="left:17.6%;"><div class="pbar-mlabel" style="color:var(--yellow);top:28px;">Entry $78.41</div></div>
-          <div class="pbar-marker current" id="pm" style="left:32.4%;"><div class="pbar-mlabel" style="color:var(--bright);">$80.85</div></div>
-        </div>
-      </div>
-      <!-- Score Breakdown -->
-      <div style="margin-top:4px;">
-        <div class="score-row"><span class="score-dim">Technical</span><div class="score-dots"><div class="score-dot filled"></div><div class="score-dot filled"></div></div></div>
-        <div class="score-row"><span class="score-dim">Macro</span><div class="score-dots"><div class="score-dot filled"></div><div class="score-dot"></div></div></div>
-        <div class="score-row"><span class="score-dim">Risk/Reward</span><div class="score-dots"><div class="score-dot filled"></div><div class="score-dot filled"></div></div></div>
-        <div class="score-row"><span class="score-dim">Catalyst</span><div class="score-dots"><div class="score-dot filled"></div><div class="score-dot filled"></div></div></div>
-        <div class="score-row"><span class="score-dim">Timing</span><div class="score-dots"><div class="score-dot filled"></div><div class="score-dot filled"></div></div></div>
-        <div class="score-row" style="border-top:1px solid var(--border);padding-top:4px;margin-top:4px;"><span style="font-weight:700;">Total</span><span class="pos" style="font-weight:700;font-size:14px;">8 / 10</span></div>
+      <div class="big-stats">
+        <div class="big-stat"><div class="big-stat-label">S&P 500 (SPY)</div><div class="big-stat-val pos" style="font-size:22px;">$693.15</div><div class="big-stat-sub pos">+0.84%</div></div>
+        <div class="big-stat"><div class="big-stat-label">Nasdaq (QQQ)</div><div class="big-stat-val pos" style="font-size:22px;">$616.68</div><div class="big-stat-sub pos">+1.45%</div></div>
+        <div class="big-stat"><div class="big-stat-label">Semis (SMH)</div><div class="big-stat-val pos" style="font-size:22px;">$426.16</div><div class="big-stat-sub pos">+1.67%</div></div>
+        <div class="big-stat"><div class="big-stat-label">Bitcoin</div><div class="big-stat-val pos" style="font-size:22px;">$68,191</div><div class="big-stat-sub pos">+4.27%</div></div>
+        <div class="big-stat"><div class="big-stat-label">NVDA</div><div class="big-stat-val pos" style="font-size:22px;">$195.56</div><div class="big-stat-sub pos">+1.41% (beat Q4)</div></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- TAB: Trade Detail -->
+<div class="tab-content" id="tab-trade">
+  <div class="card">
+    <div class="ch"><h2>Trade #1: IGV</h2><div class="ch-badge pos" style="background:rgba(46,160,67,0.15);">● OPEN +3.1%</div></div>
+    <div class="cb">
+      <div class="detail-grid">
+        <div>
+          <div class="drow"><span class="drow-label">Full Name</span><span class="drow-val">iShares Expanded Tech-Software ETF</span></div>
+          <div class="drow"><span class="drow-label">Direction</span><span class="drow-val pos">LONG</span></div>
+          <div class="drow"><span class="drow-label">Entry Date</span><span class="drow-val">Feb 25, 2026</span></div>
+          <div class="drow"><span class="drow-label">Days Held</span><span class="drow-val">1</span></div>
+          <div class="drow"><span class="drow-label">Recommended Range</span><span class="drow-val">$78.00 – $79.50</span></div>
+          <div class="drow"><span class="drow-label">Actual Entry</span><span class="drow-val">$78.41 ✓</span></div>
+        </div>
+        <div>
+          <div class="drow"><span class="drow-label">Stop Loss</span><span class="drow-val neg">$75.50 (-3.7%)</span></div>
+          <div class="drow"><span class="drow-label">Target</span><span class="drow-val pos">$92.00 (+17.3%)</span></div>
+          <div class="drow"><span class="drow-label">R:R Ratio</span><span class="drow-val tl">4.7 : 1</span></div>
+          <div class="drow"><span class="drow-label">$ at Risk</span><span class="drow-val neg">-$90.21</span></div>
+          <div class="drow"><span class="drow-label">$ Reward</span><span class="drow-val pos">+$421.39</span></div>
+          <div class="drow"><span class="drow-label">Current P&L</span><span class="drow-val pos">+$75.64 (+3.1%)</span></div>
+        </div>
+      </div>
+
+      <!-- Price Bar -->
+      <div class="pbar-wrap">
+        <div class="pbar-labels"><span class="neg">⛔ STOP $75.50</span><span style="color:var(--dim);">6.6% above stop · 13.8% to target</span><span class="pos">🎯 TARGET $92.00</span></div>
+        <div class="pbar" style="margin-top:24px;margin-bottom:28px;">
+          <div class="pbar-marker entry" style="left:17.6%;"><div class="pbar-mlabel" style="color:var(--yellow);top:44px;">Entry $78.41</div></div>
+          <div class="pbar-marker current" style="left:32.4%;"><div class="pbar-mlabel" style="color:var(--bright);top:-22px;">$80.85</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Score Breakdown -->
+  <div class="card">
+    <div class="ch"><h2>Conviction Score Breakdown</h2></div>
+    <div class="cb">
+      <div class="score-visual"><span class="score-name">Technical</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot on">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">RSI bouncing from 18, +3.1% today</span></div>
+      <div class="score-visual"><span class="score-name">Macro/Sentiment</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">Neutral regime, tariff overhang</span></div>
+      <div class="score-visual"><span class="score-name">Risk/Reward</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot on">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">4.7:1 R:R, clear stop level</span></div>
+      <div class="score-visual"><span class="score-name">Catalyst</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot on">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">NVDA beat earnings +3.7%</span></div>
+      <div class="score-visual"><span class="score-name">Timing</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">Good entry in range, not chasing</span></div>
+    </div>
+    <div class="score-total">Total: <span class="pos">8 / 10</span></div>
   </div>
 
   <!-- Thesis -->
   <div class="card">
-    <div class="ch"><h2>Thesis & Catalysts</h2></div>
+    <div class="ch"><h2>Thesis</h2></div>
     <div class="cb">
       <div class="thesis">
-        <strong>"SaaSpocalypse" overreaction bounce.</strong> Software sector lost $2T market cap — IGV dropped 32%, RSI hit 18 (most oversold since 1990). Panic selling exhausted. AI needs software to run — "AI replaces software" narrative is logically broken.
+        <strong>"SaaSpocalypse" overreaction bounce.</strong> Software sector lost $2T in market cap — IGV dropped 32%, RSI hit 18 (most oversold since 1990). Panic selling exhausted. JPMorgan/Jefferies coined scary names, retail dumped everything. We're buying their capitulation. AI needs software to run — the "AI replaces software" narrative is logically broken.
       </div>
-      <div style="margin-top:10px;font-size:11px;">
-        <div style="padding:4px 0;border-bottom:1px solid #1c2129;">
-          <span style="color:var(--green);">✓</span> <strong>NVDA Earnings</strong> — Beat $1.62 vs $1.56 est (+3.7%). AI capex confirmed strong.
-        </div>
-        <div style="padding:4px 0;border-bottom:1px solid #1c2129;">
-          <span style="color:var(--green);">✓</span> <strong>RSI Recovery</strong> — Bounced from 18 → 30.5 → now rising with +3.1% today
-        </div>
-        <div style="padding:4px 0;border-bottom:1px solid #1c2129;">
-          <span style="color:var(--yellow);">◐</span> <strong>Human Nature</strong> — Retail capitulation selling creates forced sellers. We bought their panic.
-        </div>
-        <div style="padding:4px 0;">
-          <span style="color:var(--dim);">○</span> <strong>Next Target</strong> — 50-day MA at $92.00 is the mean-reversion magnet
-        </div>
+      <div style="margin-top:16px;">
+        <div class="catalyst"><span class="catalyst-icon">✅</span><div><strong>NVDA Earnings Beat</strong> — $1.62 vs $1.56 est (+3.7%). AI capex confirmed strong. Software benefits.</div></div>
+        <div class="catalyst"><span class="catalyst-icon">✅</span><div><strong>RSI Recovery</strong> — Bounced from 18 → 30.5 → rising. +3.1% on entry day.</div></div>
+        <div class="catalyst"><span class="catalyst-icon">🧠</span><div><strong>Human Nature Edge</strong> — Retail capitulation at 15-20% drawdown creates forced sellers. We bought their panic.</div></div>
+        <div class="catalyst"><span class="catalyst-icon">🎯</span><div><strong>Target Logic</strong> — 50-day MA at $92.00 is the mean-reversion magnet. Historically reliable.</div></div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Sentiment Dashboard -->
+<!-- TAB: Watchlist -->
+<div class="tab-content" id="tab-watchlist">
   <div class="card">
-    <div class="ch"><h2>Sentiment Dashboard</h2></div>
-    <div class="cb">
-      <div style="font-size:11px;margin-bottom:8px;"><strong>Fear & Greed Gauges</strong></div>
-      <!-- Crypto F&G -->
-      <div style="margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;"><span>Crypto Fear & Greed</span><span class="neg" style="font-weight:700;">11 — EXTREME FEAR</span></div>
-        <div class="gauge-bar"><div class="gauge-fill" style="width:11%;background:var(--red);"></div></div>
-      </div>
-      <!-- Put/Call -->
-      <div style="margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;"><span>CBOE Put/Call Ratio</span><span class="pos" style="font-weight:700;">0.62 — Slightly Bullish</span></div>
-        <div class="gauge-bar"><div class="gauge-fill" style="width:62%;background:var(--green);"></div></div>
-      </div>
-      <!-- Reddit trending -->
-      <div style="font-size:11px;margin:10px 0 6px;"><strong>Reddit Trending (Top 5)</strong></div>
-      <div style="font-size:10px;">
-        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1c2129;"><span class="tkr">NVDA</span><span>1,844 mentions <span class="pos">↑401%</span></span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1c2129;"><span class="tkr">SPY</span><span>538 mentions <span class="pos">↑41%</span></span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1c2129;"><span class="tkr">MSFT</span><span>207 mentions <span class="neg">↓29%</span></span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1c2129;"><span class="tkr">QQQ</span><span>151 mentions <span class="pos">↑32%</span></span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0;"><span class="tkr">LUNR</span><span>81 mentions <span class="pos" style="font-weight:700;">↑1,925% 🔥</span></span></div>
-      </div>
-      <div style="font-size:9px;color:var(--dim);margin-top:6px;">⚡ LUNR spike: 4→81 mentions. Investigate for potential play.</div>
-    </div>
-  </div>
-
-  <!-- Watchlist -->
-  <div class="card">
-    <div class="ch"><h2>Watchlist</h2><span style="font-size:10px;color:var(--dim);">Live Prices</span></div>
-    <div class="cb">
-      <div class="wl-item">
-        <div><div class="wl-tkr">NVDA</div><div class="wl-price">$195.56</div></div>
-        <div style="text-align:right;"><div class="wl-chg pos">+1.41%</div><div class="wl-cond">Beat earnings +3.7%</div></div>
-      </div>
-      <div class="wl-item">
-        <div><div class="wl-tkr">AMD</div><div class="wl-price">$210.86</div></div>
-        <div style="text-align:right;"><div class="wl-chg neg">-1.39%</div><span class="wl-status go">TRIGGER MET</span><div class="wl-cond">NVDA beat → entry unlocked</div></div>
-      </div>
-      <div class="wl-item">
-        <div><div class="wl-tkr">MSTR</div><div class="wl-price">$135.65</div></div>
-        <div style="text-align:right;"><div class="wl-chg pos">+8.86%</div><span class="wl-status go">TRIGGER MET</span><div class="wl-cond">BTC broke $67K → $68.1K</div></div>
-      </div>
-      <div class="wl-item">
-        <div><div class="wl-tkr">AVGO</div><div class="wl-price">$332.31</div></div>
-        <div style="text-align:right;"><div class="wl-chg pos">+2.10%</div><span class="wl-status wait">WATCHING</span></div>
-      </div>
-      <div class="wl-item">
-        <div><div class="wl-tkr">PLTR</div><div class="wl-price">$134.19</div></div>
-        <div style="text-align:right;"><div class="wl-chg pos">+4.15%</div><span class="wl-status wait">WATCHING</span></div>
-      </div>
-      <div class="wl-item">
-        <div><div class="wl-tkr">META</div><div class="wl-price">$653.69</div></div>
-        <div style="text-align:right;"><div class="wl-chg pos">+2.25%</div><span class="wl-status wait">WATCHING</span></div>
-      </div>
-      <div class="wl-item">
-        <div><div class="wl-tkr">COIN</div><div class="wl-price">$183.94</div></div>
-        <div style="text-align:right;"><div class="wl-chg pos">+13.52%</div><span class="wl-status wait">WATCHING</span></div>
-      </div>
-      <div class="wl-item">
-        <div><div class="wl-tkr">ARM</div><div class="wl-price">$131.74</div></div>
-        <div style="text-align:right;"><div class="wl-chg pos">+2.81%</div><span class="wl-status wait">WATCHING</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Market Indices -->
-  <div class="card col-span-2">
-    <div class="ch"><h2>Market Overview</h2><span style="font-size:10px;color:var(--dim);">Feb 25 Close</span></div>
-    <div class="cb">
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
-        <div class="stat"><div class="stat-l">S&P 500</div><div class="stat-v pos" style="font-size:15px;">$693.15</div><div class="stat-s pos">+0.84%</div></div>
-        <div class="stat"><div class="stat-l">NASDAQ (QQQ)</div><div class="stat-v pos" style="font-size:15px;">$616.68</div><div class="stat-s pos">+1.45%</div></div>
-        <div class="stat"><div class="stat-l">Semis (SMH)</div><div class="stat-v pos" style="font-size:15px;">$426.16</div><div class="stat-s pos">+1.67%</div></div>
-        <div class="stat"><div class="stat-l">Bitcoin</div><div class="stat-v pos" style="font-size:15px;">$68,191</div><div class="stat-s pos">+4.27%</div></div>
-        <div class="stat"><div class="stat-l">NVDA</div><div class="stat-v pos" style="font-size:15px;">$195.56</div><div class="stat-s pos">+1.41% (beat)</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Conditional Trades -->
-  <div class="card col-span-2">
-    <div class="ch"><h2>Conditional Trades — Triggers Updated</h2></div>
+    <div class="ch"><h2>Full Watchlist</h2><span style="font-size:13px;color:var(--dim);">Live prices as of close</span></div>
     <div class="cb" style="overflow-x:auto;">
-      <table>
-        <thead><tr><th>Ticker</th><th>Direction</th><th>Condition</th><th>Status</th><th>Entry Zone</th><th>Stop</th><th>Target</th><th>Shares</th><th>$ Risk</th><th>R:R</th><th>Score</th></tr></thead>
+      <table class="wl-table">
+        <thead><tr><th>Ticker</th><th>Price</th><th>Change</th><th>Sector</th><th>Status</th><th>Notes</th></tr></thead>
         <tbody>
-          <tr>
-            <td class="tkr">AMD</td><td class="pos">LONG</td>
-            <td>NVDA beats earnings</td>
-            <td><span class="pos" style="font-weight:700;">✓ TRIGGERED</span></td>
-            <td>$200–$215</td><td class="neg">$190</td><td class="pos">$250</td>
-            <td>11</td><td class="neg">-$231</td><td>1.7:1</td><td style="color:var(--yellow);">6/10</td>
-          </tr>
-          <tr>
-            <td class="tkr">MSTR</td><td class="pos">LONG</td>
-            <td>BTC breaks $67K</td>
-            <td><span class="pos" style="font-weight:700;">✓ TRIGGERED</span></td>
-            <td>$120–$135</td><td class="neg">$110</td><td class="pos">$165</td>
-            <td>18</td><td class="neg">-$270</td><td>2.4:1</td><td style="color:var(--yellow);">7/10</td>
-          </tr>
+          <tr><td class="tkr">IGV</td><td>$80.85</td><td class="pos">+3.11%</td><td>Software</td><td><span class="wl-status active">OPEN</span></td><td>Active position — Day 1</td></tr>
+          <tr><td class="tkr">NVDA</td><td>$195.56</td><td class="pos">+1.41%</td><td>AI/Semi</td><td><span class="wl-status watching">WATCHING</span></td><td>Beat Q4 earnings +3.7%</td></tr>
+          <tr><td class="tkr">AMD</td><td>$210.86</td><td class="neg">-1.39%</td><td>AI/Semi</td><td><span class="wl-status triggered">TRIGGERED</span></td><td>NVDA beat → entry unlocked</td></tr>
+          <tr><td class="tkr">MSTR</td><td>$135.65</td><td class="pos">+8.86%</td><td>Crypto</td><td><span class="wl-status triggered">TRIGGERED</span></td><td>BTC broke $67K → $68.1K</td></tr>
+          <tr><td class="tkr">AVGO</td><td>$332.31</td><td class="pos">+2.10%</td><td>AI/Semi</td><td><span class="wl-status watching">WATCHING</span></td><td>AI networking leader</td></tr>
+          <tr><td class="tkr">PLTR</td><td>$134.19</td><td class="pos">+4.15%</td><td>AI/Software</td><td><span class="wl-status watching">WATCHING</span></td><td>Government + enterprise AI</td></tr>
+          <tr><td class="tkr">META</td><td>$653.69</td><td class="pos">+2.25%</td><td>Big Tech</td><td><span class="wl-status watching">WATCHING</span></td><td>AI ad revenue + Llama</td></tr>
+          <tr><td class="tkr">COIN</td><td>$183.94</td><td class="pos">+13.52%</td><td>Crypto</td><td><span class="wl-status watching">WATCHING</span></td><td>BTC rally beneficiary</td></tr>
+          <tr><td class="tkr">ARM</td><td>$131.74</td><td class="pos">+2.81%</td><td>AI/Semi</td><td><span class="wl-status watching">WATCHING</span></td><td>AI chip architecture</td></tr>
+          <tr><td class="tkr">SPY</td><td>$693.15</td><td class="pos">+0.84%</td><td>Index</td><td><span class="wl-status watching">WATCHING</span></td><td>Tariff uncertainty caps upside</td></tr>
+          <tr><td class="tkr">QQQ</td><td>$616.68</td><td class="pos">+1.45%</td><td>Index</td><td><span class="wl-status watching">WATCHING</span></td><td>Tech-heavy, NVDA earnings lift</td></tr>
+          <tr><td class="tkr">SMH</td><td>$426.16</td><td class="pos">+1.67%</td><td>Semis</td><td><span class="wl-status watching">WATCHING</span></td><td>Semiconductor ETF</td></tr>
         </tbody>
       </table>
-      <div style="font-size:10px;color:var(--dim);margin-top:6px;">⚠️ Both triggers met today. Score and evaluate at tomorrow's briefing before entering. MSTR at 7/10 (actionable). AMD at 6/10 (needs improvement — wait for pullback).</div>
     </div>
   </div>
+</div>
 
-  <!-- Trade History -->
-  <div class="card col-span-2">
-    <div class="ch"><h2>Trade History</h2><span style="font-size:10px;color:var(--dim);">0 closed</span></div>
+<!-- TAB: Sentiment -->
+<div class="tab-content" id="tab-sentiment">
+  <div class="card">
+    <div class="ch"><h2>Market Regime</h2><span style="font-size:14px;color:var(--yellow);font-weight:700;">⚖️ NEUTRAL — 75% Position Sizing</span></div>
     <div class="cb">
-      <table>
-        <thead><tr><th>#</th><th>Ticker</th><th>Dir</th><th>Entry</th><th>Exit</th><th>Shares</th><th>P&L</th><th>R-Mult</th><th>Days</th><th>Score</th><th>Lesson</th></tr></thead>
-        <tbody><tr><td colspan="11" style="text-align:center;color:var(--dim);padding:16px;">First trade (IGV) still open. History populates as trades close.</td></tr></tbody>
-      </table>
+      <div class="gauge">
+        <div class="gauge-header"><span>Crypto Fear & Greed</span><span class="neg" style="font-weight:700;">11 — Extreme Fear</span></div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:11%;background:var(--red);"></div></div>
+      </div>
+      <div class="gauge">
+        <div class="gauge-header"><span>CBOE Put/Call Ratio</span><span class="pos" style="font-weight:700;">0.62 — Slightly Bullish</span></div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:62%;background:var(--green);"></div></div>
+      </div>
+      <div class="gauge">
+        <div class="gauge-header"><span>VIX (Fear Index)</span><span style="font-weight:700;color:var(--yellow);">~19 — Elevated</span></div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:48%;background:var(--yellow);"></div></div>
+      </div>
+      <div style="margin-top:12px;font-size:14px;color:var(--dim);line-height:1.6;">
+        <strong>Interpretation:</strong> Extreme crypto fear (contrarian buy signal for BTC), put/call mildly bullish, VIX elevated but not panicking. Mixed signals = NEUTRAL regime. Don't go all-in, but opportunities exist for oversold bounces.
+      </div>
     </div>
   </div>
 
-  <!-- Lessons -->
-  <div class="card col-span-2">
+  <div class="card">
+    <div class="ch"><h2>Reddit Trending Stocks</h2><span style="font-size:13px;color:var(--dim);">via ApeWisdom</span></div>
+    <div class="cb">
+      <div class="sent-item"><div><span class="tkr">NVDA</span><span style="margin-left:8px;color:var(--dim);">NVIDIA</span></div><div>1,844 mentions <span class="pos" style="font-weight:700;">↑401%</span></div></div>
+      <div class="sent-item"><div><span class="tkr">SPY</span><span style="margin-left:8px;color:var(--dim);">S&P 500 ETF</span></div><div>538 mentions <span class="pos">↑41%</span></div></div>
+      <div class="sent-item"><div><span class="tkr">MSFT</span><span style="margin-left:8px;color:var(--dim);">Microsoft</span></div><div>207 mentions <span class="neg">↓29%</span></div></div>
+      <div class="sent-item"><div><span class="tkr">QQQ</span><span style="margin-left:8px;color:var(--dim);">Nasdaq ETF</span></div><div>151 mentions <span class="pos">↑32%</span></div></div>
+      <div class="sent-item"><div><span class="tkr">AMD</span><span style="margin-left:8px;color:var(--dim);">AMD</span></div><div>149 mentions <span class="neg">↓52%</span></div></div>
+      <div class="sent-item" style="background:rgba(233,69,96,0.05);padding:10px;border-radius:6px;">
+        <div><span class="tkr" style="color:var(--red);">🔥 LUNR</span><span style="margin-left:8px;color:var(--dim);">Intuitive Machines</span></div>
+        <div>81 mentions <span class="pos" style="font-weight:700;">↑1,925%</span></div>
+      </div>
+      <div style="font-size:13px;color:var(--dim);margin-top:10px;padding:10px;background:var(--bg3);border-radius:6px;">
+        ⚡ <strong>LUNR Alert:</strong> Mentions jumped from 4 → 81 in 24h. Massive spike. Worth investigating for potential catalyst play.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Conditional Trades -->
+<div class="tab-content" id="tab-conditional">
+  <div class="card">
+    <div class="ch"><h2>Conditional Trades — Trigger Status</h2></div>
+    <div class="cb">
+      <div class="cond-card">
+        <div class="cond-header">
+          <div><span class="tkr" style="font-size:20px;">AMD</span><span class="pos" style="margin-left:8px;font-weight:700;">✓ TRIGGERED</span></div>
+          <span style="font-size:14px;color:var(--yellow);font-weight:700;">Score: 6/10 — WAIT</span>
+        </div>
+        <div style="font-size:14px;color:var(--dim);margin-bottom:10px;"><strong>Condition:</strong> NVDA beats earnings → ✅ Beat by 3.7%</div>
+        <div class="cond-grid">
+          <div><div class="cond-label">Entry Zone</div><div style="font-weight:600;">$200 – $215</div></div>
+          <div><div class="cond-label">Current</div><div style="font-weight:600;">$210.86</div></div>
+          <div><div class="cond-label">Stop</div><div style="font-weight:600;color:var(--red);">$190</div></div>
+          <div><div class="cond-label">Target</div><div style="font-weight:600;color:var(--green);">$250</div></div>
+          <div><div class="cond-label">R:R</div><div style="font-weight:600;">1.7:1</div></div>
+          <div><div class="cond-label">Action</div><div style="font-weight:600;color:var(--yellow);">Wait for pullback</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--dim);margin-top:10px;">⚠️ Score only 6/10 — R:R below 2:1 minimum. Wait for better entry or thesis improvement.</div>
+      </div>
+
+      <div class="cond-card">
+        <div class="cond-header">
+          <div><span class="tkr" style="font-size:20px;">MSTR</span><span class="pos" style="margin-left:8px;font-weight:700;">✓ TRIGGERED</span></div>
+          <span style="font-size:14px;color:var(--green);font-weight:700;">Score: 7/10 — ACTIONABLE</span>
+        </div>
+        <div style="font-size:14px;color:var(--dim);margin-bottom:10px;"><strong>Condition:</strong> BTC breaks $67K → ✅ BTC at $68,191</div>
+        <div class="cond-grid">
+          <div><div class="cond-label">Entry Zone</div><div style="font-weight:600;">$120 – $135</div></div>
+          <div><div class="cond-label">Current</div><div style="font-weight:600;">$135.65</div></div>
+          <div><div class="cond-label">Stop</div><div style="font-weight:600;color:var(--red);">$110</div></div>
+          <div><div class="cond-label">Target</div><div style="font-weight:600;color:var(--green);">$165</div></div>
+          <div><div class="cond-label">R:R</div><div style="font-weight:600;">2.4:1</div></div>
+          <div><div class="cond-label">Action</div><div style="font-weight:600;color:var(--green);">Evaluate at open</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--dim);margin-top:10px;">✅ Score meets 7/10 minimum. BTC momentum strong (+4.3%). Score at tomorrow's briefing.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Rules -->
+<div class="tab-content" id="tab-rules">
+  <div class="detail-grid">
+    <div class="card">
+      <div class="ch"><h2>Trading Rules</h2></div>
+      <div class="cb">
+        <div class="rule"><span class="rule-name">Strategy</span><span class="rule-val">Momentum Swing (2–10 days)</span></div>
+        <div class="rule"><span class="rule-name">Max Loss / Trade</span><span class="rule-val neg">3% ($300)</span></div>
+        <div class="rule"><span class="rule-name">Max Position</span><span class="rule-val">$2,500 (25%)</span></div>
+        <div class="rule"><span class="rule-name">Max Invested</span><span class="rule-val">75% ($7,500)</span></div>
+        <div class="rule"><span class="rule-name">Max Open Positions</span><span class="rule-val">3</span></div>
+        <div class="rule"><span class="rule-name">Max Drawdown</span><span class="rule-val neg">20% → pause all trading</span></div>
+        <div class="rule"><span class="rule-name">Min R:R</span><span class="rule-val">2:1</span></div>
+        <div class="rule"><span class="rule-name">Min Conviction</span><span class="rule-val tl">≥ 7/10</span></div>
+        <div class="rule"><span class="rule-name">Max Overnight Gap</span><span class="rule-val neg">4%</span></div>
+        <div class="rule"><span class="rule-name">Time Stop</span><span class="rule-val">Exit if flat after 5 days</span></div>
+        <div class="rule"><span class="rule-name">After 2 Losses</span><span class="rule-val neg">24h cooldown</span></div>
+        <div class="rule"><span class="rule-name">Log at Open</span><span class="rule-val">Always (default)</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="ch"><h2>Scoring Rubric (5 Dimensions)</h2></div>
+        <div class="cb">
+          <div class="rule"><span class="rule-name">Technical (0-2)</span><span class="rule-val">RSI, MACD, MAs, volume, pattern</span></div>
+          <div class="rule"><span class="rule-name">Macro/Sentiment (0-2)</span><span class="rule-val">VIX, F&G, sector strength</span></div>
+          <div class="rule"><span class="rule-name">Risk/Reward (0-2)</span><span class="rule-val">R:R ratio, clear stop</span></div>
+          <div class="rule"><span class="rule-name">Catalyst (0-2)</span><span class="rule-val">Earnings, news, options flow</span></div>
+          <div class="rule"><span class="rule-name">Timing (0-2)</span><span class="rule-val">Entry quality, not chasing</span></div>
+          <div class="rule" style="border-top:2px solid var(--border);padding-top:12px;margin-top:4px;"><span class="rule-name" style="font-weight:700;">MIN TO TRADE</span><span class="rule-val tl" style="font-size:20px;">≥ 7 / 10</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><h2>No-Emotion Checklist</h2></div>
+        <div class="cb">
+          <div class="check-item">☐ Does it score ≥ 7/10?</div>
+          <div class="check-item">☐ Is R:R ≥ 2:1?</div>
+          <div class="check-item">☐ Within position size limits?</div>
+          <div class="check-item">☐ Is this a PLAN or a REACTION?</div>
+          <div class="check-item">☐ Is market regime favorable?</div>
+          <div class="check-item">☐ Exit set BEFORE entering?</div>
+          <div class="check-item">☐ Would I take this if down 5% this week?</div>
+          <div class="check-item">☐ Am I adding to a loser? (NEVER)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: History -->
+<div class="tab-content" id="tab-history">
+  <div class="card">
+    <div class="ch"><h2>Closed Trades</h2><span style="font-size:13px;color:var(--dim);">0 trades closed</span></div>
+    <div class="cb" style="text-align:center;padding:40px;color:var(--dim);font-size:15px;">
+      No closed trades yet. IGV is your first position — still open.<br>
+      Trade history will populate as positions close.
+    </div>
+  </div>
+
+  <div class="card">
     <div class="ch"><h2>Lessons Learned</h2></div>
-    <div class="cb" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div class="thesis" style="border-left-color:var(--yellow);">
-        <strong>Day 1 (Feb 23):</strong> Best trade is no trade when conditions don't meet the rules. Discipline > activity.
+    <div class="cb">
+      <div class="lesson" style="border-left-color:var(--yellow);">
+        <strong>Day 1 — Feb 23:</strong> Best trade is no trade when conditions don't meet the rules. Tariff chaos, BTC crashed, everything risk-off. Sat on hands. Discipline > activity.
       </div>
-      <div class="thesis" style="border-left-color:var(--green);">
-        <strong>Day 3 (Feb 25):</strong> Patience rewarded. Waited for chaos to settle, entered IGV at our price. Up 3.1% day one. Stick to the plan.
+      <div class="lesson" style="border-left-color:var(--green);">
+        <strong>Day 3 — Feb 25:</strong> Patience rewarded. Waited for chaos to settle, entered IGV at our planned price ($78.41 in the $78-$79.50 range). Up 3.1% day one. The system works — stick to the plan.
       </div>
     </div>
   </div>
-
 </div>
 
 <script>
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
 const start = new Date('2026-02-23'), now = new Date();
 const day = Math.floor((now - start) / 86400000) + 1;
-document.getElementById('dayCount').textContent = `Day ${day} of 30`;
+document.getElementById('dayCount').textContent = 'Day ' + day + ' of 30';
 document.getElementById('daysLeft').textContent = Math.max(0, 30 - day);
-document.getElementById('trialBadge').textContent = `DAY ${day}/30`;
+document.getElementById('trialBadge').textContent = 'DAY ' + day + '/30';
 const fmt = new Intl.DateTimeFormat('en-US', {timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
-document.getElementById('lastUpdated').textContent = fmt.format(now) + ' PT';
-
-// Price bar position
-function pPct(p) { return Math.max(0, Math.min(100, ((p - 75.50) / (92.00 - 75.50)) * 100)); }
-document.getElementById('pm').style.left = pPct(80.85) + '%';
+document.getElementById('lastUpdated').textContent = 'Updated: ' + fmt.format(now) + ' PT';
 </script>
 </body>
 </html>

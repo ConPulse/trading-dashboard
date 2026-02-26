@@ -517,16 +517,44 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
 
 <script>
 const FINNHUB_KEY = 'd6frbcpr01qqnmbpo9sgd6frbcpr01qqnmbpo9t0';
+const STATUS_URL = 'https://raw.githubusercontent.com/ConPulse/trading-dashboard/main/TRADE-STATUS.json';
 
-// Portfolio state
-const POSITIONS = [
+// Defaults (overwritten by TRADE-STATUS.json on load)
+let POSITIONS = [
   { ticker: 'IGV', shares: 31, entry: 78.41, stop: 75.50, target: 92.00, direction: 'LONG', date: '2026-02-25', score: 8 }
 ];
-const CASH = 7569.29;
-const START_CAPITAL = 10000;
+let CASH = 7569.29;
+let START_CAPITAL = 10000;
+let CONDITIONALS = [];
+let REGIME = {};
 
 // Tax rate: CA + Federal + NIIT for high-income CA resident, short-term gains (all our trades)
 const TAX_RATE = 0.50;  // ~50% combined (32-37% fed + 9.3-13.3% CA + 3.8% NIIT)
+
+// Load single source of truth
+async function loadTradeStatus() {
+  try {
+    const r = await fetch(STATUS_URL + '?t=' + Date.now());
+    const d = await r.json();
+    POSITIONS = d.positions.map(p => ({
+      ticker: p.ticker, shares: p.shares, entry: p.entry, stop: p.stop,
+      target: p.target, direction: p.direction, date: p.entryDate, score: p.score
+    }));
+    CASH = d.cash;
+    START_CAPITAL = d.startCapital;
+    CONDITIONALS = d.conditionals || [];
+    REGIME = d.regime || {};
+    document.getElementById('lastUpdated').textContent = 'Status loaded · Fetching prices...';
+    return true;
+  } catch (e) {
+    console.error('TRADE-STATUS.json load failed:', e);
+    const warn = document.createElement('div');
+    warn.style.cssText = 'background:var(--red);color:#fff;text-align:center;padding:10px;font-weight:700;font-size:14px;';
+    warn.textContent = '⚠️ TRADE STATUS DATA STALE — JSON failed to load. Showing cached defaults.';
+    document.body.insertBefore(warn, document.body.firstChild);
+    return false;
+  }
+}
 
 // Watchlist tickers + metadata
 const WATCHLIST = [
@@ -767,7 +795,8 @@ function updateDashboard(quotes) {
       const price = q?.price || 0;
       const change = q?.change || 0;
       const isOpen = POSITIONS.some(p => p.ticker === w.ticker);
-      const isTriggered = ['AMD'].includes(w.ticker);
+      const cond = CONDITIONALS.find(c => c.ticker === w.ticker);
+  const isTriggered = cond && (cond.status === 'CONDITION_MET' || cond.status === 'ACTIONABLE');
       let statusClass = 'watching', statusText = 'WATCHING';
       if (isOpen) { statusClass = 'active'; statusText = 'OPEN'; }
       else if (isTriggered) { statusClass = 'triggered'; statusText = 'TRIGGERED'; }
@@ -784,19 +813,43 @@ function updateDashboard(quotes) {
     });
   }
 
-  // --- Conditional Trades: Update current prices ---
-  const condCards = document.querySelectorAll('.cond-card');
-  condCards.forEach(card => {
-    const tkr = card.querySelector('.tkr')?.textContent;
-    const q = quotes[tkr];
-    if (!q || !q.price) return;
-    const condGridItems = card.querySelectorAll('.cond-grid > div');
-    condGridItems.forEach(item => {
-      if (item.querySelector('.cond-label')?.textContent === 'Current') {
-        item.querySelectorAll('div')[1].textContent = fmt$(q.price);
-      }
+  // --- Conditional Trades: Render from TRADE-STATUS.json ---
+  const condContainer = document.querySelector('#tab-conditional .cb');
+  if (condContainer && CONDITIONALS.length) {
+    condContainer.innerHTML = '';
+    CONDITIONALS.forEach(c => {
+      const q = quotes[c.ticker];
+      const price = q?.price ? fmt$(q.price) : '—';
+      const statusColors = {
+        'ACTIONABLE': { border: 'var(--green)', color: 'var(--green)', icon: '✅', label: 'ACTIONABLE' },
+        'CONDITION_MET': { border: 'var(--green)', color: 'var(--yellow)', icon: '⚡', label: 'CONDITION MET' },
+        'WATCHING': { border: 'var(--yellow)', color: 'var(--yellow)', icon: '⏳', label: 'WATCHING' },
+        'KILLED': { border: 'var(--red)', color: 'var(--red)', icon: '❌', label: 'KILLED' }
+      };
+      const s = statusColors[c.status] || statusColors['WATCHING'];
+      const scoreColor = c.score >= 7 ? 'var(--green)' : c.score >= 5 ? 'var(--yellow)' : 'var(--red)';
+      const card = document.createElement('div');
+      card.className = 'cond-card';
+      card.style.borderLeftColor = s.border;
+      card.innerHTML = `
+        <div class="cond-header">
+          <div><span class="tkr" style="font-size:20px;">${c.ticker}</span><span style="margin-left:8px;font-weight:700;color:${s.color};">${s.icon} ${s.label}</span></div>
+          <span style="font-size:14px;color:${scoreColor};font-weight:700;">Score: ${c.score}/10 — ${c.score >= c.minScore ? 'ACTIONABLE' : c.score >= 5 ? 'NOT READY' : 'WAIT'}</span>
+        </div>
+        <div style="font-size:14px;color:var(--dim);margin-bottom:10px;"><strong>Condition:</strong> ${c.condition} → ${c.conditionMet ? '✅ Met' : '⏳ Pending'}</div>
+        <div class="cond-grid">
+          <div><div class="cond-label">Entry Zone</div><div style="font-weight:600;">$${c.entryZone[0]} – $${c.entryZone[1]}</div></div>
+          <div><div class="cond-label">Current</div><div style="font-weight:600;">${price}</div></div>
+          <div><div class="cond-label">Stop</div><div style="font-weight:600;color:var(--red);">$${c.stop}</div></div>
+          <div><div class="cond-label">Target</div><div style="font-weight:600;color:var(--green);">$${c.target}</div></div>
+          <div><div class="cond-label">R:R</div><div style="font-weight:600;">${((c.target - c.entryZone[1]) / (c.entryZone[1] - c.stop)).toFixed(1)}:1</div></div>
+          <div><div class="cond-label">Action</div><div style="font-weight:600;color:${s.color};">${c.score >= c.minScore ? 'Evaluate at open' : 'Wait'}</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--dim);margin-top:10px;">${c.action}</div>
+      `;
+      condContainer.appendChild(card);
     });
-  });
+  }
 
   // Update timestamp
   document.getElementById('lastUpdated').textContent = 'Live · Updated: ' + fmt.format(new Date()) + ' PT';
@@ -865,7 +918,8 @@ document.getElementById('lastUpdated').textContent = 'Loading live data...';
 
 // --- Init ---
 (async () => {
-  const allTickers = [...new Set([...POSITIONS.map(p => p.ticker), ...WATCHLIST.map(w => w.ticker), ...MARKET_TICKERS])];
+  await loadTradeStatus();
+  const allTickers = [...new Set([...POSITIONS.map(p => p.ticker), ...WATCHLIST.map(w => w.ticker), ...MARKET_TICKERS, ...CONDITIONALS.map(c => c.ticker)])];
   try {
     const quotes = await fetchAll(allTickers);
     updateDashboard(quotes);

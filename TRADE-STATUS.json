@@ -1,0 +1,56 @@
+{
+  "_meta": {
+    "description": "SINGLE SOURCE OF TRUTH for all trade statuses. Dashboard reads this. Morning briefing writes this. Nothing else sets trade status.",
+    "lastUpdated": "2026-02-26T12:17:00Z",
+    "updatedBy": "morning-briefing-cron"
+  },
+  "positions": [
+    {
+      "ticker": "IGV",
+      "status": "OPEN",
+      "shares": 31,
+      "entry": 78.41,
+      "entryDate": "2026-02-25",
+      "stop": 75.50,
+      "target": 92.00,
+      "score": 8,
+      "direction": "LONG",
+      "thesis": "SaaSpocalypse overreaction bounce — software sector oversold, NVDA earnings confirmed AI capex"
+    }
+  ],
+  "conditionals": [
+    {
+      "ticker": "AMD",
+      "status": "CONDITION_MET",
+      "condition": "NVDA beats earnings",
+      "conditionMet": true,
+      "score": 6,
+      "minScore": 7,
+      "action": "WAIT — R:R below 2:1, AMD sold off despite NVDA beat. Need AMD green on NVDA green day.",
+      "entryZone": [200, 215],
+      "stop": 190,
+      "target": 250
+    },
+    {
+      "ticker": "MSTR",
+      "status": "WATCHING",
+      "condition": "BTC breaks AND HOLDS $67K",
+      "conditionMet": false,
+      "score": 5,
+      "minScore": 7,
+      "action": "NOT READY — BTC touched $68K but hasn't held. Need sustained break.",
+      "entryZone": [120, 135],
+      "stop": 110,
+      "target": 165
+    }
+  ],
+  "regime": {
+    "label": "NEUTRAL",
+    "positionSizing": 0.75,
+    "cryptoFG": 11,
+    "putCall": 0.62,
+    "vix": 19
+  },
+  "cash": 7569.29,
+  "startCapital": 10000
+}

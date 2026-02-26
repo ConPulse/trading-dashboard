@@ -33,15 +33,27 @@
     },
     {
       "ticker": "MSTR",
-      "status": "WATCHING",
+      "status": "KILLED",
       "condition": "BTC breaks AND HOLDS $67K",
       "conditionMet": false,
       "score": 5,
-      "minScore": 7,
-      "action": "NOT READY — BTC touched $68K but hasn't held. Need sustained break.",
+      "minScore": 9,
+      "action": "KILLED — 42 Macro VAMS bearish on BTC (0% allocation). Mean 21-day max drawdown when bearish = -11.8%. Don't fight institutional momentum.",
       "entryZone": [120, 135],
       "stop": 110,
       "target": 165
+    },
+    {
+      "ticker": "GLD",
+      "status": "WATCHING",
+      "condition": "Score ≥ 7 on next morning briefing",
+      "conditionMet": false,
+      "score": 0,
+      "minScore": 7,
+      "action": "NEW — 42 Macro has 30% gold allocation, BULLISH VAMS. Score at next briefing for potential 10-15% portfolio allocation.",
+      "entryZone": [280, 290],
+      "stop": 270,
+      "target": 310
     }
   ],
   "regime": {

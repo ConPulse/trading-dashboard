@@ -218,6 +218,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
   <div class="tab" onclick="showTab('watchlist')">👁 Watchlist</div>
   <div class="tab" onclick="showTab('sentiment')">🧠 Sentiment</div>
   <div class="tab" onclick="showTab('conditional')">⚡ Triggers</div>
+  <div class="tab" onclick="showTab('macro')">🏛 42 Macro</div>
   <div class="tab" onclick="showTab('rules')">📏 Rules</div>
   <div class="tab" onclick="showTab('history')">📖 History</div>
 </div>
@@ -373,7 +374,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
 <!-- TAB: Sentiment -->
 <div class="tab-content" id="tab-sentiment">
   <div class="card">
-    <div class="ch"><h2>Market Regime</h2><span style="font-size:14px;color:var(--yellow);font-weight:700;">⚖️ NEUTRAL — 75% Position Sizing</span></div>
+    <div class="ch"><h2>Market Regime</h2><span style="font-size:14px;color:var(--green);font-weight:700;">🏛 42 Macro: GOLDILOCKS — 75% Position Sizing</span></div>
     <div class="cb">
       <div class="gauge">
         <div class="gauge-header"><span>Crypto Fear & Greed</span><span class="neg" style="font-weight:700;">11 — Extreme Fear</span></div>
@@ -454,6 +455,141 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
   </div>
 </div>
 
+<!-- TAB: 42 Macro -->
+<div class="tab-content" id="tab-macro">
+  <div class="detail-grid">
+    <div class="card">
+      <div class="ch"><h2>🏛 KISS Model Portfolio</h2><span style="font-size:13px;color:var(--dim);" id="kissDate">Updated: Feb 21</span></div>
+      <div class="big-stat-grid" id="kissGrid">
+        <div class="big-stat"><div class="big-stat-label">Stocks (VT)</div><div class="big-stat-val pos" style="font-size:28px;">60%</div><div class="big-stat-sub">100% of max</div></div>
+        <div class="big-stat"><div class="big-stat-label">Gold (GLDM)</div><div class="big-stat-val" style="font-size:28px;color:var(--yellow);">30%</div><div class="big-stat-sub">100% of max</div></div>
+        <div class="big-stat"><div class="big-stat-label">Bitcoin (FBTC)</div><div class="big-stat-val neg" style="font-size:28px;">0%</div><div class="big-stat-sub">0% of max — BEARISH</div></div>
+        <div class="big-stat"><div class="big-stat-label">Cash (USFR)</div><div class="big-stat-val" style="font-size:28px;color:var(--dim);">10%</div><div class="big-stat-sub">Fixed allocation</div></div>
+      </div>
+      <div style="text-align:center;margin-top:15px;padding:12px;background:rgba(78,205,196,0.1);border-radius:8px;">
+        <span style="font-size:14px;color:var(--teal);font-weight:700;">Beta-Adjusted S&P 500 Delta: 71.2%</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>📊 Market Regime</h2></div>
+      <div style="text-align:center;padding:20px;">
+        <div style="font-size:36px;font-weight:800;color:var(--green);" id="regimeLabel">GOLDILOCKS</div>
+        <div style="font-size:14px;color:var(--dim);margin-top:5px;">Growth ↑ Rising · Inflation ↓ Falling</div>
+        <div style="font-size:13px;color:var(--green);margin-top:10px;">70% probability risk-on sustains</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:15px;">
+        <div style="padding:10px;border-radius:8px;text-align:center;background:rgba(46,160,67,0.15);border:2px solid var(--green);">
+          <div style="font-size:11px;color:var(--dim);">Goldilocks</div>
+          <div style="font-size:14px;font-weight:700;color:var(--green);">● ACTIVE</div>
+        </div>
+        <div style="padding:10px;border-radius:8px;text-align:center;background:rgba(255,255,255,0.03);">
+          <div style="font-size:11px;color:var(--dim);">Reflation</div>
+          <div style="font-size:14px;color:var(--dim);">—</div>
+        </div>
+        <div style="padding:10px;border-radius:8px;text-align:center;background:rgba(255,255,255,0.03);">
+          <div style="font-size:11px;color:var(--dim);">Inflation</div>
+          <div style="font-size:14px;color:var(--dim);">—</div>
+        </div>
+        <div style="padding:10px;border-radius:8px;text-align:center;background:rgba(255,255,255,0.03);">
+          <div style="font-size:11px;color:var(--dim);">Deflation</div>
+          <div style="font-size:14px;color:var(--dim);">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:15px;">
+    <div class="ch"><h2>📡 VAMS Signals — Our Watchlist</h2><span style="font-size:13px;color:var(--dim);">Bullish = tailwind · Bearish = headwind</span></div>
+    <table class="wl-table" style="width:100%;">
+      <thead><tr><th>Asset</th><th>Ticker</th><th>VAMS</th><th>Dr. Mo</th><th>Impact on Us</th></tr></thead>
+      <tbody id="vamsTable">
+        <tr><td>S&P 500</td><td class="tkr">SPY</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Risk-on confirmed</td></tr>
+        <tr><td>Nasdaq</td><td class="tkr">QQQ</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Tech improving</td></tr>
+        <tr><td>Technology</td><td class="tkr">XLK</td><td style="color:var(--yellow);">🟡 NEUTRAL</td><td>Long: Half</td><td>IGV caution — half size sector</td></tr>
+        <tr><td>Small Caps</td><td class="tkr">IWM</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Potential trade idea</td></tr>
+        <tr><td>Gold</td><td class="tkr">GLD</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td style="color:var(--green);font-weight:700;">🎯 HIGH CONVICTION — 30% KISS allocation</td></tr>
+        <tr><td>Gold Miners</td><td class="tkr">GDX</td><td class="pos">🟢 BULLISH</td><td>—</td><td style="color:var(--green);font-weight:700;">🎯 Leveraged gold play</td></tr>
+        <tr><td>Silver</td><td class="tkr">SLV</td><td class="pos">🟢 BULLISH</td><td>—</td><td>Industrial + precious metals</td></tr>
+        <tr><td>Silver Miners</td><td class="tkr">SIL</td><td class="pos">🟢 BULLISH</td><td>—</td><td>Leveraged silver play</td></tr>
+        <tr><td>Uranium</td><td class="tkr">SRUUF</td><td class="pos">🟢 BULLISH</td><td>—</td><td>Nuclear renaissance — AI power demand</td></tr>
+        <tr><td>Bitcoin</td><td class="tkr">BTC</td><td class="neg">🔴 BEARISH</td><td>No Position</td><td style="color:var(--red);">⚠️ HEADWIND for MSTR/COIN/MARA</td></tr>
+        <tr><td>Ethereum</td><td class="tkr">ETH</td><td class="neg">🔴 BEARISH</td><td>No Position</td><td>Avoid crypto trades</td></tr>
+        <tr><td>US Dollar</td><td class="tkr">DXY</td><td class="neg">🔴 BEARISH</td><td>—</td><td style="color:var(--green);">Weak dollar = bullish gold/intl</td></tr>
+        <tr><td>VIX</td><td class="tkr">VIX</td><td class="pos">🟢 BULLISH</td><td>—</td><td style="color:var(--yellow);">⚠️ Expect rising volatility</td></tr>
+        <tr><td>Energy</td><td class="tkr">XLE</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Bullish for LNG/EQT</td></tr>
+        <tr><td>Industrials</td><td class="tkr">XLI</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Bullish for CAT/URI</td></tr>
+        <tr><td>Real Estate</td><td class="tkr">XLRE</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Bullish for homebuilders</td></tr>
+        <tr><td>Materials</td><td class="tkr">XLB</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Bullish for VMC/MLM</td></tr>
+        <tr><td>Financials</td><td class="tkr">XLF</td><td style="color:var(--yellow);">🟡 NEUTRAL</td><td>Long: Half</td><td>Half position only</td></tr>
+        <tr><td>Cons. Disc.</td><td class="tkr">XLY</td><td style="color:var(--yellow);">🟡 NEUTRAL</td><td>Long: Half</td><td>Half position only</td></tr>
+        <tr><td>Long Bonds</td><td class="tkr">TLT</td><td class="pos">🟢 BULLISH</td><td>No Position</td><td>Bonds improving but Dr. Mo says no</td></tr>
+        <tr><td>Crude Oil</td><td class="tkr">USO</td><td style="color:var(--yellow);">🟡 NEUTRAL</td><td>Long: Half</td><td>Nat gas separate from crude</td></tr>
+        <tr><td>Emerging Mkts</td><td class="tkr">EEM</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>International diversification</td></tr>
+        <tr><td>Base Metals</td><td class="tkr">DBB</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Industrial metals strong</td></tr>
+        <tr><td>Agriculture</td><td class="tkr">DBA</td><td class="neg">🔴 BEARISH</td><td>No Position</td><td>Avoid</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="detail-grid" style="margin-top:15px;">
+    <div class="card">
+      <div class="ch"><h2>🎯 Top Trade Ideas (42 Macro Aligned)</h2></div>
+      <div style="padding:10px;">
+        <div style="padding:12px;background:rgba(255,215,0,0.08);border-left:3px solid var(--yellow);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;font-size:16px;color:var(--yellow);">🥇 GOLD (GLD/GDX/SLV)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">42 Macro: 30% allocation, BULLISH VAMS, 100% of max exposure. Dollar bearish = gold tailwind. Strongest institutional conviction of any asset class right now.</div>
+        </div>
+        <div style="padding:12px;background:rgba(46,160,67,0.08);border-left:3px solid var(--green);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;font-size:16px;color:var(--green);">🥈 SMALL CAPS (IWM)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">42 Macro: BULLISH VAMS, Max Position. Goldilocks favors SMID > Large Caps. RSI 55 — room to run.</div>
+        </div>
+        <div style="padding:12px;background:rgba(46,160,67,0.08);border-left:3px solid var(--green);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;font-size:16px;color:var(--green);">🥉 URANIUM (URA/CCJ)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">42 Macro: Sprott Uranium (SRUUF) BULLISH VAMS. Nuclear renaissance for AI data center power. Structural demand story.</div>
+        </div>
+        <div style="padding:12px;background:rgba(78,205,196,0.08);border-left:3px solid var(--teal);border-radius:6px;">
+          <div style="font-weight:700;font-size:16px;color:var(--teal);">🏠 HOMEBUILDERS (DHI/LEN)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">42 Macro: XLRE BULLISH, Residential Fixed Investment at cycle low 3.2% GDP. DC motivated to ease housing regs. Housing thawing organically.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>⚠️ 42 Macro Warnings</h2></div>
+      <div style="padding:10px;">
+        <div style="padding:12px;background:rgba(233,69,96,0.08);border-left:3px solid var(--red);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;color:var(--red);">🔴 BITCOIN — BEARISH VAMS</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">0% KISS allocation. Mean 21-day max drawdown when bearish = -11.8%. MSTR/COIN/MARA carry headwind. Tradeable but swim upstream with caution.</div>
+        </div>
+        <div style="padding:12px;background:rgba(233,69,96,0.08);border-left:3px solid var(--red);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;color:var(--red);">🔴 DOLLAR (DXY) — BEARISH</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">Dollar weakness supports gold, commodities, and international equities. Bearish for UUP. Monitor if reversal begins.</div>
+        </div>
+        <div style="padding:12px;background:rgba(255,215,0,0.08);border-left:3px solid var(--yellow);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;color:var(--yellow);">⚡ VIX — BULLISH (Expect Rising Vol)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">VIX at 19.09 with bullish VAMS = 42 Macro expects volatility to increase. Tighter stops, smaller positions if VIX breaks 25.</div>
+        </div>
+        <div style="padding:12px;background:rgba(255,215,0,0.08);border-left:3px solid var(--yellow);border-radius:6px;">
+          <div style="font-weight:700;color:var(--yellow);">⚠️ TECH (XLK) — NEUTRAL ONLY</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">Half position per Dr. Mo. Our IGV is in tech sector — this is a caution flag, not a stop sign. Monitor for upgrade to bullish.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:15px;">
+    <div class="ch"><h2>📖 Key 42 Macro Principles</h2></div>
+    <div style="padding:15px;font-size:13px;color:var(--dim);line-height:1.7;">
+      <strong style="color:var(--teal);">Rule #1:</strong> Don't lose money. A 50% drawdown needs 100% to recover.<br>
+      <strong style="color:var(--teal);">Rule #2:</strong> Don't invest money you can't afford to lose. BTC is -20% off highs 74% of the time.<br>
+      <strong style="color:var(--teal);">Rule #3:</strong> The journey matters more than the destination. Consistency beats volatility drag.<br>
+      <strong style="color:var(--teal);">KISS:</strong> Keep It Simple, Stupid. 60/30/10 trend-following with VAMS overlay.<br>
+      <strong style="color:var(--teal);">Dr. Mo:</strong> Position sizing based on regime + VAMS. Max/Half/No Position.<br>
+      <strong style="color:var(--teal);">VAMS:</strong> Volatility-Adjusted Momentum Signal. Bullish/Neutral/Bearish per asset. Updates with each ATH.<br>
+      <strong style="color:var(--teal);">Bayesian:</strong> 42 Macro responds to observations, not predictions. Regime changes ~2.3x/year.
+    </div>
+  </div>
+</div>
+
 <!-- TAB: Rules -->
 <div class="tab-content" id="tab-rules">
   <div class="detail-grid">
@@ -480,7 +616,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
         <div class="ch"><h2>Scoring Rubric (5 Dimensions)</h2></div>
         <div class="cb">
           <div class="rule"><span class="rule-name">Technical (0-2)</span><span class="rule-val">RSI, MACD, MAs, volume, pattern</span></div>
-          <div class="rule"><span class="rule-name">Macro/Sentiment (0-2)</span><span class="rule-val">VIX, F&G, sector strength</span></div>
+          <div class="rule"><span class="rule-name">Macro/Sentiment (0-2)</span><span class="rule-val">42 Macro VAMS + regime + VIX + F&G</span></div>
           <div class="rule"><span class="rule-name">Risk/Reward (0-2)</span><span class="rule-val">R:R ratio, clear stop</span></div>
           <div class="rule"><span class="rule-name">Catalyst (0-2)</span><span class="rule-val">Earnings, news, options flow</span></div>
           <div class="rule"><span class="rule-name">Timing (0-2)</span><span class="rule-val">Entry quality, not chasing</span></div>

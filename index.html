@@ -525,9 +525,8 @@ const POSITIONS = [
 const CASH = 7569.29;
 const START_CAPITAL = 10000;
 
-// Tax rates (CA + Federal + NIIT for high-income CA resident, short-term gains)
-const TAX_RATE_SHORT = 0.50;  // ~50% combined (32-37% fed + 9.3-13.3% CA + 3.8% NIIT)
-const TAX_RATE_LONG = 0.33;   // ~33% combined (15-20% fed + 9.3-13.3% CA + 3.8% NIIT)
+// Tax rate: CA + Federal + NIIT for high-income CA resident, short-term gains (all our trades)
+const TAX_RATE = 0.50;  // ~50% combined (32-37% fed + 9.3-13.3% CA + 3.8% NIIT)
 
 // Watchlist tickers + metadata
 const WATCHLIST = [
@@ -603,14 +602,7 @@ function updateDashboard(quotes) {
   let afterTaxPL = 0;
   POSITIONS.forEach(p => {
     if (!p._pl) return;
-    const daysHeld = Math.floor((new Date() - new Date(p.date)) / 86400000);
-    const isLongTerm = daysHeld >= 366;
-    const taxRate = isLongTerm ? TAX_RATE_LONG : TAX_RATE_SHORT;
-    const taxType = isLongTerm ? 'LT' : 'ST';
-    // Gains are taxed; losses are deductible (same rate for simplicity)
-    p._afterTaxPL = p._pl > 0 ? p._pl * (1 - taxRate) : p._pl * (1 - taxRate);
-    p._taxRate = taxRate;
-    p._taxType = taxType;
+    p._afterTaxPL = p._pl * (1 - TAX_RATE);
     afterTaxPL += p._afterTaxPL;
   });
 
@@ -653,9 +645,7 @@ function updateDashboard(quotes) {
   }
   const atRateEl = document.getElementById('afterTaxRate');
   if (atRateEl) {
-    const rate = POSITIONS[0]?._taxType === 'LT' ? '~33%' : '~50%';
-    const type = POSITIONS[0]?._taxType === 'LT' ? 'Long-term' : 'Short-term';
-    atRateEl.textContent = rate + ' ' + type + ' (CA+Fed)';
+    atRateEl.textContent = '~50% short-term (CA+Fed)';
   }
   // Max Drawdown
   bigStats[5].querySelector('.big-stat-val').textContent = drawdown.toFixed(1) + '%';
@@ -713,10 +703,7 @@ function updateDashboard(quotes) {
       }
       if (label.textContent === 'Est. Tax Rate') {
         const val = row.querySelector('.drow-val');
-        const daysHeld = Math.floor((new Date() - new Date(p.date)) / 86400000);
-        const ltDate = new Date(new Date(p.date).getTime() + 366*86400000);
-        const ltStr = ltDate.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
-        val.textContent = daysHeld >= 366 ? '~33% (Long-term, CA+Fed)' : '~50% (Short-term, CA+Fed) · LT eligible ' + ltStr;
+        val.textContent = '~50% Short-term (CA+Fed+NIIT)';
         val.className = 'drow-val neg';
       }
     });

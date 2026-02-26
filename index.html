@@ -172,6 +172,11 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
     <div class="strip-sub">IGV +3.1%</div>
   </div>
   <div class="strip-item">
+    <div class="strip-label">After-Tax P&L</div>
+    <div class="strip-val pos" id="stripAfterTax">+$38</div>
+    <div class="strip-sub" style="color:var(--dim);">~50% tax rate</div>
+  </div>
+  <div class="strip-item">
     <div class="strip-label">Cash</div>
     <div class="strip-val">$7,569</div>
     <div class="strip-sub">75.7%</div>
@@ -214,6 +219,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
         <div class="big-stat"><div class="big-stat-label">Current Value</div><div class="big-stat-val tl">$10,075.64</div><div class="big-stat-sub pos">+$75.64 (+0.76%)</div></div>
         <div class="big-stat"><div class="big-stat-label">Cash Available</div><div class="big-stat-val">$7,569.29</div><div class="big-stat-sub">75.7% cash</div></div>
         <div class="big-stat"><div class="big-stat-label">Total Invested</div><div class="big-stat-val">$2,506.35</div><div class="big-stat-sub">1 position open</div></div>
+        <div class="big-stat"><div class="big-stat-label">After-Tax P&L</div><div class="big-stat-val pos" id="afterTaxPL">$0</div><div class="big-stat-sub" id="afterTaxRate">~50% CA+Fed tax</div></div>
         <div class="big-stat"><div class="big-stat-label">Max Drawdown</div><div class="big-stat-val">0.0%</div><div class="big-stat-sub">Limit: 20%</div></div>
         <div class="big-stat"><div class="big-stat-label">Days Remaining</div><div class="big-stat-val tl" id="daysLeft">27</div><div class="big-stat-sub">Go-live if profitable</div></div>
       </div>
@@ -224,7 +230,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
     <div class="ch"><h2>Open Positions</h2></div>
     <div class="cb" style="overflow-x:auto;">
       <table class="wl-table">
-        <thead><tr><th>Ticker</th><th>Direction</th><th>Entry</th><th>Current</th><th>Shares</th><th>P&L</th><th>Stop</th><th>Target</th><th>R:R</th><th>Score</th></tr></thead>
+        <thead><tr><th>Ticker</th><th>Direction</th><th>Entry</th><th>Current</th><th>Shares</th><th>P&L</th><th>After Tax</th><th>Stop</th><th>Target</th><th>R:R</th><th>Score</th></tr></thead>
         <tbody>
           <tr>
             <td class="tkr">IGV</td>
@@ -233,6 +239,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
             <td><strong>$80.85</strong></td>
             <td>31</td>
             <td class="pos"><strong>+$75.64 (+3.1%)</strong></td>
+            <td class="pos" id="posAfterTax"><strong>+$37.82</strong></td>
             <td class="neg">$75.50</td>
             <td class="pos">$92.00</td>
             <td>4.7:1</td>
@@ -278,6 +285,8 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
           <div class="drow"><span class="drow-label">$ at Risk</span><span class="drow-val neg">-$90.21</span></div>
           <div class="drow"><span class="drow-label">$ Reward</span><span class="drow-val pos">+$421.39</span></div>
           <div class="drow"><span class="drow-label">Current P&L</span><span class="drow-val pos">+$75.64 (+3.1%)</span></div>
+          <div class="drow"><span class="drow-label">After-Tax P&L</span><span class="drow-val pos" id="tradeAfterTax">+$37.82</span></div>
+          <div class="drow"><span class="drow-label">Est. Tax Rate</span><span class="drow-val neg" id="tradeTaxInfo">~50% (Short-term, CA+Fed)</span></div>
         </div>
       </div>
 
@@ -516,6 +525,10 @@ const POSITIONS = [
 const CASH = 7569.29;
 const START_CAPITAL = 10000;
 
+// Tax rates (CA + Federal + NIIT for high-income CA resident, short-term gains)
+const TAX_RATE_SHORT = 0.50;  // ~50% combined (32-37% fed + 9.3-13.3% CA + 3.8% NIIT)
+const TAX_RATE_LONG = 0.33;   // ~33% combined (15-20% fed + 9.3-13.3% CA + 3.8% NIIT)
+
 // Watchlist tickers + metadata
 const WATCHLIST = [
   { ticker: 'IGV', sector: 'Software', notes: 'Active position' },
@@ -585,6 +598,22 @@ function updateDashboard(quotes) {
   const cashPct = (CASH / portfolioVal) * 100;
   const drawdown = Math.min(0, portfolioPct);
 
+  // --- After-Tax Calculations ---
+  // Determine hold period for each position
+  let afterTaxPL = 0;
+  POSITIONS.forEach(p => {
+    if (!p._pl) return;
+    const daysHeld = Math.floor((new Date() - new Date(p.date)) / 86400000);
+    const isLongTerm = daysHeld >= 366;
+    const taxRate = isLongTerm ? TAX_RATE_LONG : TAX_RATE_SHORT;
+    const taxType = isLongTerm ? 'LT' : 'ST';
+    // Gains are taxed; losses are deductible (same rate for simplicity)
+    p._afterTaxPL = p._pl > 0 ? p._pl * (1 - taxRate) : p._pl * (1 - taxRate);
+    p._taxRate = taxRate;
+    p._taxType = taxType;
+    afterTaxPL += p._afterTaxPL;
+  });
+
   // --- Summary Strip ---
   const stripItems = document.querySelectorAll('.strip-item');
   // Portfolio
@@ -598,11 +627,17 @@ function updateDashboard(quotes) {
   if (POSITIONS[0]?._plPct !== undefined) {
     stripItems[1].querySelector('.strip-sub').textContent = 'IGV ' + fmtPct(POSITIONS[0]._plPct);
   }
+  // After-Tax P&L (strip)
+  const stripAT = document.getElementById('stripAfterTax');
+  if (stripAT) {
+    stripAT.textContent = fmtPL(afterTaxPL);
+    stripAT.className = 'strip-val ' + posNeg(afterTaxPL);
+  }
   // Cash
-  stripItems[2].querySelector('.strip-val').textContent = fmt$(CASH);
-  stripItems[2].querySelector('.strip-sub').textContent = cashPct.toFixed(1) + '%';
+  stripItems[3].querySelector('.strip-val').textContent = fmt$(CASH);
+  stripItems[3].querySelector('.strip-sub').textContent = cashPct.toFixed(1) + '%';
   // Invested
-  stripItems[5].querySelector('.strip-sub').textContent = fmt$(totalInvested + totalPL) + ' invested';
+  stripItems[6].querySelector('.strip-sub').textContent = fmt$(totalInvested + totalPL) + ' invested';
 
   // --- Portfolio Tab: Overview ---
   const bigStats = document.querySelectorAll('#tab-portfolio .big-stat');
@@ -610,8 +645,20 @@ function updateDashboard(quotes) {
   bigStats[1].querySelector('.big-stat-val').textContent = fmt$(portfolioVal);
   bigStats[1].querySelector('.big-stat-sub').textContent = fmtPL(totalPL) + ' (' + fmtPct(portfolioPct) + ')';
   bigStats[1].querySelector('.big-stat-sub').className = 'big-stat-sub ' + posNeg(totalPL);
+  // After-Tax P&L (big stat)
+  const atPLEl = document.getElementById('afterTaxPL');
+  if (atPLEl) {
+    atPLEl.textContent = fmtPL(afterTaxPL);
+    atPLEl.className = 'big-stat-val ' + posNeg(afterTaxPL);
+  }
+  const atRateEl = document.getElementById('afterTaxRate');
+  if (atRateEl) {
+    const rate = POSITIONS[0]?._taxType === 'LT' ? '~33%' : '~50%';
+    const type = POSITIONS[0]?._taxType === 'LT' ? 'Long-term' : 'Short-term';
+    atRateEl.textContent = rate + ' ' + type + ' (CA+Fed)';
+  }
   // Max Drawdown
-  bigStats[4].querySelector('.big-stat-val').textContent = drawdown.toFixed(1) + '%';
+  bigStats[5].querySelector('.big-stat-val').textContent = drawdown.toFixed(1) + '%';
 
   // --- Portfolio Tab: Open Positions Table ---
   const posRow = document.querySelector('#tab-portfolio .wl-table tbody tr');
@@ -621,6 +668,12 @@ function updateDashboard(quotes) {
     cells[3].innerHTML = '<strong>' + fmt$(p._current) + '</strong>';
     cells[5].innerHTML = '<strong>' + fmtPL(p._pl) + ' (' + fmtPct(p._plPct) + ')</strong>';
     cells[5].className = posNeg(p._pl);
+    // After-tax cell
+    const atCell = document.getElementById('posAfterTax');
+    if (atCell && p._afterTaxPL !== undefined) {
+      atCell.innerHTML = '<strong>' + fmtPL(p._afterTaxPL) + '</strong>';
+      atCell.className = posNeg(p._afterTaxPL);
+    }
   }
 
   // --- Portfolio Tab: Market Overview ---
@@ -652,6 +705,19 @@ function updateDashboard(quotes) {
         const val = row.querySelector('.drow-val');
         val.textContent = fmtPL(p._pl) + ' (' + fmtPct(p._plPct) + ')';
         val.className = 'drow-val ' + posNeg(p._pl);
+      }
+      if (label.textContent === 'After-Tax P&L' && p._afterTaxPL !== undefined) {
+        const val = row.querySelector('.drow-val');
+        val.textContent = fmtPL(p._afterTaxPL);
+        val.className = 'drow-val ' + posNeg(p._afterTaxPL);
+      }
+      if (label.textContent === 'Est. Tax Rate') {
+        const val = row.querySelector('.drow-val');
+        const daysHeld = Math.floor((new Date() - new Date(p.date)) / 86400000);
+        const ltDate = new Date(new Date(p.date).getTime() + 366*86400000);
+        const ltStr = ltDate.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+        val.textContent = daysHeld >= 366 ? '~33% (Long-term, CA+Fed)' : '~50% (Short-term, CA+Fed) · LT eligible ' + ltStr;
+        val.className = 'drow-val neg';
       }
     });
     // Days held

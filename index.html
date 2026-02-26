@@ -507,6 +507,278 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
 </div>
 
 <script>
+const FINNHUB_KEY = 'd6frbcpr01qqnmbpo9sgd6frbcpr01qqnmbpo9t0';
+
+// Portfolio state
+const POSITIONS = [
+  { ticker: 'IGV', shares: 31, entry: 78.41, stop: 75.50, target: 92.00, direction: 'LONG', date: '2026-02-25', score: 8 }
+];
+const CASH = 7569.29;
+const START_CAPITAL = 10000;
+
+// Watchlist tickers + metadata
+const WATCHLIST = [
+  { ticker: 'IGV', sector: 'Software', notes: 'Active position' },
+  { ticker: 'NVDA', sector: 'AI/Semi', notes: 'AI capex leader' },
+  { ticker: 'AMD', sector: 'AI/Semi', notes: 'Conditional — NVDA beat' },
+  { ticker: 'MSTR', sector: 'Crypto', notes: 'BTC proxy' },
+  { ticker: 'AVGO', sector: 'AI/Semi', notes: 'AI networking leader' },
+  { ticker: 'PLTR', sector: 'AI/Software', notes: 'Gov + enterprise AI' },
+  { ticker: 'META', sector: 'Big Tech', notes: 'AI ad revenue + Llama' },
+  { ticker: 'COIN', sector: 'Crypto', notes: 'BTC rally beneficiary' },
+  { ticker: 'ARM', sector: 'AI/Semi', notes: 'AI chip architecture' },
+  { ticker: 'SPY', sector: 'Index', notes: 'S&P 500' },
+  { ticker: 'QQQ', sector: 'Index', notes: 'Nasdaq 100' },
+  { ticker: 'SMH', sector: 'Semis', notes: 'Semiconductor ETF' },
+];
+
+// Market overview tickers
+const MARKET_TICKERS = ['SPY', 'QQQ', 'SMH', 'NVDA'];
+
+// Fetch a single Finnhub quote
+async function fetchQuote(symbol) {
+  const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`);
+  const d = await r.json();
+  return { symbol, price: d.c, change: d.dp, prevClose: d.pc, high: d.h, low: d.l, open: d.o };
+}
+
+// Staggered batch fetch (respect 30/sec limit)
+async function fetchAll(symbols) {
+  const results = {};
+  const batches = [];
+  for (let i = 0; i < symbols.length; i += 10) {
+    batches.push(symbols.slice(i, i + 10));
+  }
+  for (const batch of batches) {
+    const promises = batch.map(s => fetchQuote(s).catch(() => ({ symbol: s, price: 0, change: 0 })));
+    const res = await Promise.all(promises);
+    res.forEach(r => results[r.symbol] = r);
+    if (batches.indexOf(batch) < batches.length - 1) await new Promise(r => setTimeout(r, 400));
+  }
+  return results;
+}
+
+// Format helpers
+const fmt$ = (n) => n >= 1000 ? '$' + n.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0}) : '$' + n.toFixed(2);
+const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const fmtPL = (n) => (n >= 0 ? '+' : '') + '$' + Math.abs(n).toFixed(2);
+const posNeg = (n) => n >= 0 ? 'pos' : 'neg';
+
+function updateDashboard(quotes) {
+  // --- Portfolio calcs ---
+  let totalInvested = 0, totalPL = 0;
+  POSITIONS.forEach(p => {
+    const q = quotes[p.ticker];
+    if (!q || !q.price) return;
+    const currentVal = q.price * p.shares;
+    const entryVal = p.entry * p.shares;
+    const pl = currentVal - entryVal;
+    const plPct = ((q.price - p.entry) / p.entry) * 100;
+    totalInvested += entryVal;
+    totalPL += pl;
+    p._current = q.price;
+    p._pl = pl;
+    p._plPct = plPct;
+  });
+  const portfolioVal = CASH + totalInvested + totalPL;
+  const portfolioPct = ((portfolioVal - START_CAPITAL) / START_CAPITAL) * 100;
+  const cashPct = (CASH / portfolioVal) * 100;
+  const drawdown = Math.min(0, portfolioPct);
+
+  // --- Summary Strip ---
+  const stripItems = document.querySelectorAll('.strip-item');
+  // Portfolio
+  stripItems[0].querySelector('.strip-val').textContent = fmt$(portfolioVal);
+  stripItems[0].querySelector('.strip-val').className = 'strip-val ' + posNeg(portfolioPct);
+  stripItems[0].querySelector('.strip-sub').textContent = fmtPct(portfolioPct);
+  stripItems[0].querySelector('.strip-sub').className = 'strip-sub ' + posNeg(portfolioPct);
+  // Open P&L
+  stripItems[1].querySelector('.strip-val').textContent = fmtPL(totalPL);
+  stripItems[1].querySelector('.strip-val').className = 'strip-val ' + posNeg(totalPL);
+  if (POSITIONS[0]?._plPct !== undefined) {
+    stripItems[1].querySelector('.strip-sub').textContent = 'IGV ' + fmtPct(POSITIONS[0]._plPct);
+  }
+  // Cash
+  stripItems[2].querySelector('.strip-val').textContent = fmt$(CASH);
+  stripItems[2].querySelector('.strip-sub').textContent = cashPct.toFixed(1) + '%';
+  // Invested
+  stripItems[5].querySelector('.strip-sub').textContent = fmt$(totalInvested + totalPL) + ' invested';
+
+  // --- Portfolio Tab: Overview ---
+  const bigStats = document.querySelectorAll('#tab-portfolio .big-stat');
+  // Current Value
+  bigStats[1].querySelector('.big-stat-val').textContent = fmt$(portfolioVal);
+  bigStats[1].querySelector('.big-stat-sub').textContent = fmtPL(totalPL) + ' (' + fmtPct(portfolioPct) + ')';
+  bigStats[1].querySelector('.big-stat-sub').className = 'big-stat-sub ' + posNeg(totalPL);
+  // Max Drawdown
+  bigStats[4].querySelector('.big-stat-val').textContent = drawdown.toFixed(1) + '%';
+
+  // --- Portfolio Tab: Open Positions Table ---
+  const posRow = document.querySelector('#tab-portfolio .wl-table tbody tr');
+  if (posRow && POSITIONS[0]?._current) {
+    const p = POSITIONS[0];
+    const cells = posRow.querySelectorAll('td');
+    cells[3].innerHTML = '<strong>' + fmt$(p._current) + '</strong>';
+    cells[5].innerHTML = '<strong>' + fmtPL(p._pl) + ' (' + fmtPct(p._plPct) + ')</strong>';
+    cells[5].className = posNeg(p._pl);
+  }
+
+  // --- Portfolio Tab: Market Overview ---
+  const marketStats = document.querySelectorAll('#tab-portfolio .card:last-child .big-stat');
+  const marketMap = { SPY: 0, QQQ: 1, SMH: 2, NVDA: 4 };
+  Object.entries(marketMap).forEach(([sym, idx]) => {
+    const q = quotes[sym];
+    if (!q || !q.price || !marketStats[idx]) return;
+    const valEl = marketStats[idx].querySelector('.big-stat-val');
+    const subEl = marketStats[idx].querySelector('.big-stat-sub');
+    valEl.textContent = sym === 'NVDA' ? fmt$(q.price) : fmt$(q.price);
+    valEl.className = 'big-stat-val ' + posNeg(q.change) + ' ' + (marketStats[idx].querySelector('.big-stat-val').style.fontSize ? '' : '');
+    valEl.style.fontSize = '22px';
+    if (subEl) {
+      subEl.textContent = fmtPct(q.change);
+      subEl.className = 'big-stat-sub ' + posNeg(q.change);
+    }
+  });
+
+  // --- Trade Detail Tab ---
+  if (POSITIONS[0]?._current) {
+    const p = POSITIONS[0];
+    // Update current P&L in detail grid
+    const drows = document.querySelectorAll('#tab-trade .drow');
+    drows.forEach(row => {
+      const label = row.querySelector('.drow-label');
+      if (!label) return;
+      if (label.textContent === 'Current P&L') {
+        const val = row.querySelector('.drow-val');
+        val.textContent = fmtPL(p._pl) + ' (' + fmtPct(p._plPct) + ')';
+        val.className = 'drow-val ' + posNeg(p._pl);
+      }
+    });
+    // Days held
+    const entryDate = new Date(p.date);
+    const daysHeld = Math.floor((new Date() - entryDate) / 86400000);
+    drows.forEach(row => {
+      const label = row.querySelector('.drow-label');
+      if (label && label.textContent === 'Days Held') {
+        row.querySelector('.drow-val').textContent = daysHeld;
+      }
+    });
+
+    // Update price bar
+    const range = p.target - p.stop;
+    const currentPct = ((p._current - p.stop) / range) * 100;
+    const entryPct = ((p.entry - p.stop) / range) * 100;
+    const currentMarker = document.querySelector('.pbar-marker.current');
+    if (currentMarker) {
+      currentMarker.style.left = Math.min(98, Math.max(2, currentPct)) + '%';
+      currentMarker.querySelector('.pbar-mlabel').textContent = fmt$(p._current);
+    }
+    // Update price bar subtitle
+    const pbarLabels = document.querySelector('.pbar-labels');
+    if (pbarLabels) {
+      const aboveStop = ((p._current - p.stop) / p.stop * 100).toFixed(1);
+      const toTarget = ((p.target - p._current) / p._current * 100).toFixed(1);
+      pbarLabels.children[1].textContent = aboveStop + '% above stop · ' + toTarget + '% to target';
+    }
+
+    // Update trade header badge
+    const tradeBadge = document.querySelector('#tab-trade .ch-badge');
+    if (tradeBadge) {
+      tradeBadge.textContent = '● OPEN ' + fmtPct(p._plPct);
+      tradeBadge.className = 'ch-badge ' + posNeg(p._pl);
+      tradeBadge.style.background = p._pl >= 0 ? 'rgba(46,160,67,0.15)' : 'rgba(233,69,96,0.15)';
+    }
+  }
+
+  // --- Watchlist Tab ---
+  const wlBody = document.querySelector('#tab-watchlist .wl-table tbody');
+  if (wlBody) {
+    wlBody.innerHTML = '';
+    WATCHLIST.forEach(w => {
+      const q = quotes[w.ticker];
+      const price = q?.price || 0;
+      const change = q?.change || 0;
+      const isOpen = POSITIONS.some(p => p.ticker === w.ticker);
+      const isTriggered = ['AMD', 'MSTR'].includes(w.ticker);
+      let statusClass = 'watching', statusText = 'WATCHING';
+      if (isOpen) { statusClass = 'active'; statusText = 'OPEN'; }
+      else if (isTriggered) { statusClass = 'triggered'; statusText = 'TRIGGERED'; }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="tkr">${w.ticker}</td>
+        <td>${price ? fmt$(price) : '—'}</td>
+        <td class="${posNeg(change)}">${price ? fmtPct(change) : '—'}</td>
+        <td>${w.sector}</td>
+        <td><span class="wl-status ${statusClass}">${statusText}</span></td>
+        <td>${w.notes}</td>
+      `;
+      wlBody.appendChild(tr);
+    });
+  }
+
+  // --- Conditional Trades: Update current prices ---
+  const condCards = document.querySelectorAll('.cond-card');
+  condCards.forEach(card => {
+    const tkr = card.querySelector('.tkr')?.textContent;
+    const q = quotes[tkr];
+    if (!q || !q.price) return;
+    const condGridItems = card.querySelectorAll('.cond-grid > div');
+    condGridItems.forEach(item => {
+      if (item.querySelector('.cond-label')?.textContent === 'Current') {
+        item.querySelectorAll('div')[1].textContent = fmt$(q.price);
+      }
+    });
+  });
+
+  // Update timestamp
+  document.getElementById('lastUpdated').textContent = 'Live · Updated: ' + fmt.format(new Date()) + ' PT';
+}
+
+// --- Sentiment: Fetch Crypto Fear & Greed ---
+async function fetchFearGreed() {
+  try {
+    const r = await fetch('https://api.alternative.me/fng/?limit=1');
+    const d = await r.json();
+    const val = parseInt(d.data[0].value);
+    const cls = d.data[0].value_classification;
+    const gauge = document.querySelector('#tab-sentiment .gauge');
+    if (gauge) {
+      gauge.querySelector('.gauge-header span:last-child').textContent = val + ' — ' + cls;
+      gauge.querySelector('.gauge-header span:last-child').className = val <= 25 ? 'neg' : val >= 60 ? 'pos' : '';
+      gauge.querySelector('.gauge-fill').style.width = val + '%';
+      gauge.querySelector('.gauge-fill').style.background = val <= 25 ? 'var(--red)' : val <= 45 ? 'var(--yellow)' : 'var(--green)';
+    }
+    // Update strip
+    const stripItems = document.querySelectorAll('.strip-item');
+    stripItems[4].querySelector('.strip-val').textContent = val;
+    stripItems[4].querySelector('.strip-val').className = 'strip-val ' + (val <= 25 ? 'neg' : val >= 60 ? 'pos' : '');
+    stripItems[4].querySelector('.strip-sub').textContent = cls;
+    stripItems[4].querySelector('.strip-sub').className = 'strip-sub ' + (val <= 25 ? 'neg' : val >= 60 ? 'pos' : '');
+  } catch (e) { console.log('F&G fetch failed:', e); }
+}
+
+// --- Bitcoin via CoinGecko (free, no key) ---
+async function fetchBTC() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+    const d = await r.json();
+    const price = d.bitcoin.usd;
+    const change = d.bitcoin.usd_24h_change;
+    // Update market overview BTC stat (index 3)
+    const marketStats = document.querySelectorAll('#tab-portfolio .card:last-child .big-stat');
+    if (marketStats[3]) {
+      const valEl = marketStats[3].querySelector('.big-stat-val');
+      const subEl = marketStats[3].querySelector('.big-stat-sub');
+      valEl.textContent = '$' + price.toLocaleString('en-US', {maximumFractionDigits: 0});
+      valEl.className = 'big-stat-val ' + posNeg(change);
+      valEl.style.fontSize = '22px';
+      subEl.textContent = fmtPct(change);
+      subEl.className = 'big-stat-sub ' + posNeg(change);
+    }
+  } catch (e) { console.log('BTC fetch failed:', e); }
+}
+
+// Tab switching
 function showTab(id) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -514,13 +786,28 @@ function showTab(id) {
   event.target.classList.add('active');
 }
 
+// Trial day counter
 const start = new Date('2026-02-23'), now = new Date();
 const day = Math.floor((now - start) / 86400000) + 1;
 document.getElementById('dayCount').textContent = 'Day ' + day + ' of 30';
 document.getElementById('daysLeft').textContent = Math.max(0, 30 - day);
 document.getElementById('trialBadge').textContent = 'DAY ' + day + '/30';
 const fmt = new Intl.DateTimeFormat('en-US', {timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
-document.getElementById('lastUpdated').textContent = 'Updated: ' + fmt.format(now) + ' PT';
+document.getElementById('lastUpdated').textContent = 'Loading live data...';
+
+// --- Init ---
+(async () => {
+  const allTickers = [...new Set([...POSITIONS.map(p => p.ticker), ...WATCHLIST.map(w => w.ticker), ...MARKET_TICKERS])];
+  try {
+    const quotes = await fetchAll(allTickers);
+    updateDashboard(quotes);
+  } catch (e) {
+    console.error('Quote fetch failed:', e);
+    document.getElementById('lastUpdated').textContent = 'Live data failed — showing cached';
+  }
+  fetchFearGreed();
+  fetchBTC();
+})();
 </script>
 </body>
 </html>

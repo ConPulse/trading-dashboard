@@ -421,12 +421,12 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
         <div style="font-size:13px;color:var(--dim);margin-top:10px;">⚠️ Score only 6/10 — R:R below 2:1 minimum. Wait for better entry or thesis improvement.</div>
       </div>
 
-      <div class="cond-card">
+      <div class="cond-card" style="border-left-color:var(--yellow);">
         <div class="cond-header">
-          <div><span class="tkr" style="font-size:20px;">MSTR</span><span class="pos" style="margin-left:8px;font-weight:700;">✓ TRIGGERED</span></div>
-          <span style="font-size:14px;color:var(--green);font-weight:700;">Score: 7/10 — ACTIONABLE</span>
+          <div><span class="tkr" style="font-size:20px;">MSTR</span><span style="margin-left:8px;font-weight:700;color:var(--yellow);">⏳ WATCHING</span></div>
+          <span style="font-size:14px;color:var(--yellow);font-weight:700;">Score: 5/10 — NOT READY</span>
         </div>
-        <div style="font-size:14px;color:var(--dim);margin-bottom:10px;"><strong>Condition:</strong> BTC breaks $67K → ✅ BTC at $68,191</div>
+        <div style="font-size:14px;color:var(--dim);margin-bottom:10px;"><strong>Condition:</strong> BTC breaks AND HOLDS $67K → ⏳ BTC bounced but hasn't held</div>
         <div class="cond-grid">
           <div><div class="cond-label">Entry Zone</div><div style="font-weight:600;">$120 – $135</div></div>
           <div><div class="cond-label">Current</div><div style="font-weight:600;">$135.65</div></div>
@@ -435,7 +435,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
           <div><div class="cond-label">R:R</div><div style="font-weight:600;">2.4:1</div></div>
           <div><div class="cond-label">Action</div><div style="font-weight:600;color:var(--green);">Evaluate at open</div></div>
         </div>
-        <div style="font-size:13px;color:var(--dim);margin-top:10px;">✅ Score meets 7/10 minimum. BTC momentum strong (+4.3%). Score at tomorrow's briefing.</div>
+        <div style="font-size:13px;color:var(--dim);margin-top:10px;">⏳ BTC touched $68K but hasn't held above $67K cleanly. Need sustained break before entry.</div>
       </div>
     </div>
   </div>
@@ -767,7 +767,7 @@ function updateDashboard(quotes) {
       const price = q?.price || 0;
       const change = q?.change || 0;
       const isOpen = POSITIONS.some(p => p.ticker === w.ticker);
-      const isTriggered = ['AMD', 'MSTR'].includes(w.ticker);
+      const isTriggered = ['AMD'].includes(w.ticker);
       let statusClass = 'watching', statusText = 'WATCHING';
       if (isOpen) { statusClass = 'active'; statusText = 'OPEN'; }
       else if (isTriggered) { statusClass = 'triggered'; statusText = 'TRIGGERED'; }

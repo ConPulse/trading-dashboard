@@ -637,7 +637,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
       <div class="card">
         <div class="ch"><h2>No-Emotion Checklist</h2></div>
         <div class="cb">
-          <div class="check-item">☐ Does it score ≥ 7/10?</div>
+          <div class="check-item">☐ Does it score ≥ 8/10 (momentum) or ≥ 9/10 (short-term)?</div>
           <div class="check-item">☐ Is R:R ≥ 2:1?</div>
           <div class="check-item">☐ Within position size limits?</div>
           <div class="check-item">☐ Is this a PLAN or a REACTION?</div>
@@ -986,7 +986,7 @@ function updateDashboard(quotes) {
         'KILLED': { border: 'var(--red)', color: 'var(--red)', icon: '❌', label: 'KILLED' }
       };
       const s = statusColors[c.status] || statusColors['WATCHING'];
-      const scoreColor = c.score >= 7 ? 'var(--green)' : c.score >= 5 ? 'var(--yellow)' : 'var(--red)';
+      const scoreColor = c.score >= 8 ? 'var(--green)' : c.score >= 6 ? 'var(--yellow)' : 'var(--red)';
       const card = document.createElement('div');
       card.className = 'cond-card';
       card.style.borderLeftColor = s.border;

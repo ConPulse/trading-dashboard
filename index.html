@@ -499,7 +499,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
   </div>
 
   <div class="card" style="margin-top:15px;">
-    <div class="ch"><h2>📡 VAMS Momentum Signals — Swing Trade Filter</h2><span style="font-size:13px;color:var(--dim);">Bullish VAMS = momentum tailwind for our 2-10 day trades · Bearish = swimming upstream</span></div>
+    <div class="ch"><h2>📡 VAMS Momentum Signals — Swing Trade Filter</h2><span style="font-size:13px;color:var(--dim);">Bullish VAMS = ride the wave (2-6 wk holds) · Bearish = headwind (tighter stops, quicker exits)</span></div>
     <table class="wl-table" style="width:100%;">
       <thead><tr><th>Asset</th><th>Ticker</th><th>VAMS</th><th>Dr. Mo</th><th>Impact on Us</th></tr></thead>
       <tbody id="vamsTable">
@@ -551,6 +551,13 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
           <div style="font-weight:700;font-size:16px;color:var(--teal);">🏠 HOMEBUILDERS (DHI/LEN)</div>
           <div style="font-size:13px;color:var(--dim);margin-top:5px;"><strong>VAMS: Bullish (XLRE)</strong> · Housing starts accelerating. DC easing housing regs. Rate-cut play. Wait for earnings catalyst or breakout.</div>
         </div>
+        <div style="margin-top:15px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border);">
+          <div style="font-size:12px;color:var(--dim);line-height:1.6;">
+            <strong style="color:var(--teal);">TRADE TYPE GUIDE:</strong><br>
+            🟢 <strong>MOMENTUM HOLD (2-6 wk)</strong> — Score 8+, VAMS bullish, trail at 21 EMA, exit when VAMS flips. Default for most trades.<br>
+            ⚡ <strong>SHORT-TERM (2-10 day)</strong> — Score 9+, clear catalyst, take profit at target. For obvious setups that scream.
+          </div>
+        </div>
       </div>
     </div>
     <div class="card">
@@ -596,16 +603,19 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
     <div class="card">
       <div class="ch"><h2>Trading Rules</h2></div>
       <div class="cb">
-        <div class="rule"><span class="rule-name">Strategy</span><span class="rule-val">Momentum Swing (2–10 days)</span></div>
+        <div class="rule"><span class="rule-name">Primary Strategy</span><span class="rule-val">Momentum Hold (2–6 weeks)</span></div>
+        <div class="rule"><span class="rule-name">Secondary Strategy</span><span class="rule-val">Short-Term (2–10 days, 9+ score only)</span></div>
         <div class="rule"><span class="rule-name">Max Loss / Trade</span><span class="rule-val neg">3% ($300)</span></div>
         <div class="rule"><span class="rule-name">Max Position</span><span class="rule-val">$2,500 (25%)</span></div>
         <div class="rule"><span class="rule-name">Max Invested</span><span class="rule-val">75% ($7,500)</span></div>
         <div class="rule"><span class="rule-name">Max Open Positions</span><span class="rule-val">3</span></div>
         <div class="rule"><span class="rule-name">Max Drawdown</span><span class="rule-val neg">20% → pause all trading</span></div>
-        <div class="rule"><span class="rule-name">Min R:R</span><span class="rule-val">2:1</span></div>
-        <div class="rule"><span class="rule-name">Min Conviction</span><span class="rule-val tl">≥ 7/10</span></div>
-        <div class="rule"><span class="rule-name">Max Overnight Gap</span><span class="rule-val neg">4%</span></div>
-        <div class="rule"><span class="rule-name">Time Stop</span><span class="rule-val">Exit if flat after 5 days</span></div>
+        <div class="rule"><span class="rule-name">Min R:R (Momentum)</span><span class="rule-val">3:1</span></div>
+        <div class="rule"><span class="rule-name">Min R:R (Short-Term)</span><span class="rule-val">2:1 (with 9+ score)</span></div>
+        <div class="rule"><span class="rule-name">Min Conviction</span><span class="rule-val tl">≥ 8/10 (momentum) · ≥ 9/10 (short-term)</span></div>
+        <div class="rule"><span class="rule-name">Winner Exit</span><span class="rule-val pos">Trail 21 EMA until VAMS flips</span></div>
+        <div class="rule"><span class="rule-name">Loser Exit</span><span class="rule-val neg">Hard stop, 2-5 days max</span></div>
+        <div class="rule"><span class="rule-name">Time Stop</span><span class="rule-val">10 days flat &lt;0.5R → exit</span></div>
         <div class="rule"><span class="rule-name">After 2 Losses</span><span class="rule-val neg">24h cooldown</span></div>
         <div class="rule"><span class="rule-name">Log at Open</span><span class="rule-val">Always (default)</span></div>
       </div>
@@ -620,7 +630,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
           <div class="rule"><span class="rule-name">Risk/Reward (0-2)</span><span class="rule-val">R:R ratio, clear stop</span></div>
           <div class="rule"><span class="rule-name">Catalyst (0-2)</span><span class="rule-val">Earnings, news, options flow</span></div>
           <div class="rule"><span class="rule-name">Timing (0-2)</span><span class="rule-val">Entry quality, not chasing</span></div>
-          <div class="rule" style="border-top:2px solid var(--border);padding-top:12px;margin-top:4px;"><span class="rule-name" style="font-weight:700;">MIN TO TRADE</span><span class="rule-val tl" style="font-size:20px;">≥ 7 / 10</span></div>
+          <div class="rule" style="border-top:2px solid var(--border);padding-top:12px;margin-top:4px;"><span class="rule-name" style="font-weight:700;">MIN TO TRADE</span><span class="rule-val tl" style="font-size:20px;">≥ 8/10 (momentum) · ≥ 9/10 (short-term)</span></div>
         </div>
       </div>
 

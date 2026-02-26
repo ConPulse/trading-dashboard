@@ -33,12 +33,12 @@
     },
     {
       "ticker": "MSTR",
-      "status": "KILLED",
+      "status": "WATCHING",
       "condition": "BTC breaks AND HOLDS $67K",
       "conditionMet": false,
       "score": 5,
-      "minScore": 9,
-      "action": "KILLED — 42 Macro VAMS bearish on BTC (0% allocation). Mean 21-day max drawdown when bearish = -11.8%. Don't fight institutional momentum.",
+      "minScore": 7,
+      "action": "WATCHING — BTC hasn't held $67K. 42 Macro VAMS bearish (extra caution). Need strong momentum + 7+ score.",
       "entryZone": [120, 135],
       "stop": 110,
       "target": 165

@@ -695,13 +695,28 @@ async function loadTradeStatus() {
   try {
     const r = await fetch(STATUS_URL + '?t=' + Date.now());
     const d = await r.json();
-    POSITIONS = d.positions.map(p => ({
+    POSITIONS = (d.openPositions || []).map(p => ({
       ticker: p.ticker, shares: p.shares, entry: p.entry, stop: p.stop,
-      target: p.target, direction: p.direction, date: p.entryDate, score: p.score
+      target: p.target, direction: p.direction || 'LONG', date: p.entryDate, score: p.score,
+      type: p.type || 'MOMENTUM_HOLD',
+      confirmation: p.confirmation || null,
+      trailingStop: p.trailingStop || null,
+      vams: p.vams || null
     }));
-    CASH = d.cash;
-    START_CAPITAL = d.startCapital;
-    CONDITIONALS = d.conditionals || [];
+    CASH = d.portfolioTracking?.cashAvailable || 7569.29;
+    START_CAPITAL = d.portfolio?.starting || 10000;
+    CONDITIONALS = (d.conditionalTrades || []).map(c => ({
+      ticker: c.ticker, status: c.status, condition: c.condition,
+      conditionMet: c.conditionMet, score: c.score,
+      type: c.type || 'WATCHING',
+      entry: c.entry, stop: c.stop, target: c.target,
+      entryZone: [c.entry || 0, c.entry || 0],
+      rr: c.rr || '?',
+      note: c.note || '', action: c.note || '',
+      vams: c.vams || '',
+      confirmation: c.confirmation || null,
+      minScore: (c.type === 'SHORT_TERM' || c.type === 'MAX_CONVICTION') ? 9 : 8
+    }));
     REGIME = d.regime || {};
     document.getElementById('lastUpdated').textContent = 'Status loaded · Fetching prices...';
     return true;
@@ -987,24 +1002,44 @@ function updateDashboard(quotes) {
       };
       const s = statusColors[c.status] || statusColors['WATCHING'];
       const scoreColor = c.score >= 8 ? 'var(--green)' : c.score >= 6 ? 'var(--yellow)' : 'var(--red)';
+      const conf = c.confirmation;
+      const finalScore = conf ? conf.finalScore : c.score;
+      const isMaxConv = conf && finalScore >= 9.5;
       const card = document.createElement('div');
       card.className = 'cond-card';
-      card.style.borderLeftColor = s.border;
+      card.style.borderLeftColor = isMaxConv ? 'var(--teal)' : s.border;
+      if (isMaxConv) card.style.boxShadow = '0 0 12px rgba(45,212,191,0.15)';
+      
+      // Build confirmation display
+      let confHtml = '';
+      if (conf) {
+        const confirms = (conf.confirming || []).map(s => '✅ ' + s).join('<br>');
+        const contradicts = (conf.contradicting || []).map(s => '❌ ' + s).join('<br>');
+        confHtml = '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:12px;">' +
+          '<div style="font-weight:700;margin-bottom:6px;color:var(--teal);">Confirmation: +' + conf.bonus.toFixed(2) + ' (' + (conf.confirming||[]).length + '✅ / ' + (conf.contradicting||[]).length + '❌ = net ' + conf.net + ')</div>' +
+          '<div style="color:var(--dim);line-height:1.6;">' + confirms + (contradicts ? '<br>' + contradicts : '') + '</div>' +
+          (conf.attentionPhase ? '<div style="margin-top:4px;color:var(--dim);">Attention: Phase ' + conf.attentionPhase + '</div>' : '') +
+          '</div>';
+      }
+      
+      const rr = c.stop && c.entry ? ((c.target - c.entry) / (c.entry - c.stop)).toFixed(1) : c.rr || '?';
+      
       card.innerHTML = `
         <div class="cond-header">
-          <div><span class="tkr" style="font-size:20px;">${c.ticker}</span><span style="margin-left:8px;font-weight:700;color:${s.color};">${s.icon} ${s.label}</span></div>
-          <span style="font-size:14px;color:${scoreColor};font-weight:700;">Score: ${c.score}/10 — ${c.score >= c.minScore ? 'ACTIONABLE' : c.score >= 5 ? 'NOT READY' : 'WAIT'}</span>
+          <div><span class="tkr" style="font-size:20px;">${c.ticker}</span><span style="margin-left:8px;font-weight:700;color:${s.color};">${s.icon} ${s.label}</span>${isMaxConv ? '<span style="margin-left:8px;background:var(--teal);color:#000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">MAX CONVICTION</span>' : ''}</div>
+          <span style="font-size:14px;color:${scoreColor};font-weight:700;">Score: ${finalScore}/10${conf ? ' (' + c.score + ' + ' + conf.bonus.toFixed(1) + ')' : ''}</span>
         </div>
         <div style="font-size:14px;color:var(--dim);margin-bottom:10px;"><strong>Condition:</strong> ${c.condition} → ${c.conditionMet ? '✅ Met' : '⏳ Pending'}</div>
         <div class="cond-grid">
-          <div><div class="cond-label">Entry Zone</div><div style="font-weight:600;">$${c.entryZone[0]} – $${c.entryZone[1]}</div></div>
+          <div><div class="cond-label">Entry</div><div style="font-weight:600;">${c.entry ? '$' + c.entry : '—'}</div></div>
           <div><div class="cond-label">Current</div><div style="font-weight:600;">${price}</div></div>
-          <div><div class="cond-label">Stop</div><div style="font-weight:600;color:var(--red);">$${c.stop}</div></div>
-          <div><div class="cond-label">Target</div><div style="font-weight:600;color:var(--green);">$${c.target}</div></div>
-          <div><div class="cond-label">R:R</div><div style="font-weight:600;">${((c.target - c.entryZone[1]) / (c.entryZone[1] - c.stop)).toFixed(1)}:1</div></div>
-          <div><div class="cond-label">Action</div><div style="font-weight:600;color:${s.color};">${c.score >= c.minScore ? 'Evaluate at open' : 'Wait'}</div></div>
+          <div><div class="cond-label">Stop</div><div style="font-weight:600;color:var(--red);">${c.stop ? '$' + c.stop : '—'}</div></div>
+          <div><div class="cond-label">Target</div><div style="font-weight:600;color:var(--green);">${c.target ? '$' + c.target : '—'}</div></div>
+          <div><div class="cond-label">R:R</div><div style="font-weight:600;">${rr}:1</div></div>
+          <div><div class="cond-label">Type</div><div style="font-weight:600;color:${isMaxConv ? 'var(--teal)' : s.color};">${isMaxConv ? 'MAX CONVICTION' : c.type || 'WATCHING'}</div></div>
         </div>
-        <div style="font-size:13px;color:var(--dim);margin-top:10px;">${c.action}</div>
+        ${confHtml}
+        <div style="font-size:13px;color:var(--dim);margin-top:10px;">${c.note}</div>
       `;
       condContainer.appendChild(card);
     });

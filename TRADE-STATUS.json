@@ -1,79 +1,128 @@
 {
-  "_meta": {
-    "description": "SINGLE SOURCE OF TRUTH for all trade statuses. Dashboard reads this. Morning briefing writes this. Nothing else sets trade status.",
-    "lastUpdated": "2026-02-26T17:00:00Z",
-    "updatedBy": "manual-audit"
+  "lastUpdated": "2026-02-28T12:15:00Z",
+  "portfolio": {
+    "starting": 10000,
+    "cashReserve": 0.25,
+    "maxPositionSize": 2500,
+    "maxPositionSizeMaxConviction": 3000,
+    "maxRiskPerTrade": 300,
+    "taxRate": 0.50,
+    "scoreThresholdMomentum": 8.0,
+    "scoreThresholdShortTerm": 9.0,
+    "scoreThresholdMaxConviction": 9.5
   },
-  "positions": [
+  "portfolioTracking": {
+    "currentValue": 10097.96,
+    "cashAvailable": 7569.29,
+    "deployed": 2430.71,
+    "unrealizedPL": 97.96,
+    "realizedPL": 0,
+    "peakValue": 10097.96,
+    "drawdownFromPeak": 0,
+    "drawdownPct": 0,
+    "note": "Peak updated on each briefing. Drawdown triggers: -5% review, -10% stop trading, -15% full review, -20% overhaul."
+  },
+  "regime": {
+    "current": "GOLDILOCKS",
+    "source": "42 Macro",
+    "lastChecked": "2026-02-26",
+    "implication": "Full speed ahead on risk assets"
+  },
+  "openPositions": [
     {
       "ticker": "IGV",
+      "type": "MOMENTUM_HOLD",
       "status": "OPEN",
-      "shares": 31,
       "entry": 78.41,
-      "entryDate": "2026-02-25",
-      "stop": 75.5,
-      "target": 92.0,
+      "shares": 31,
+      "exposure": 2430.71,
+      "stop": 75.50,
+      "target": 92.00,
+      "trailingStop": "21 EMA",
+      "riskDollars": 90.21,
+      "rewardDollars": 421.29,
+      "rr": "4.7:1",
       "score": 8,
-      "direction": "LONG",
-      "thesis": "SaaSpocalypse overreaction bounce \u2014 software sector oversold, NVDA earnings confirmed AI capex",
-      "tradeType": "MOMENTUM_HOLD",
-      "exitSignal": "VAMS flip or 21 EMA break"
+      "confirmation": {
+        "confirming": ["VAMS bullish equities", "Analyst consensus bullish"],
+        "contradicting": ["Google Trends: AI/semi searches fading (Phase 4)"],
+        "net": 1,
+        "bonus": 0.0,
+        "finalScore": 8.0,
+        "attentionPhase": 4,
+        "divergence": "none"
+      },
+      "entryDate": "2026-02-25",
+      "thesis": "SaaSpocalypse oversold bounce. RSI hit 18, recovering. Software sector -32%. AI runs ON software.",
+      "vams": "Bullish (equities)",
+      "lastPrice": 81.57,
+      "unrealizedPL": 97.96
     }
   ],
-  "conditionals": [
+  "conditionalTrades": [
     {
       "ticker": "AMD",
       "status": "CONDITION_MET",
       "condition": "NVDA beats earnings",
       "conditionMet": true,
-      "score": 6,
-      "minScore": 8,
-      "action": "WAIT \u2014 R:R below 3:1, AMD sold off despite NVDA beat. Need AMD green on NVDA green day. Score must hit 8+ for momentum hold.",
-      "entryZone": [
-        200,
-        215
-      ],
-      "stop": 190,
-      "target": 250
+      "score": 7,
+      "note": "NVDA beat ✅ but score 7 < threshold 8. Need pullback to better entry for higher R:R.",
+      "vams": "Bullish"
     },
     {
       "ticker": "MSTR",
       "status": "WATCHING",
-      "condition": "BTC breaks AND HOLDS $67K",
+      "condition": "BTC breaks AND holds $67K",
       "conditionMet": false,
-      "score": 5,
-      "minScore": 8,
-      "action": "WATCHING \u2014 BTC hasn't held $67K. 42 Macro VAMS bearish (extra caution). Need strong momentum + 7+ score.",
-      "entryZone": [
-        120,
-        135
-      ],
-      "stop": 110,
-      "target": 165
+      "score": 4,
+      "note": "BTC dropped to ~$65,536 (-3.2%). VAMS still bearish. Hot inflation = no rate cuts = headwind for crypto. Score downgraded. Stay away.",
+      "vams": "Bearish"
     },
     {
-      "ticker": "GLD",
-      "status": "WATCHING",
-      "condition": "Score \u2265 7 on next morning briefing",
-      "conditionMet": false,
-      "score": 0,
-      "minScore": 8,
-      "action": "NEW \u2014 42 Macro has 30% gold allocation, BULLISH VAMS. Score at next briefing for potential 10-15% portfolio allocation.",
-      "entryZone": [
-        280,
-        290
-      ],
-      "stop": 270,
-      "target": 310
+      "ticker": "GDX",
+      "status": "ACTIONABLE",
+      "condition": "Score at next briefing",
+      "conditionMet": true,
+      "score": 9,
+      "confirmation": {
+        "confirming": ["VAMS bullish gold", "NEM insider buying", "Google Trends: gold price steady +11%", "Fear & Greed 11 (extreme fear) contrarian", "Reddit: GLD #12 rising, SLV #8", "Yahoo: GC=F trending"],
+        "contradicting": ["Google Trends: 'buy gold' fading -46%"],
+        "net": 5,
+        "bonus": 0.50,
+        "finalScore": 9.5,
+        "attentionPhase": 2,
+        "divergence": "none"
+      },
+      "type": "MAX_CONVICTION",
+      "entry": 115.84,
+      "stop": 111.00,
+      "target": 128.00,
+      "rr": "2.5:1",
+      "maxPositionSize": 3000,
+      "note": "SCORED 2/28: Base 9/10 + 0.50 confirmation (5 net sources) = 9.5 MAX CONVICTION. VAMS bullish gold, #1 backtest sector, GDX +1.71% Fri, gold ATH zone, breakout above $115 w/ volume. Phase 2 attention (early momentum). Smart money + retail aligned on gold. Monday open entry.",
+      "vams": "Bullish"
     }
   ],
-  "regime": {
-    "label": "NEUTRAL",
-    "positionSizing": 0.75,
-    "cryptoFG": 11,
-    "putCall": 0.62,
-    "vix": 19
+  "watchlist": {
+    "aiSemi": ["NVDA", "AVGO", "MRVL", "AMD", "TSM", "ARM", "SMCI"],
+    "bigTech": ["MSFT", "GOOGL", "META", "AMZN", "AAPL", "PLTR"],
+    "construction": ["CAT", "VMC", "MLM", "DE", "URI", "BLDR"],
+    "crypto": ["MSTR", "COIN", "MARA", "SQ"],
+    "etfs": ["SPY", "QQQ", "SMH", "XLI", "TLT", "GLD", "UUP", "IGV", "IWM", "EEM"],
+    "homebuilders": ["DHI", "LEN", "KBH", "TOL"],
+    "goldSilver": ["SLV", "NEM", "GDX", "GOLD"],
+    "uranium": ["URA", "CCJ", "UUUU"],
+    "natGas": ["UNG", "LNG", "EQT"],
+    "totalTickers": 47
   },
-  "cash": 7569.29,
-  "startCapital": 10000
+  "backtestResults": {
+    "bestStrategy": "Breakout + Trailing",
+    "winRate": 0.477,
+    "annualReturn": 0.529,
+    "profitFactor": 4.39,
+    "sharpe": 1.16,
+    "maxDrawdown": 0.023,
+    "bestSector": "Gold/Silver",
+    "worstSector": "Crypto"
+  }
 }

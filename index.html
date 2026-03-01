@@ -733,33 +733,55 @@ async function loadTradeStatus() {
 
 // Watchlist tickers + metadata
 const WATCHLIST = [
-  { ticker: 'IGV', sector: 'Software', notes: 'Active position' },
-  { ticker: 'NVDA', sector: 'AI/Semi', notes: 'AI capex leader' },
-  { ticker: 'AMD', sector: 'AI/Semi', notes: 'Conditional — NVDA beat' },
-  { ticker: 'MSTR', sector: 'Crypto', notes: 'BTC proxy' },
-  { ticker: 'AVGO', sector: 'AI/Semi', notes: 'AI networking leader' },
-  { ticker: 'PLTR', sector: 'AI/Software', notes: 'Gov + enterprise AI' },
-  { ticker: 'META', sector: 'Big Tech', notes: 'AI ad revenue + Llama' },
-  { ticker: 'COIN', sector: 'Crypto', notes: 'BTC rally beneficiary' },
-  { ticker: 'ARM', sector: 'AI/Semi', notes: 'AI chip architecture' },
-  { ticker: 'DHI', sector: 'Homebuilder', notes: 'D.R. Horton — largest US builder' },
-  { ticker: 'LEN', sector: 'Homebuilder', notes: 'Lennar — #2 US builder' },
-  { ticker: 'KBH', sector: 'Homebuilder', notes: 'KB Home — entry-level focus' },
-  { ticker: 'TOL', sector: 'Homebuilder', notes: 'Toll Brothers — luxury homes' },
+  // Gold/Silver — #1 backtest sector, 42 Macro BULLISH
   { ticker: 'GLD', sector: 'Gold', notes: 'Gold ETF — inflation/fear hedge' },
-  { ticker: 'SLV', sector: 'Silver', notes: 'Silver ETF — industrial + precious' },
+  { ticker: 'GDX', sector: 'Gold Miners', notes: '★ MAX CONVICTION 9.5 — next trade' },
+  { ticker: 'GDXJ', sector: 'Gold Miners', notes: 'Junior miners — more volatile, bigger moves (NEW)' },
+  { ticker: 'SLV', sector: 'Silver', notes: '★ #1 ticker — +12.2% avg, 88% WR' },
   { ticker: 'NEM', sector: 'Gold Miner', notes: 'Newmont — largest gold miner' },
-  { ticker: 'GDX', sector: 'Gold Miners', notes: 'Gold miners ETF — leveraged gold play' },
-  { ticker: 'GOLD', sector: 'Gold Miner', notes: 'Barrick Gold' },
-  { ticker: 'URA', sector: 'Uranium', notes: 'Uranium miners ETF — nuclear renaissance' },
-  { ticker: 'CCJ', sector: 'Uranium', notes: 'Cameco — largest uranium producer' },
-  { ticker: 'UUUU', sector: 'Uranium', notes: 'Energy Fuels — US uranium + rare earth' },
-  { ticker: 'UNG', sector: 'Nat Gas', notes: 'Natural gas ETF' },
-  { ticker: 'LNG', sector: 'Nat Gas', notes: 'Cheniere Energy — LNG export leader' },
-  { ticker: 'EQT', sector: 'Nat Gas', notes: 'EQT Corp — largest US nat gas producer' },
-  { ticker: 'SPY', sector: 'Index', notes: 'S&P 500' },
-  { ticker: 'QQQ', sector: 'Index', notes: 'Nasdaq 100' },
+  // Tech/AI
+  { ticker: 'NVDA', sector: 'AI/Semi', notes: 'AI capex leader' },
+  { ticker: 'AMD', sector: 'AI/Semi', notes: 'GPU + data center' },
+  { ticker: 'AVGO', sector: 'AI/Semi', notes: '★ +6.9% avg — AI networking' },
+  { ticker: 'ARM', sector: 'AI/Semi', notes: 'AI chip architecture (NEW)' },
   { ticker: 'SMH', sector: 'Semis', notes: 'Semiconductor ETF' },
+  { ticker: 'META', sector: 'Big Tech', notes: '★ +4.8% avg — AI + ads' },
+  { ticker: 'MSFT', sector: 'Big Tech', notes: 'Azure + Copilot' },
+  { ticker: 'GOOGL', sector: 'Big Tech', notes: 'Search + Gemini' },
+  { ticker: 'AMZN', sector: 'Big Tech', notes: 'AWS + e-commerce' },
+  { ticker: 'AAPL', sector: 'Big Tech', notes: 'Apple Intelligence' },
+  { ticker: 'PLTR', sector: 'AI/Software', notes: '★ +21.9% avg — Gov + enterprise AI' },
+  { ticker: 'CRM', sector: 'Software', notes: 'Salesforce — enterprise AI' },
+  { ticker: 'SNOW', sector: 'Software', notes: 'Snowflake — data cloud' },
+  { ticker: 'NFLX', sector: 'Software', notes: 'Netflix — streaming' },
+  { ticker: 'TSLA', sector: 'EV/Tech', notes: 'Tesla — EV + energy + AI' },
+  // Cybersecurity (NEW sector)
+  { ticker: 'CRWD', sector: 'Cyber', notes: 'CrowdStrike — #1 endpoint security (NEW)' },
+  { ticker: 'PANW', sector: 'Cyber', notes: 'Palo Alto — platform security (NEW)' },
+  // Crypto-adjacent
+  { ticker: 'MSTR', sector: 'Crypto', notes: 'MicroStrategy — BTC proxy' },
+  { ticker: 'COIN', sector: 'Crypto', notes: '★ +20.9% avg — Coinbase' },
+  { ticker: 'MARA', sector: 'Crypto', notes: 'Marathon Digital — BTC miner' },
+  { ticker: 'RIOT', sector: 'Crypto', notes: 'Riot Platforms — BTC miner' },
+  // Commodities (NEW sector)
+  { ticker: 'COPX', sector: 'Commodities', notes: 'Copper miners — electrification play (NEW)' },
+  { ticker: 'XME', sector: 'Commodities', notes: 'Metals & mining ETF (NEW)' },
+  // Industrial
+  { ticker: 'CAT', sector: 'Industrial', notes: 'Caterpillar — infrastructure' },
+  { ticker: 'VMC', sector: 'Industrial', notes: 'Vulcan Materials — aggregates' },
+  { ticker: 'URI', sector: 'Industrial', notes: 'United Rentals — equipment' },
+  // Housing
+  { ticker: 'DHI', sector: 'Homebuilder', notes: 'D.R. Horton — #1 US builder' },
+  { ticker: 'LEN', sector: 'Homebuilder', notes: 'Lennar — #2 US builder' },
+  // Uranium
+  { ticker: 'URA', sector: 'Uranium', notes: 'Uranium miners — nuclear renaissance' },
+  // Energy
+  { ticker: 'UNG', sector: 'Energy', notes: 'Natural gas ETF' },
+  { ticker: 'LNG', sector: 'Energy', notes: 'Cheniere — LNG export leader' },
+  // Index ETFs
+  { ticker: 'QQQ', sector: 'Index', notes: 'Nasdaq 100' },
+  { ticker: 'IWM', sector: 'Index', notes: 'Russell 2000 small cap' },
+  { ticker: 'SPY', sector: 'Index', notes: 'S&P 500 (market filter)' },
 ];
 
 // Market overview tickers

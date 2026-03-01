@@ -1,0 +1,144 @@
+{
+  "scan_time": "2026-03-01 23:54",
+  "alerts": [
+    {
+      "source": "Reddit r/wallstreetbets",
+      "headline": "~$30,000 in SPY puts before Iran Strikes",
+      "catalyst_type": "geopolitical",
+      "strength": 2,
+      "engagement": 1253,
+      "comments": 537,
+      "tickers": [
+        "SPY"
+      ],
+      "severity": "\ud83d\udd34 RED"
+    },
+    {
+      "source": "Reddit r/stocks",
+      "headline": "\u2018Bigger ramifications than Venezuela\u2019: Markets brace for impact after U.S. strikes Iran",
+      "catalyst_type": "geopolitical",
+      "strength": 2,
+      "engagement": 2126,
+      "comments": 452,
+      "tickers": [],
+      "severity": "\ud83d\udd34 RED"
+    },
+    {
+      "source": "Brave News",
+      "headline": "U.S.-Iran news today: Live updates",
+      "catalyst_type": "geopolitical",
+      "strength": 3,
+      "tickers": [],
+      "severity": "\ud83d\udd34 RED"
+    },
+    {
+      "source": "Brave News",
+      "headline": "US Stock Market Monday predictions: U.S. Stock Market prediction: S&P 500, Nasdaq, Dow Jones to crash on Monday? Nvidia stocks, AI worries, US-Iran wa",
+      "catalyst_type": "geopolitical",
+      "strength": 2,
+      "tickers": [],
+      "severity": "\ud83d\udd34 RED"
+    },
+    {
+      "source": "Brave News",
+      "headline": "Three ships attacked near Strait of Hormuz as fears grow of oil price rises",
+      "catalyst_type": "geopolitical",
+      "strength": 2,
+      "tickers": [],
+      "severity": "\ud83d\udd34 RED"
+    },
+    {
+      "source": "Brave News",
+      "headline": "OPEC Plus to Boost Oil Production as Iran Strikes Threaten Price Spike - The New York Times",
+      "catalyst_type": "geopolitical",
+      "strength": 2,
+      "tickers": [],
+      "severity": "\ud83d\udd34 RED"
+    },
+    {
+      "source": "Fear & Greed Index",
+      "headline": "Extreme Fear: 14 (was 11, \u0394+3)",
+      "catalyst_type": "panic",
+      "strength": 2,
+      "tickers": [
+        "SPY",
+        "QQQ"
+      ],
+      "severity": "\ud83d\udfe1 YELLOW"
+    },
+    {
+      "source": "Price Gap",
+      "headline": "SLV GAP UP +5.6% ($80.45 \u2192 $84.99)",
+      "catalyst_type": "panic",
+      "strength": 3,
+      "tickers": [
+        "SLV"
+      ],
+      "gap_pct": 5.643256681168418,
+      "current_price": 84.99,
+      "severity": "\ud83d\udfe1 YELLOW"
+    },
+    {
+      "source": "Price Gap",
+      "headline": "NVDA GAP DOWN -4.2% ($184.89 \u2192 $177.19)",
+      "catalyst_type": "sector_rotation",
+      "strength": 2,
+      "tickers": [
+        "NVDA"
+      ],
+      "gap_pct": -4.164638433663254,
+      "current_price": 177.19,
+      "severity": "\u26aa WHITE"
+    },
+    {
+      "source": "Price Gap",
+      "headline": "AAPL GAP DOWN -3.2% ($272.95 \u2192 $264.18)",
+      "catalyst_type": "sector_rotation",
+      "strength": 2,
+      "tickers": [
+        "AAPL"
+      ],
+      "gap_pct": -3.2130426818098488,
+      "current_price": 264.18,
+      "severity": "\u26aa WHITE"
+    },
+    {
+      "source": "Price Gap",
+      "headline": "MSTR GAP DOWN -2.9% ($133.40 \u2192 $129.50)",
+      "catalyst_type": "sector_rotation",
+      "strength": 2,
+      "tickers": [
+        "MSTR"
+      ],
+      "gap_pct": -2.923538230884562,
+      "current_price": 129.5,
+      "severity": "\u26aa WHITE"
+    },
+    {
+      "source": "Price Gap",
+      "headline": "COIN GAP DOWN -2.9% ($181.06 \u2192 $175.85)",
+      "catalyst_type": "sector_rotation",
+      "strength": 2,
+      "tickers": [
+        "COIN"
+      ],
+      "gap_pct": -2.8774991715453484,
+      "current_price": 175.85,
+      "severity": "\u26aa WHITE"
+    },
+    {
+      "source": "Price Gap",
+      "headline": "CRWD GAP DOWN -2.4% ($381.10 \u2192 $371.98)",
+      "catalyst_type": "sector_rotation",
+      "strength": 2,
+      "tickers": [
+        "CRWD"
+      ],
+      "gap_pct": -2.3930726843348213,
+      "current_price": 371.98,
+      "severity": "\u26aa WHITE"
+    }
+  ],
+  "red_count": 6,
+  "yellow_count": 2
+}

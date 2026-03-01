@@ -220,6 +220,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
   <div class="tab" onclick="showTab('conditional')">⚡ Triggers</div>
   <div class="tab" onclick="showTab('macro')">🏛 42 Macro</div>
   <div class="tab" onclick="showTab('rules')">📏 Rules</div>
+  <div class="tab" onclick="showTab('catalyst')">🔥 Catalyst</div>
   <div class="tab" onclick="showTab('history')">📖 History</div>
 </div>
 
@@ -651,6 +652,146 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
     </div>
   </div>
 </div>
+
+<!-- TAB: News Catalyst (Research Project) -->
+<div class="tab-content" id="tab-catalyst">
+  <div class="card">
+    <div class="ch">
+      <h2>🔥 News Catalyst Strategy</h2>
+      <span style="font-size:13px;color:var(--yellow);">RESEARCH — 30-Day Paper Trade</span>
+    </div>
+    <div style="padding:12px;background:rgba(210,153,34,0.1);border-left:3px solid var(--yellow);border-radius:6px;margin-bottom:15px;">
+      <div style="font-size:13px;color:var(--dim);">
+        ⚠️ This is a <strong>separate research project</strong> — not connected to the IRA Breakout+Holy Grail strategy.
+        Testing whether multi-source news detection can generate profitable same-day trades.
+      </div>
+    </div>
+
+    <!-- Catalyst Summary Strip -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px;">
+      <div style="background:var(--bg2);padding:12px;border-radius:8px;text-align:center;">
+        <div style="font-size:10px;color:var(--dim);text-transform:uppercase;">Capital</div>
+        <div style="font-size:20px;font-weight:700;color:var(--teal);" id="catCapital">$10,000</div>
+      </div>
+      <div style="background:var(--bg2);padding:12px;border-radius:8px;text-align:center;">
+        <div style="font-size:10px;color:var(--dim);text-transform:uppercase;">P&L</div>
+        <div style="font-size:20px;font-weight:700;" id="catPL">$0.00</div>
+      </div>
+      <div style="background:var(--bg2);padding:12px;border-radius:8px;text-align:center;">
+        <div style="font-size:10px;color:var(--dim);text-transform:uppercase;">Trades</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);" id="catTrades">0</div>
+      </div>
+      <div style="background:var(--bg2);padding:12px;border-radius:8px;text-align:center;">
+        <div style="font-size:10px;color:var(--dim);text-transform:uppercase;">Win Rate</div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);" id="catWinRate">—</div>
+      </div>
+    </div>
+
+    <!-- Trial Progress -->
+    <div style="margin-bottom:15px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:4px;">
+        <span>30-Day Trial</span>
+        <span id="catDayCount">Day 0/30</span>
+      </div>
+      <div style="background:var(--bg);border-radius:4px;height:6px;overflow:hidden;">
+        <div id="catProgress" style="background:var(--yellow);height:100%;width:0%;border-radius:4px;transition:width 0.3s;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:4px;">
+        <span>Mar 3</span>
+        <span>Apr 2</span>
+      </div>
+    </div>
+
+    <!-- Success Criteria -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px;">
+      <div style="padding:10px;background:rgba(46,160,67,0.08);border-radius:6px;text-align:center;">
+        <div style="font-size:11px;color:var(--green);font-weight:600;">✅ WORTH IT</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;">WR &gt;55%<br>PF &gt;1.5<br>Return &gt;3%</div>
+      </div>
+      <div style="padding:10px;background:rgba(210,153,34,0.08);border-radius:6px;text-align:center;">
+        <div style="font-size:11px;color:var(--yellow);font-weight:600;">⚠️ NEEDS WORK</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;">WR 45-55%<br>PF 1.0-1.5</div>
+      </div>
+      <div style="padding:10px;background:rgba(233,69,96,0.08);border-radius:6px;text-align:center;">
+        <div style="font-size:11px;color:var(--red);font-weight:600;">❌ KILL IT</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:4px;">WR &lt;45%<br>PF &lt;1.0<br>DD &gt;8%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Alerts -->
+  <div class="card">
+    <div class="ch"><h2>🚨 Latest Alerts</h2><span style="font-size:13px;color:var(--dim);" id="catAlertTime">—</span></div>
+    <div id="catAlerts" style="font-size:13px;color:var(--dim);">Loading alerts...</div>
+  </div>
+
+  <!-- Open Positions -->
+  <div class="card">
+    <div class="ch"><h2>📊 Open Positions</h2></div>
+    <div id="catPositions" style="font-size:13px;color:var(--dim);">No open positions</div>
+  </div>
+
+  <!-- Trade History -->
+  <div class="card">
+    <div class="ch"><h2>📖 Closed Trades</h2></div>
+    <table class="wl-table" style="width:100%;">
+      <thead><tr>
+        <th>Date</th><th>Ticker</th><th>Type</th><th>Entry</th><th>Exit</th><th>P&L</th><th>Duration</th>
+      </tr></thead>
+      <tbody id="catHistory">
+        <tr><td colspan="7" style="text-align:center;color:var(--dim);padding:20px;">No trades yet — starts March 3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Playbooks Reference -->
+  <div class="card">
+    <div class="ch"><h2>📋 Playbooks</h2></div>
+    <div style="display:grid;gap:8px;">
+      <div style="padding:10px;background:var(--bg2);border-radius:6px;border-left:3px solid var(--red);">
+        <div style="font-weight:600;font-size:13px;">🌍 Geopolitical Shock</div>
+        <div style="font-size:12px;color:var(--dim);">Long GLD/GDX/SLV + UNG/LNG · Target +3-5% · Stop -2% · 1-4 hrs</div>
+      </div>
+      <div style="padding:10px;background:var(--bg2);border-radius:6px;border-left:3px solid var(--yellow);">
+        <div style="font-weight:600;font-size:13px;">📊 Earnings Shock</div>
+        <div style="font-size:12px;color:var(--dim);">Ride gap direction 1-2 hrs · Enter at open · Target +2-4% · Stop -2%</div>
+      </div>
+      <div style="padding:10px;background:var(--bg2);border-radius:6px;border-left:3px solid var(--blue);">
+        <div style="font-weight:600;font-size:13px;">🏛 Fed/Macro Surprise</div>
+        <div style="font-size:12px;color:var(--dim);">Dovish→QQQ/IWM · Hawkish→GLD · Target +2-3% · Stop -2%</div>
+      </div>
+      <div style="padding:10px;background:var(--bg2);border-radius:6px;border-left:3px solid var(--teal);">
+        <div style="font-weight:600;font-size:13px;">🔄 Sector Rotation</div>
+        <div style="font-size:12px;color:var(--dim);">Enter leading sector ETF within 30 min · Target +2-3% · Stop -2%</div>
+      </div>
+      <div style="padding:10px;background:var(--bg2);border-radius:6px;border-left:3px solid var(--green);">
+        <div style="font-weight:600;font-size:13px;">😱 Panic Reversal</div>
+        <div style="font-size:12px;color:var(--dim);">F&G &lt;15 + gap down &gt;1% → wait 30 min → buy SPY/QQQ · Target +2-3%</div>
+      </div>
+      <div style="padding:10px;background:var(--bg2);border-radius:6px;border-left:3px solid #a855f7;">
+        <div style="font-weight:600;font-size:13px;">🔗 Sympathy Play</div>
+        <div style="font-size:12px;color:var(--dim);">Mega-cap moves big → sector follows with 30-60 min lag · Target +2-3%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules -->
+  <div class="card">
+    <div class="ch"><h2>📏 Rules</h2></div>
+    <div style="display:grid;gap:4px;">
+      <div class="rule"><span class="rule-name">Position Size</span><span class="rule-val">20% standard, 30% high conviction</span></div>
+      <div class="rule"><span class="rule-name">Max Deployed</span><span class="rule-val">50% ($5,000)</span></div>
+      <div class="rule"><span class="rule-name">Max Positions</span><span class="rule-val">2 simultaneous</span></div>
+      <div class="rule"><span class="rule-name">Hard Stop</span><span class="rule-val neg">-2% (no exceptions)</span></div>
+      <div class="rule"><span class="rule-name">Time Stop</span><span class="rule-val">Must exit by 12:45 PM PT</span></div>
+      <div class="rule"><span class="rule-name">Entry</span><span class="rule-val">Open price (pre-mkt alert) or +5 min (intraday)</span></div>
+      <div class="rule"><span class="rule-name">Slippage</span><span class="rule-val">0.1% added to entry, subtracted from exit</span></div>
+      <div class="rule"><span class="rule-name">Settlement</span><span class="rule-val">T+1 cash account</span></div>
+      <div class="rule"><span class="rule-name">Scanner</span><span class="rule-val tl">Every 30 min, 6 AM - 1 PM PT</span></div>
+    </div>
+  </div>
+</div>
+
 
 <!-- TAB: History -->
 <div class="tab-content" id="tab-history">
@@ -1134,6 +1275,83 @@ const fmt = new Intl.DateTimeFormat('en-US', {timeZone:'America/Los_Angeles',mon
 document.getElementById('lastUpdated').textContent = 'Loading live data...';
 
 // --- Refresh all data ---
+
+// --- News Catalyst Tab (Research Project) ---
+async function loadCatalystData() {
+  try {
+    // Load trades
+    const tradesResp = await fetch('https://raw.githubusercontent.com/ConPulse/trading-workspace/main/NEWS-CATALYST-TRADES.json');
+    if (tradesResp.ok) {
+      const trades = await tradesResp.json();
+      const el = (id) => document.getElementById(id);
+      
+      const capital = trades.capital + trades.stats.totalPL;
+      el('catCapital').textContent = '$' + capital.toLocaleString();
+      el('catPL').textContent = (trades.stats.totalPL >= 0 ? '+' : '') + '$' + Math.abs(trades.stats.totalPL).toFixed(2);
+      el('catPL').className = trades.stats.totalPL >= 0 ? 'pos' : 'neg';
+      el('catTrades').textContent = trades.stats.totalTrades;
+      
+      const wr = trades.stats.totalTrades > 0 ? 
+        ((trades.stats.wins / trades.stats.totalTrades) * 100).toFixed(0) + '%' : '—';
+      el('catWinRate').textContent = wr;
+      
+      // Day counter
+      const start = new Date('2026-03-03');
+      const now = new Date();
+      const day = Math.max(0, Math.min(30, Math.ceil((now - start) / 86400000)));
+      el('catDayCount').textContent = 'Day ' + day + '/30';
+      el('catProgress').style.width = ((day / 30) * 100) + '%';
+      
+      // Positions
+      if (trades.positions && trades.positions.length > 0) {
+        el('catPositions').innerHTML = trades.positions.map(p => 
+          '<div style="padding:8px;background:var(--bg2);border-radius:6px;margin-bottom:6px;">' +
+          '<strong>' + p.ticker + '</strong> ' + p.direction + ' · Entry $' + p.entry_price + 
+          ' · Stop $' + p.stop + ' · Playbook: ' + (p.playbook || '?') +
+          '</div>'
+        ).join('');
+      }
+      
+      // Closed trades
+      if (trades.closedTrades && trades.closedTrades.length > 0) {
+        el('catHistory').innerHTML = trades.closedTrades.map(t => {
+          const plClass = t.pl >= 0 ? 'pos' : 'neg';
+          return '<tr><td>' + t.date + '</td><td>' + t.ticker + '</td><td>' + (t.playbook||'') + 
+            '</td><td>$' + t.entry_price + '</td><td>$' + t.exit_price + 
+            '</td><td class="' + plClass + '">' + (t.pl>=0?'+':'') + '$' + Math.abs(t.pl).toFixed(2) + 
+            '</td><td>' + (t.duration||'') + '</td></tr>';
+        }).join('');
+      }
+    }
+  } catch(e) { console.log('Catalyst data load failed:', e); }
+  
+  // Load alerts
+  try {
+    const alertResp = await fetch('https://raw.githubusercontent.com/ConPulse/trading-workspace/main/NEWS-CATALYST-ALERTS.json');
+    if (alertResp.ok) {
+      const alerts = await alertResp.json();
+      const el = document.getElementById('catAlerts');
+      document.getElementById('catAlertTime').textContent = alerts.scan_time || '';
+      
+      if (alerts.alerts && alerts.alerts.length > 0) {
+        el.innerHTML = alerts.alerts.slice(0, 8).map(a => {
+          const color = a.severity.includes('RED') ? 'var(--red)' : 
+                        a.severity.includes('YELLOW') ? 'var(--yellow)' : 'var(--dim)';
+          return '<div style="padding:8px;margin-bottom:6px;border-left:3px solid ' + color + 
+            ';background:var(--bg2);border-radius:4px;">' +
+            '<div style="font-weight:600;color:' + color + ';">' + a.severity + ' — ' + 
+            (a.catalyst_type||'').toUpperCase() + '</div>' +
+            '<div style="font-size:12px;margin-top:2px;">' + (a.headline||'') + '</div>' +
+            '<div style="font-size:11px;color:var(--dim);margin-top:2px;">Source: ' + (a.source||'') + 
+            ' | Tickers: ' + (a.tickers||[]).join(', ') + '</div></div>';
+        }).join('');
+      } else {
+        el.innerHTML = '<div style="text-align:center;padding:20px;">No active alerts ✅</div>';
+      }
+    }
+  } catch(e) { console.log('Alert load failed:', e); }
+}
+
 async function refreshAll() {
   await loadTradeStatus();
   const allTickers = [...new Set([...POSITIONS.map(p => p.ticker), ...WATCHLIST.map(w => w.ticker), ...MARKET_TICKERS, ...CONDITIONALS.map(c => c.ticker)])];
@@ -1146,6 +1364,7 @@ async function refreshAll() {
   }
   fetchFearGreed();
   fetchBTC();
+  loadCatalystData();
 }
 
 // --- Pull to Refresh ---

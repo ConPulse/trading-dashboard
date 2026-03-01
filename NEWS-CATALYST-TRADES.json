@@ -1,0 +1,21 @@
+{
+  "strategy": "News Catalyst",
+  "status": "PAPER_TRADING",
+  "startDate": "2026-03-03",
+  "endDate": "2026-04-02",
+  "capital": 10000,
+  "availableCash": 10000,
+  "settlingCash": 0,
+  "settlingDate": null,
+  "positions": [],
+  "closedTrades": [],
+  "alerts": [],
+  "stats": {
+    "totalTrades": 0,
+    "wins": 0,
+    "losses": 0,
+    "totalPL": 0,
+    "maxDrawdown": 0,
+    "peakCapital": 10000
+  }
+}

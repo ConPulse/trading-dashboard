@@ -658,7 +658,7 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
   <div class="card">
     <div class="ch">
       <h2>🔥 News Catalyst Strategy</h2>
-      <span style="font-size:13px;color:var(--yellow);">RESEARCH — 30-Day Paper Trade</span>
+      <span style="font-size:13px;color:var(--yellow);">RESEARCH — 15-Day Paper Trade</span>
     </div>
     <div style="padding:12px;background:rgba(210,153,34,0.1);border-left:3px solid var(--yellow);border-radius:6px;margin-bottom:15px;">
       <div style="font-size:13px;color:var(--dim);">
@@ -690,15 +690,15 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
     <!-- Trial Progress -->
     <div style="margin-bottom:15px;">
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:4px;">
-        <span>30-Day Trial</span>
-        <span id="catDayCount">Day 0/30</span>
+        <span>15-Day Trial</span>
+        <span id="catDayCount">Day 0/15</span>
       </div>
       <div style="background:var(--bg);border-radius:4px;height:6px;overflow:hidden;">
         <div id="catProgress" style="background:var(--yellow);height:100%;width:0%;border-radius:4px;transition:width 0.3s;"></div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:4px;">
         <span>Mar 3</span>
-        <span>Apr 2</span>
+        <span>Mar 18</span>
       </div>
     </div>
 
@@ -1298,9 +1298,9 @@ async function loadCatalystData() {
       // Day counter
       const start = new Date('2026-03-03');
       const now = new Date();
-      const day = Math.max(0, Math.min(30, Math.ceil((now - start) / 86400000)));
+      const day = Math.max(0, Math.min(15, Math.ceil((now - start) / 86400000)));
       el('catDayCount').textContent = 'Day ' + day + '/30';
-      el('catProgress').style.width = ((day / 30) * 100) + '%';
+      el('catProgress').style.width = ((day / 15) * 100) + '%';
       
       // Positions
       if (trades.positions && trades.positions.length > 0) {

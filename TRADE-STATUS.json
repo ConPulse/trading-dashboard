@@ -1,15 +1,22 @@
 {
   "lastUpdated": "2026-02-28T12:15:00Z",
   "portfolio": {
+    "account": "IRA",
     "starting": 10000,
-    "cashReserve": 0.25,
-    "maxPositionSize": 2500,
-    "maxPositionSizeMaxConviction": 3000,
-    "maxRiskPerTrade": 300,
-    "taxRate": 0.50,
-    "scoreThresholdMomentum": 8.0,
-    "scoreThresholdShortTerm": 9.0,
-    "scoreThresholdMaxConviction": 9.5
+    "positionSize": 0.35,
+    "maxPositions": 2,
+    "maxDeployed": 0.70,
+    "cashReserve": 0.30,
+    "taxRate": 0.0,
+    "stopFormula": "entry - 3*ATR14",
+    "trailEarly": "13 EMA (days 1-10)",
+    "trailLate": "21 EMA (days 11+)",
+    "timeStop": 10,
+    "trendDeath": "ADX < 15 after day 10",
+    "adxMin": 15,
+    "adxHolyGrail": 30,
+    "backtestReturn": "+169.2% over 5yr",
+    "backtestAlpha": "+93.1% vs SPY"
   },
   "portfolioTracking": {
     "currentValue": 10097.96,

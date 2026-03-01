@@ -162,11 +162,11 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
 <!-- Header -->
 <div class="hdr">
   <div>
-    <h1>📊 Paper Trading Dashboard</h1>
-    <div class="hdr-sub">Momentum Swing Trading · $10K Capital · 30-Day Trial</div>
+    <h1>📊 IRA Trading Dashboard</h1>
+    <div class="hdr-sub">Breakout + Holy Grail · IRA (Tax-Free) · Verified +169% / 5yr</div>
   </div>
   <div class="hdr-right">
-    <span class="badge badge-trial" id="trialBadge">DAY 3/30</span>
+    <span class="badge badge-trial" id="trialBadge" style="background:var(--teal);color:#000;">IRA</span>
     <span class="badge badge-paper">● PAPER</span>
     <div class="hdr-time" id="lastUpdated"></div>
   </div>
@@ -185,9 +185,9 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
     <div class="strip-sub">IGV +3.1%</div>
   </div>
   <div class="strip-item">
-    <div class="strip-label">After-Tax P&L</div>
-    <div class="strip-val pos" id="stripAfterTax">+$38</div>
-    <div class="strip-sub" style="color:var(--dim);">~50% tax rate</div>
+    <div class="strip-label">Account</div>
+    <div class="strip-val tl" id="stripAfterTax">IRA</div>
+    <div class="strip-sub pos">0% tax</div>
   </div>
   <div class="strip-item">
     <div class="strip-label">Cash</div>
@@ -603,21 +603,22 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: v
     <div class="card">
       <div class="ch"><h2>Trading Rules</h2></div>
       <div class="cb">
-        <div class="rule"><span class="rule-name">Primary Strategy</span><span class="rule-val">Momentum Hold (2–6 weeks)</span></div>
-        <div class="rule"><span class="rule-name">Secondary Strategy</span><span class="rule-val">Short-Term (2–10 days, 9+ score only)</span></div>
-        <div class="rule"><span class="rule-name">Max Loss / Trade</span><span class="rule-val neg">3% ($300)</span></div>
-        <div class="rule"><span class="rule-name">Max Position</span><span class="rule-val">$2,500 (25%)</span></div>
-        <div class="rule"><span class="rule-name">Max Invested</span><span class="rule-val">75% ($7,500)</span></div>
-        <div class="rule"><span class="rule-name">Max Open Positions</span><span class="rule-val">3</span></div>
-        <div class="rule"><span class="rule-name">Max Drawdown</span><span class="rule-val neg">20% → pause all trading</span></div>
-        <div class="rule"><span class="rule-name">Min R:R (Momentum)</span><span class="rule-val">3:1</span></div>
-        <div class="rule"><span class="rule-name">Min R:R (Short-Term)</span><span class="rule-val">2:1 (with 9+ score)</span></div>
-        <div class="rule"><span class="rule-name">Min Conviction</span><span class="rule-val tl">≥ 8/10 (momentum) · ≥ 9/10 (short-term)</span></div>
-        <div class="rule"><span class="rule-name">Winner Exit</span><span class="rule-val pos">Trail 21 EMA until VAMS flips</span></div>
-        <div class="rule"><span class="rule-name">Loser Exit</span><span class="rule-val neg">Hard stop, 2-5 days max</span></div>
-        <div class="rule"><span class="rule-name">Time Stop</span><span class="rule-val">10 days flat &lt;0.5R → exit</span></div>
-        <div class="rule"><span class="rule-name">After 2 Losses</span><span class="rule-val neg">24h cooldown</span></div>
-        <div class="rule"><span class="rule-name">Log at Open</span><span class="rule-val">Always (default)</span></div>
+        <div class="rule"><span class="rule-name">Account</span><span class="rule-val tl">IRA (0% Tax)</span></div>
+        <div class="rule"><span class="rule-name">Strategy</span><span class="rule-val">Breakout + Holy Grail</span></div>
+        <div class="rule"><span class="rule-name">Entry</span><span class="rule-val">Next-day market open (MOO)</span></div>
+        <div class="rule"><span class="rule-name">Position Size</span><span class="rule-val">35% of capital</span></div>
+        <div class="rule"><span class="rule-name">Max Positions</span><span class="rule-val">2 concurrent</span></div>
+        <div class="rule"><span class="rule-name">Max Deployed</span><span class="rule-val">70% (30% cash reserve)</span></div>
+        <div class="rule"><span class="rule-name">Initial Stop</span><span class="rule-val neg">Entry − 3 × ATR(14)</span></div>
+        <div class="rule"><span class="rule-name">Trail (Days 1-10)</span><span class="rule-val">13 EMA (ratchet up only)</span></div>
+        <div class="rule"><span class="rule-name">Trail (Days 11+)</span><span class="rule-val">21 EMA (ratchet up only)</span></div>
+        <div class="rule"><span class="rule-name">Time Stop</span><span class="rule-val neg">Day 10+, if close &lt; entry → sell</span></div>
+        <div class="rule"><span class="rule-name">Trend Death</span><span class="rule-val neg">ADX &lt; 15 after day 10 → sell</span></div>
+        <div class="rule"><span class="rule-name">Gap-Through</span><span class="rule-val neg">Open &lt; stop → sell at OPEN</span></div>
+        <div class="rule"><span class="rule-name">ADX Min (Breakout)</span><span class="rule-val">15</span></div>
+        <div class="rule"><span class="rule-name">ADX Min (Holy Grail)</span><span class="rule-val">30</span></div>
+        <div class="rule"><span class="rule-name">Backtest (5yr)</span><span class="rule-val pos">+169% ($10K→$26,923)</span></div>
+        <div class="rule"><span class="rule-name">SPY Comparison</span><span class="rule-val">+76% (Alpha: +93%)</span></div>
       </div>
     </div>
 

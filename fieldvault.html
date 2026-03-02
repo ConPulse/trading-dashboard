@@ -57,8 +57,8 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .btn-ghost{color:var(--accent);font-weight:600;font-size:15px;padding:12px}
 .nav-buttons{display:flex;gap:12px;margin-top:20px;padding-bottom:24px}
 .nav-buttons .btn{flex:1}
-.sub-row{display:flex;align-items:center;gap:8px;padding:12px;background:var(--card);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow);flex-wrap:wrap}
-.sub-row .name{flex:1;font-weight:600;font-size:15px;min-width:80px}
+.sub-row{background:var(--card);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow);overflow:hidden}.sub-row-main{display:flex;align-items:center;gap:8px;padding:12px;flex-wrap:wrap}
+.sub-row .name{flex:1;font-weight:600;font-size:15px;min-width:80px}.crew-toggle{width:28px;height:28px;font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--bg);transition:transform .2s}.crew-toggle.open{transform:rotate(90deg)}.crew-members{padding:0 12px 12px;display:none}.crew-members.open{display:block}.crew-members-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.crew-member{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:var(--bg);border-radius:16px;font-size:13px;color:var(--text)}.crew-member button{font-size:14px;color:var(--muted);padding:0 2px}.add-member-btn{font-size:13px;color:var(--accent);font-weight:600;padding:4px 0}
 .stepper{display:flex;align-items:center;gap:0;background:var(--bg);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
 .stepper button{width:40px;height:40px;font-size:20px;font-weight:700;color:var(--accent);display:flex;align-items:center;justify-content:center}
 .stepper button:active{background:var(--border)}
@@ -275,7 +275,7 @@ function demoData(){
     {id:2,name:'Oak Valley Townhomes — Phase 2',crews:['Scaffold','Lath','Siding','Veneer','Clean Up','Masking']}
   ];
   S.reports=[
-    {id:1,project:'Riverside Apartments',date:'2026-03-02',crew:[{name:'Scaffold',count:4,hours:8},{name:'Lath',count:6,hours:8},{name:'Gun Crew',count:3,hours:10}],work:'Scaffold set on Building B east side. Lath crew hung 2nd floor units 201-208. Gun crew shot scratch coat on Building A 1st floor.',issues:[{type:'delay',who:'Scaffold',duration:'2h',note:'Waiting on material delivery — scaffold planks short'}],tomorrow:'Continue lath Building B. Gun crew moves to 2nd floor Building A.'},
+    {id:1,project:'Riverside Apartments',date:'2026-03-02',crew:[{name:'Scaffold',count:4,hours:8,members:['Mike R.','Jose L.','Dave K.','Tommy S.']},{name:'Lath',count:6,hours:8,members:['Carlos M.','Miguel A.','Pedro G.','Juan R.','Luis H.','Marco T.']},{name:'Gun Crew',count:3,hours:10,members:['Danny F.','Ray P.','Chris B.']}],work:'Scaffold set on Building B east side. Lath crew hung 2nd floor units 201-208. Gun crew shot scratch coat on Building A 1st floor.',issues:[{type:'delay',who:'Scaffold',duration:'2h',note:'Waiting on material delivery — scaffold planks short'}],tomorrow:'Continue lath Building B. Gun crew moves to 2nd floor Building A.'},
     {id:2,project:'Riverside Apartments',date:'2026-03-01',crew:[{name:'Finish',count:8,hours:8},{name:'Clean Up',count:3,hours:6}],work:'Finish crew completed brown coat on Building A units 101-108. Cleanup cleared debris and prepped Building B staging area.',issues:[],tomorrow:'Continue finish on 2nd floor. Cleanup move to Building C.'},
     {id:3,project:'Oak Valley Townhomes',date:'2026-03-02',crew:[{name:'Siding',count:5,hours:10},{name:'Scaffold',count:3,hours:8}],work:'Siding crew installed HardiePlank on units 5-8 front elevation. Scaffold set up on units 9-12.',issues:[{type:'problem',text:'Siding material color mismatch — wrong lot number on 2 pallets',severity:'Medium'}],tomorrow:'Continue siding units 9-12. Scaffold move to rear elevation.'},
     {id:4,project:'Oak Valley Townhomes',date:'2026-02-28',crew:[{name:'Veneer',count:4,hours:8},{name:'Masking',count:2,hours:8}],work:'Veneer stone installed on units 1-4 entry columns. Masking crew prepped windows and doors on units 5-8.',issues:[{type:'delay',who:'Masking',duration:'3h',note:'Rain delay — stopped exterior masking work'}],tomorrow:'Weather dependent for masking. Continue veneer if dry.'}
@@ -368,13 +368,16 @@ function loadProjectSubs(){
   renderSubs();
 }
 
-function renderSubs(){
+function renderSubs(){if(!S.crews.forEach)return;
   document.getElementById('subsList').innerHTML=S.crews.map((s,i)=>
-    '<div class="sub-row"><div class="name">'+s.name+'</div><div class="stepper"><button onclick="adjCount('+i+',-1)">−</button><span class="val">'+s.count+'</span><button onclick="adjCount('+i+',1)">+</button></div><select onchange="S.crews['+i+'].hours=+this.value">'+[4,6,8,10].map(h=>'<option value="'+h+'"'+(s.hours===h?' selected':'')+'>'+h+'h</option>').join('')+'</select></div>'
+    '<div class="sub-row"><div class="sub-row-main"><button class="crew-toggle'+(s._open?' open':'')+'" onclick="toggleMembers('+i+')">▶</button><div class="name">'+s.name+'</div><div class="stepper"><button onclick="adjCount('+i+',-1)">−</button><span class="val">'+s.count+'</span><button onclick="adjCount('+i+',1)">+</button></div><select onchange="S.crews['+i+'].hours=+this.value">'+[4,6,8,10].map(h=>'<option value="'+h+'"'+(s.hours===h?' selected':'')+'>'+h+'h</option>').join('')+'</select></div><div class="crew-members'+(s._open?' open':'')+'" id="members-'+i+'"><div class="crew-members-list">'+((s.members||[]).map((m,mi)=>"<span class=\"crew-member\">"+m+"<button onclick=\"removeMember("+i+","+mi+")\">×</button></span>").join("")||"<span style=\"color:var(--muted);font-size:13px\">No names added</span>")+'</div><button class="add-member-btn" onclick="addMember('+i+')">+ Add Name</button></div></div>'
   ).join('');
 }
 function adjCount(i,d){S.crews[i].count=Math.max(0,S.crews[i].count+d);renderSubs()}
-function addSubRow(){const name=prompt('Crew name:');if(name){S.crews.push({name,count:0,hours:8});renderSubs()}}
+function addSubRow(){const name=prompt('Crew name:');if(name){S.crews.push({name,count:0,hours:8,members:[]});renderSubs()}}
+function toggleMembers(i){S.crews[i]._open=!S.crews[i]._open;renderSubs()}
+function addMember(i){const name=prompt('Name:');if(name){if(!S.crews[i].members)S.crews[i].members=[];S.crews[i].members.push(name);renderSubs()}}
+function removeMember(ci,mi){S.crews[ci].members.splice(mi,1);renderSubs()}
 
 function buildPhases(){
   document.getElementById('phaseScroll').innerHTML=PHASES.map(p=>'<button class="phase-btn" onclick="togglePhase(this)">'+p+'</button>').join('');

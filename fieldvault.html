@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>FieldVault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0F1117;--surface:#1A1D27;--surface2:#242836;--surface3:#2E3344;
+  --text:#F1F3F8;--text2:#9BA3B5;--text3:#636B80;
+  --orange:#FF6B35;--orange-glow:rgba(255,107,53,0.15);--orange-dim:#CC5529;
+  --blue:#4A90D9;--blue-glow:rgba(74,144,217,0.15);
+  --green:#34D399;--red:#EF4444;--yellow:#FBBF24;
+  --radius:12px;--radius-sm:8px;
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.hidden{display:none!important}
+
+/* Header */
+.header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--surface3);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--orange),var(--orange-dim));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
+.logo-text{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+.logo-text span{color:var(--orange)}
+.header-controls{display:flex;gap:8px;align-items:center}
+.badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.badge-demo{background:var(--orange-glow);color:var(--orange);border:1px solid rgba(255,107,53,0.3)}
+.badge-pm{background:var(--blue-glow);color:var(--blue);border:1px solid rgba(74,144,217,0.3)}
+
+/* Toggle */
+.toggle{position:relative;width:44px;height:24px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .slider{position:absolute;inset:0;background:var(--surface3);border-radius:12px;transition:.3s}
+.toggle .slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:.3s}
+.toggle input:checked+.slider{background:var(--orange)}
+.toggle input:checked+.slider:before{transform:translateX(20px);background:#fff}
+
+/* Buttons */
+.btn{padding:12px 24px;border-radius:var(--radius-sm);border:none;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:linear-gradient(135deg,var(--orange),var(--orange-dim));color:#fff;box-shadow:0 4px 16px rgba(255,107,53,0.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,107,53,0.4)}
+.btn-primary:active{transform:translateY(0)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--surface3)}
+.btn-secondary:hover{background:var(--surface3)}
+.btn-ghost{background:transparent;color:var(--text2);padding:8px 12px}
+.btn-ghost:hover{color:var(--text);background:var(--surface2)}
+.btn-sm{padding:8px 16px;font-size:13px}
+.btn-block{width:100%;justify-content:center}
+.btn-blue{background:linear-gradient(135deg,var(--blue),#3A7BC8);color:#fff;box-shadow:0 4px 16px rgba(74,144,217,0.3)}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius);padding:20px;margin-bottom:12px}
+
+/* Forms */
+select,input,textarea{background:var(--surface2);border:1px solid var(--surface3);color:var(--text);font-family:inherit;font-size:14px;padding:12px 16px;border-radius:var(--radius-sm);width:100%;outline:none;transition:border-color .2s}
+select:focus,input:focus,textarea:focus{border-color:var(--orange)}
+textarea{resize:vertical;min-height:120px}
+label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block}
+
+/* Screens */
+.screen{max-width:480px;margin:0 auto;padding:20px}
+.screen-wide{max-width:720px}
+
+/* Login */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center}
+.login-logo{width:80px;height:80px;background:linear-gradient(135deg,var(--orange),var(--orange-dim));border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800;color:#fff;margin-bottom:24px;box-shadow:0 8px 32px rgba(255,107,53,0.3)}
+.login-title{font-size:32px;font-weight:800;margin-bottom:8px;letter-spacing:-1px}
+.login-title span{color:var(--orange)}
+.login-sub{color:var(--text2);margin-bottom:32px;font-size:15px}
+.pin-input{display:flex;gap:12px;margin-bottom:24px}
+.pin-digit{width:56px;height:64px;background:var(--surface);border:2px solid var(--surface3);border-radius:var(--radius);font-size:28px;font-weight:700;text-align:center;color:var(--text);caret-color:var(--orange)}
+.pin-digit:focus{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-glow)}
+.login-error{color:var(--red);font-size:13px;margin-top:8px;min-height:20px}
+.login-demo{margin-top:24px;padding-top:24px;border-top:1px solid var(--surface3)}
+.login-demo p{color:var(--text3);font-size:13px;margin-bottom:12px}
+
+/* Main Input */
+.project-bar{display:flex;gap:8px;margin-bottom:20px;align-items:center}
+.project-bar select{flex:1}
+.greeting{font-size:22px;font-weight:700;margin-bottom:4px}
+.greeting-sub{color:var(--text2);font-size:14px;margin-bottom:24px}
+
+.record-area{display:flex;flex-direction:column;align-items:center;margin:32px 0}
+.record-btn{width:120px;height:120px;border-radius:50%;border:none;cursor:pointer;position:relative;background:linear-gradient(135deg,var(--orange),var(--orange-dim));box-shadow:0 8px 32px rgba(255,107,53,0.3);transition:all .3s;display:flex;align-items:center;justify-content:center}
+.record-btn:hover{transform:scale(1.05);box-shadow:0 12px 40px rgba(255,107,53,0.4)}
+.record-btn:active{transform:scale(0.98)}
+.record-btn.recording{animation:pulse 1.5s infinite;background:linear-gradient(135deg,var(--red),#DC2626)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 20px rgba(239,68,68,0)}}
+.record-btn svg{width:48px;height:48px;fill:#fff}
+.record-label{margin-top:16px;font-size:14px;color:var(--text2);font-weight:500}
+.record-time{font-size:24px;font-weight:700;color:var(--red);margin-top:8px;font-variant-numeric:tabular-nums}
+
+.divider{display:flex;align-items:center;gap:16px;margin:24px 0;color:var(--text3);font-size:13px;font-weight:500}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--surface3)}
+
+.submit-row{display:flex;gap:8px;margin-top:16px}
+.submit-row .btn{flex:1}
+
+/* Report View */
+.report-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.report-date{font-size:24px;font-weight:800;letter-spacing:-0.5px}
+.report-project{color:var(--text2);font-size:14px;margin-top:4px}
+.report-weather{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface2);border-radius:20px;font-size:13px;color:var(--text2);margin-top:8px}
+.report-actions{display:flex;gap:8px}
+
+.section{margin-bottom:20px}
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--orange);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--surface3)}
+.section-icon{font-size:16px}
+
+.crew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.crew-item{background:var(--surface2);border-radius:var(--radius-sm);padding:12px;text-align:center}
+.crew-count{font-size:28px;font-weight:800;color:var(--blue)}
+.crew-trade{font-size:12px;color:var(--text2);margin-top:4px;font-weight:500}
+
+.work-item,.material-item,.safety-item{padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:6px;font-size:14px;display:flex;align-items:flex-start;gap:10px}
+.work-bullet{width:6px;height:6px;border-radius:50%;background:var(--green);margin-top:6px;flex-shrink:0}
+.material-bullet{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.material-delivered{background:var(--green)}
+.material-issue{background:var(--red)}
+.material-needed{background:var(--yellow)}
+.material-ordered{background:var(--blue)}
+.safety-bullet{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.safety-info{background:var(--blue)}
+.safety-warning{background:var(--yellow)}
+.safety-critical{background:var(--red)}
+.work-qty{color:var(--text3);font-size:12px;margin-left:auto;white-space:nowrap;padding-left:8px}
+
+.delay-item{padding:12px 14px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:6px;border-left:3px solid var(--red)}
+.delay-item.delay-weather{border-left-color:var(--blue)}
+.delay-item.delay-material{border-left-color:var(--yellow)}
+.delay-item.delay-gc{border-left-color:var(--orange)}
+.delay-meta{display:flex;gap:12px;margin-top:6px;font-size:12px;color:var(--text3)}
+.delay-tag{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;text-transform:uppercase}
+.delay-tag-sub{background:rgba(239,68,68,0.15);color:var(--red)}
+.delay-tag-weather{background:rgba(74,144,217,0.15);color:var(--blue)}
+.delay-tag-material{background:rgba(251,191,36,0.15);color:var(--yellow)}
+.delay-tag-gc{background:var(--orange-glow);color:var(--orange)}
+.delay-tag-other{background:rgba(99,107,128,0.15);color:var(--text3)}
+
+.tomorrow-box{background:linear-gradient(135deg,var(--surface2),var(--surface3));border-radius:var(--radius);padding:16px;font-size:14px;line-height:1.6;border-left:3px solid var(--green)}
+
+/* History */
+.history-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius);margin-bottom:8px;cursor:pointer;transition:all .2s}
+.history-item:hover{border-color:var(--orange);background:var(--surface2)}
+.history-date-badge{width:48px;height:48px;background:var(--surface2);border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.history-day{font-size:18px;font-weight:800;line-height:1}
+.history-month{font-size:10px;color:var(--text2);text-transform:uppercase;font-weight:600;margin-top:2px}
+.history-info{flex:1;min-width:0}
+.history-summary{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-crew{font-size:12px;color:var(--text3);margin-top:4px}
+.history-delays{font-size:11px;color:var(--red);font-weight:600}
+
+/* PM Dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.dash-stat{background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius);padding:20px;text-align:center}
+.dash-stat-value{font-size:36px;font-weight:800}
+.dash-stat-label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;font-weight:600}
+.dash-stat-orange .dash-stat-value{color:var(--orange)}
+.dash-stat-blue .dash-stat-value{color:var(--blue)}
+.dash-stat-green .dash-stat-value{color:var(--green)}
+.dash-stat-red .dash-stat-value{color:var(--red)}
+
+.sub-score{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius-sm);margin-bottom:6px}
+.sub-name{font-weight:600;font-size:14px}
+.sub-delays{font-size:13px;color:var(--red);font-weight:600}
+.sub-hours{font-size:12px;color:var(--text3)}
+.score-bar{width:60px;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px}
+.score-good{background:var(--green)}
+.score-mid{background:var(--yellow)}
+.score-bad{background:var(--red)}
+
+/* Tab bar */
+.tab-bar{display:flex;gap:4px;background:var(--surface);border-radius:var(--radius);padding:4px;margin-bottom:20px}
+.tab{flex:1;padding:10px;text-align:center;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .2s}
+.tab.active{background:var(--surface3);color:var(--text)}
+.tab:hover:not(.active){color:var(--text)}
+
+/* Nav */
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--surface3);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;padding:10px 0;text-align:center;cursor:pointer;color:var(--text3);transition:color .2s;font-size:10px;font-weight:600}
+.nav-item.active{color:var(--orange)}
+.nav-item svg{display:block;margin:0 auto 4px;width:22px;height:22px}
+.nav-item.active svg{fill:var(--orange)}
+.nav-item:not(.active) svg{fill:var(--text3)}
+
+.content{padding-bottom:80px}
+
+/* Loading */
+.spinner{width:32px;height:32px;border:3px solid var(--surface3);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.processing-overlay{position:fixed;inset:0;background:rgba(15,17,23,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200}
+.processing-text{margin-top:16px;color:var(--text2);font-size:14px}
+.processing-sub{color:var(--text3);font-size:12px;margin-top:4px}
+
+/* Responsive */
+@media(max-width:380px){.pin-digit{width:48px;height:56px;font-size:24px}.login-title{font-size:26px}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header" id="mainHeader">
+  <div class="logo">
+    <div class="logo-icon">FV</div>
+    <div class="logo-text">Field<span>Vault</span></div>
+  </div>
+  <div class="header-controls">
+    <span class="badge badge-demo" id="demoBadge">Demo</span>
+    <span class="badge badge-pm hidden" id="pmBadge">PM View</span>
+    <button class="btn-ghost" id="logoutBtn" title="Logout">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="screen login-screen">
+  <div class="login-logo">FV</div>
+  <h1 class="login-title">Field<span>Vault</span></h1>
+  <p class="login-sub">Your jobsite gets smarter every day</p>
+  <div class="pin-input">
+    <input class="pin-digit" type="tel" maxlength="1" data-pin="0" inputmode="numeric" autocomplete="off">
+    <input class="pin-digit" type="tel" maxlength="1" data-pin="1" inputmode="numeric" autocomplete="off">
+    <input class="pin-digit" type="tel" maxlength="1" data-pin="2" inputmode="numeric" autocomplete="off">
+    <input class="pin-digit" type="tel" maxlength="1" data-pin="3" inputmode="numeric" autocomplete="off">
+  </div>
+  <div class="login-error" id="loginError"></div>
+  <div class="login-demo">
+    <p>First time? Try demo mode</p>
+    <button class="btn btn-secondary btn-sm" id="demoLoginBtn">Enter Demo Mode</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appScreen" class="hidden">
+  <div class="content">
+
+    <!-- INPUT VIEW -->
+    <div id="inputView" class="screen">
+      <div class="project-bar">
+        <select id="projectSelect"></select>
+        <button class="btn btn-secondary btn-sm" id="pmToggle">PM Dashboard</button>
+      </div>
+      <div class="greeting" id="greetingText">Good morning</div>
+      <div class="greeting-sub">What happened on site today?</div>
+
+      <div class="record-area">
+        <button class="record-btn" id="recordBtn">
+          <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        </button>
+        <div class="record-label" id="recordLabel">Tap to record</div>
+        <div class="record-time hidden" id="recordTime">0:00</div>
+      </div>
+
+      <div class="divider">or type your notes</div>
+
+      <textarea id="notesInput" placeholder="Had 8 framers today, finished second floor walls on building 3. ABC Plumbing was a no-show again, that's 3 hours of delay waiting on rough-in. Got delivery of 2x6 lumber, about 400 pieces. Weather was clear, 72°. Tomorrow we'll start roof trusses..."></textarea>
+
+      <div class="submit-row">
+        <button class="btn btn-primary btn-block" id="submitBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          Generate Report
+        </button>
+      </div>
+    </div>
+
+    <!-- REPORT VIEW -->
+    <div id="reportView" class="screen hidden">
+      <button class="btn btn-ghost" id="backToInput" style="margin-bottom:12px">← Back</button>
+      <div id="reportContent"></div>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div id="historyView" class="screen hidden">
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:16px">Report History</h2>
+      <div id="historyList"></div>
+    </div>
+
+    <!-- PM DASHBOARD -->
+    <div id="dashView" class="screen screen-wide hidden">
+      <button class="btn btn-ghost" id="backFromDash" style="margin-bottom:12px">← Back</button>
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:20px">PM Dashboard</h2>
+      <div id="dashContent"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="nav">
+    <div class="nav-item active" data-view="input">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      New
+    </div>
+    <div class="nav-item" data-view="history">
+      <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+      History
+    </div>
+    <div class="nav-item" data-view="dash">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      Dashboard
+    </div>
+  </div>
+</div>
+
+<!-- PROCESSING OVERLAY -->
+<div class="processing-overlay hidden" id="processing">
+  <div class="spinner"></div>
+  <div class="processing-text">FieldVault AI is processing...</div>
+  <div class="processing-sub">Structuring your field notes into a daily report</div>
+</div>
+
+<script>
+// ============ CONFIG ============
+const API_BASE = ''; // Set to worker URL in production
+let DEMO_MODE = true;
+let currentUser = null;
+let currentProject = null;
+let currentReport = null;
+let reports = [];
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingTimer = null;
+let recordingSeconds = 0;
+
+// ============ DEMO DATA ============
+const DEMO_PROJECTS = [
+  { id: 1, name: 'Riverside Apartments — Bldg 3', gc_name: 'Turner Construction', address: '1420 River Rd, Sacramento CA' },
+  { id: 2, name: 'Oak Park Medical Center', gc_name: 'McCarthy Building', address: '890 Oak Park Blvd, Sacramento CA' },
+  { id: 3, name: 'Downtown Mixed-Use — Phase 2', gc_name: 'Hensel Phelps', address: '200 K Street, Sacramento CA' },
+];
+
+const DEMO_REPORTS = [
+  {
+    id: 1, project_id: 1, date: new Date().toISOString().split('T')[0],
+    weather: 'Clear, 72°F',
+    summary: 'Strong progress on Building 3 second floor framing. ABC Plumbing no-show caused 3-hour delay on rough-in. Lumber delivery received. Roof trusses scheduled for tomorrow.',
+    crew_json: JSON.stringify([{trade:'Framers',count:8,hours:8},{trade:'Electricians',count:3,hours:8},{trade:'Laborers',count:4,hours:8}]),
+    work_json: JSON.stringify([{description:'Completed second floor wall framing — Building 3, north and east walls',quantity:'2,400',unit:'SF'},{description:'Installed temporary bracing on all new walls',quantity:null,unit:null},{description:'Electrical rough-in continued on first floor units 101-104',quantity:'4',unit:'units'},{description:'Site cleanup and material staging for tomorrow',quantity:null,unit:null}]),
+    delays_json: JSON.stringify([{category:'sub',responsible:'ABC Plumbing',hours:3,description:'No-show, third time this month. Rough-in for units 105-108 not started. Pushing mechanical schedule.'},{category:'material',responsible:'Pacific Supply',hours:1,description:'Lumber delivery arrived 2 hours late, had to re-sequence afternoon work.'}]),
+    materials_json: JSON.stringify([{item:'2x6 lumber (pressure treated)',status:'delivered',notes:'~400 pieces received, inspected, stacked on north side'},{item:'Roof trusses',status:'ordered',notes:'Confirmed delivery for tomorrow 7AM'},{item:'Simpson hardware',status:'needed',notes:'Running low on H2.5A hurricane ties, need by Thursday'}]),
+    safety_json: JSON.stringify([{observation:'All fall protection in place on second floor perimeter',severity:'info'},{observation:'Found extension cord with damaged insulation near Bldg 3 east — replaced immediately',severity:'warning'}]),
+    tomorrow: 'Begin roof truss installation on Building 3. Need crane on site by 6:30 AM. Continue electrical rough-in units 105-108 (if plumbing clears). Hardware delivery expected.'
+  },
+  {
+    id: 2, project_id: 1, date: (() => { const d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().split('T')[0]; })(),
+    weather: 'Partly cloudy, 68°F',
+    summary: 'First floor framing complete. Started second floor walls. Concrete pour for Building 4 pad delayed due to pump truck breakdown.',
+    crew_json: JSON.stringify([{trade:'Framers',count:8,hours:8},{trade:'Concrete',count:5,hours:4},{trade:'Laborers',count:3,hours:8}]),
+    work_json: JSON.stringify([{description:'Completed all first floor wall framing — Building 3',quantity:'3,200',unit:'SF'},{description:'Started second floor framing, south wall section',quantity:'600',unit:'SF'},{description:'Set up scaffolding for second floor access',quantity:null,unit:null}]),
+    delays_json: JSON.stringify([{category:'other',responsible:'Valley Concrete Pumping',hours:4,description:'Pump truck mechanical failure. Building 4 slab pour pushed to tomorrow.'}]),
+    materials_json: JSON.stringify([{item:'Ready-mix concrete',status:'ordered',notes:'40 yards for Building 4 slab, rescheduled for tomorrow AM'}]),
+    safety_json: JSON.stringify([{observation:'Toolbox talk: ladder safety and 3-point contact',severity:'info'}]),
+    tomorrow: 'Continue second floor framing Bldg 3. Reschedule Building 4 concrete pour. Expecting ABC Plumbing for rough-in.'
+  },
+  {
+    id: 3, project_id: 1, date: (() => { const d = new Date(); d.setDate(d.getDate()-2); return d.toISOString().split('T')[0]; })(),
+    weather: 'Rain until 10 AM, then clearing. 62°F',
+    summary: 'Weather delay in morning, lost 2 hours. Afternoon production was good — pushed hard on first floor walls. Inspection passed.',
+    crew_json: JSON.stringify([{trade:'Framers',count:6,hours:6},{trade:'Laborers',count:2,hours:6}]),
+    work_json: JSON.stringify([{description:'First floor framing — west and south walls',quantity:'1,800',unit:'SF'},{description:'Passed framing inspection on units 101-102',quantity:null,unit:null}]),
+    delays_json: JSON.stringify([{category:'weather',responsible:null,hours:2,description:'Rain until 10 AM, couldn\'t start framing. Site was muddy, needed to wait for access road to dry.'}]),
+    materials_json: JSON.stringify([]),
+    safety_json: JSON.stringify([{observation:'Wet conditions — extra caution on ladders and scaffolding, no incidents',severity:'info'}]),
+    tomorrow: 'Finish first floor framing. Start second floor layout.'
+  },
+  {
+    id: 4, project_id: 2, date: new Date().toISOString().split('T')[0],
+    weather: 'Clear, 75°F',
+    summary: 'Interior metal stud framing progressing on second floor. HVAC ductwork installation started in wing A. Minor issue with door frame specs.',
+    crew_json: JSON.stringify([{trade:'Metal Stud Framers',count:6,hours:8},{trade:'HVAC',count:4,hours:8},{trade:'Electricians',count:2,hours:8}]),
+    work_json: JSON.stringify([{description:'Metal stud framing — 2nd floor corridor and rooms 201-208',quantity:'1,600',unit:'SF'},{description:'HVAC main duct runs — Wing A',quantity:'120',unit:'LF'},{description:'Electrical panel installation — MDP room',quantity:'2',unit:'panels'}]),
+    delays_json: JSON.stringify([{category:'gc',responsible:'McCarthy Building',hours:1.5,description:'Door frame specs changed mid-day via RFI response. Had to re-measure and adjust 6 openings.'}]),
+    materials_json: JSON.stringify([{item:'3-5/8" metal studs',status:'delivered',notes:'Full truck received'},{item:'Flex duct',status:'needed',notes:'Running low, need 200 LF by Wednesday'}]),
+    safety_json: JSON.stringify([{observation:'Fire watch maintained during welding on structural connections',severity:'info'}]),
+    tomorrow: 'Continue 2nd floor framing rooms 209-216. HVAC branch lines in Wing A. Fire caulking inspection at 2 PM.'
+  }
+];
+
+const DEMO_USER = { id: 1, name: 'Mike Rodriguez', pin: '1234' };
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded', () => {
+  setupPinInputs();
+  setupNav();
+  setupEvents();
+  updateGreeting();
+  showLogin();
+});
+
+function showLogin() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appScreen').classList.add('hidden');
+  document.getElementById('mainHeader').style.display = 'none';
+  document.querySelector('[data-pin="0"]').focus();
+}
+
+function showApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  document.getElementById('mainHeader').style.display = '';
+  loadProjects();
+  loadReports();
+  switchView('input');
+}
+
+// ============ PIN LOGIN ============
+function setupPinInputs() {
+  const digits = document.querySelectorAll('.pin-digit');
+  digits.forEach((input, i) => {
+    input.addEventListener('input', (e) => {
+      if (e.target.value.length === 1 && i < 3) digits[i + 1].focus();
+      if (i === 3 && e.target.value.length === 1) attemptLogin();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !e.target.value && i > 0) digits[i - 1].focus();
+    });
+  });
+}
+
+function attemptLogin() {
+  const pin = Array.from(document.querySelectorAll('.pin-digit')).map(d => d.value).join('');
+  if (pin.length !== 4) return;
+
+  if (DEMO_MODE || pin === '1234') {
+    currentUser = DEMO_USER;
+    showApp();
+    return;
+  }
+
+  // Real auth
+  fetch(`${API_BASE}/api/auth?pin=${pin}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        document.getElementById('loginError').textContent = 'Invalid PIN. Try again.';
+        document.querySelectorAll('.pin-digit').forEach(d => d.value = '');
+        document.querySelector('[data-pin="0"]').focus();
+      } else {
+        currentUser = data;
+        DEMO_MODE = false;
+        document.getElementById('demoBadge').classList.add('hidden');
+        showApp();
+      }
+    })
+    .catch(() => {
+      // Fallback to demo
+      currentUser = DEMO_USER;
+      showApp();
+    });
+}
+
+// ============ NAV ============
+function setupNav() {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => switchView(item.dataset.view));
+  });
+}
+
+function switchView(view) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === view));
+  document.getElementById('inputView').classList.toggle('hidden', view !== 'input');
+  document.getElementById('historyView').classList.toggle('hidden', view !== 'history');
+  document.getElementById('dashView').classList.toggle('hidden', view !== 'dash');
+  document.getElementById('reportView').classList.add('hidden');
+  document.getElementById('pmBadge').classList.toggle('hidden', view !== 'dash');
+
+  if (view === 'history') renderHistory();
+  if (view === 'dash') renderDashboard();
+}
+
+// ============ EVENTS ============
+function setupEvents() {
+  document.getElementById('demoLoginBtn').addEventListener('click', () => {
+    DEMO_MODE = true;
+    currentUser = DEMO_USER;
+    document.getElementById('demoBadge').classList.remove('hidden');
+    showApp();
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    currentUser = null;
+    document.querySelectorAll('.pin-digit').forEach(d => d.value = '');
+    showLogin();
+  });
+
+  document.getElementById('recordBtn').addEventListener('click', toggleRecording);
+  document.getElementById('submitBtn').addEventListener('click', submitReport);
+  document.getElementById('backToInput').addEventListener('click', () => switchView('input'));
+  document.getElementById('backFromDash').addEventListener('click', () => switchView('input'));
+  document.getElementById('pmToggle').addEventListener('click', () => switchView('dash'));
+}
+
+// ============ PROJECTS ============
+function loadProjects() {
+  const sel = document.getElementById('projectSelect');
+  const projects = DEMO_MODE ? DEMO_PROJECTS : [];
+  sel.innerHTML = projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  currentProject = projects[0] || null;
+  sel.addEventListener('change', () => {
+    currentProject = projects.find(p => p.id == sel.value);
+    loadReports();
+  });
+}
+
+// ============ REPORTS ============
+function loadReports() {
+  if (DEMO_MODE) {
+    reports = DEMO_REPORTS.filter(r => r.project_id === (currentProject?.id || 1));
+    return;
+  }
+  fetch(`${API_BASE}/api/reports?projectId=${currentProject?.id || 1}`)
+    .then(r => r.json())
+    .then(data => { reports = data; })
+    .catch(() => { reports = []; });
+}
+
+// ============ RECORDING ============
+function toggleRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => stream.getTracks().forEach(t => t.stop());
+
+    mediaRecorder.start();
+    document.getElementById('recordBtn').classList.add('recording');
+    document.getElementById('recordLabel').textContent = 'Recording... tap to stop';
+    document.getElementById('recordTime').classList.remove('hidden');
+    recordingSeconds = 0;
+    updateRecordTime();
+    recordingTimer = setInterval(() => { recordingSeconds++; updateRecordTime(); }, 1000);
+  } catch (e) {
+    alert('Microphone access denied. Please allow microphone access to record.');
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder) mediaRecorder.stop();
+  document.getElementById('recordBtn').classList.remove('recording');
+  document.getElementById('recordLabel').textContent = 'Recording saved ✓';
+  clearInterval(recordingTimer);
+}
+
+function updateRecordTime() {
+  const m = Math.floor(recordingSeconds / 60);
+  const s = (recordingSeconds % 60).toString().padStart(2, '0');
+  document.getElementById('recordTime').textContent = `${m}:${s}`;
+}
+
+// ============ SUBMIT ============
+async function submitReport() {
+  const text = document.getElementById('notesInput').value.trim();
+  const hasAudio = audioChunks.length > 0;
+  if (!text && !hasAudio) { alert('Please record audio or type your notes.'); return; }
+
+  document.getElementById('processing').classList.remove('hidden');
+
+  if (DEMO_MODE) {
+    // Simulate AI processing
+    await new Promise(r => setTimeout(r, 2000));
+    const report = generateDemoReport(text);
+    reports.unshift(report);
+    currentReport = report;
+    document.getElementById('processing').classList.add('hidden');
+    showReport(report);
+    document.getElementById('notesInput').value = '';
+    audioChunks = [];
+    document.getElementById('recordLabel').textContent = 'Tap to record';
+    document.getElementById('recordTime').classList.add('hidden');
+    return;
+  }
+
+  try {
+    let audioBase64 = null;
+    if (hasAudio) {
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      audioBase64 = await blobToBase64(blob);
+    }
+
+    const res = await fetch(`${API_BASE}/api/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rawText: text, audioBase64, projectId: currentProject?.id, foremanId: currentUser?.id })
+    });
+    const data = await res.json();
+    const report = { ...data.report, id: data.id, project_id: currentProject?.id, date: data.report.date };
+    reports.unshift(report);
+    currentReport = report;
+    showReport(report);
+    document.getElementById('notesInput').value = '';
+    audioChunks = [];
+  } catch (e) {
+    alert('Error submitting report. Please try again.');
+  }
+  document.getElementById('processing').classList.add('hidden');
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function generateDemoReport(text) {
+  // Parse some keywords from text for demo realism
+  const today = new Date().toISOString().split('T')[0];
+  return {
+    id: Date.now(), project_id: currentProject?.id || 1, date: today,
+    weather: 'Clear, 72°F',
+    summary: text ? text.substring(0, 120) + '...' : 'General progress on framing and electrical. No major delays reported.',
+    crew_json: JSON.stringify([{trade:'Framers',count:6,hours:8},{trade:'Electricians',count:2,hours:8},{trade:'Laborers',count:3,hours:8}]),
+    work_json: JSON.stringify([{description: text || 'Continued framing and general work per schedule',quantity:null,unit:null}]),
+    delays_json: JSON.stringify([]),
+    materials_json: JSON.stringify([]),
+    safety_json: JSON.stringify([{observation:'No safety incidents to report',severity:'info'}]),
+    tomorrow: 'Continue per schedule.'
+  };
+}
+
+// ============ RENDER REPORT ============
+function showReport(report) {
+  document.getElementById('inputView').classList.add('hidden');
+  document.getElementById('historyView').classList.add('hidden');
+  document.getElementById('dashView').classList.add('hidden');
+  document.getElementById('reportView').classList.remove('hidden');
+
+  const crew = JSON.parse(report.crew_json || '[]');
+  const work = JSON.parse(report.work_json || '[]');
+  const delays = JSON.parse(report.delays_json || '[]');
+  const materials = JSON.parse(report.materials_json || '[]');
+  const safety = JSON.parse(report.safety_json || '[]');
+  const projName = DEMO_PROJECTS.find(p => p.id === report.project_id)?.name || 'Project';
+
+  const dateObj = new Date(report.date + 'T12:00:00');
+  const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  let html = `
+    <div class="report-header">
+      <div>
+        <div class="report-date">${dateStr}</div>
+        <div class="report-project">${projName}</div>
+        ${report.weather ? `<div class="report-weather">🌤️ ${report.weather}</div>` : ''}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="exportPDF()">📄 Export PDF</button>
+      <button class="btn btn-blue btn-sm" onclick="emailReport()">📧 Email Report</button>
+    </div>
+
+    ${report.summary ? `<div class="card" style="border-left:3px solid var(--blue);margin-bottom:20px"><div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:8px">EXECUTIVE SUMMARY</div><div style="font-size:14px;line-height:1.6;color:var(--text2)">${report.summary}</div></div>` : ''}
+
+    ${crew.length ? `
+    <div class="section">
+      <div class="section-title"><span class="section-icon">👷</span> Crew on Site</div>
+      <div class="crew-grid">
+        ${crew.map(c => `<div class="crew-item"><div class="crew-count">${c.count}</div><div class="crew-trade">${c.trade}${c.hours ? ` · ${c.hours}h` : ''}</div></div>`).join('')}
+      </div>
+      <div style="text-align:center;margin-top:8px;font-size:13px;color:var(--text3)">Total: <strong style="color:var(--text)">${crew.reduce((s,c) => s+c.count, 0)}</strong> workers</div>
+    </div>` : ''}
+
+    ${work.length ? `
+    <div class="section">
+      <div class="section-title"><span class="section-icon">🔨</span> Work Completed</div>
+      ${work.map(w => `<div class="work-item"><div class="work-bullet"></div><div style="flex:1">${w.description}</div>${w.quantity ? `<div class="work-qty">${w.quantity} ${w.unit||''}</div>` : ''}</div>`).join('')}
+    </div>` : ''}
+
+    ${delays.length ? `
+    <div class="section">
+      <div class="section-title"><span class="section-icon">⚠️</span> Delays</div>
+      ${delays.map(d => `<div class="delay-item delay-${d.category}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span class="delay-tag delay-tag-${d.category}">${d.category}</span>
+          ${d.responsible ? `<span style="font-weight:600;font-size:13px">${d.responsible}</span>` : ''}
+        </div>
+        <div style="font-size:14px">${d.description}</div>
+        <div class="delay-meta">${d.hours ? `<span>⏱️ ${d.hours} hours lost</span>` : ''}</div>
+      </div>`).join('')}
+    </div>` : ''}
+
+    ${materials.length ? `
+    <div class="section">
+      <div class="section-title"><span class="section-icon">📦</span> Materials</div>
+      ${materials.map(m => `<div class="material-item"><div class="material-bullet material-${m.status}"></div><div style="flex:1"><div>${m.item}</div>${m.notes ? `<div style="font-size:12px;color:var(--text3);margin-top:2px">${m.notes}</div>` : ''}</div><span class="badge" style="font-size:10px;padding:2px 6px;background:var(--surface3)">${m.status}</span></div>`).join('')}
+    </div>` : ''}
+
+    ${safety.length ? `
+    <div class="section">
+      <div class="section-title"><span class="section-icon">🦺</span> Safety</div>
+      ${safety.map(s => `<div class="safety-item"><div class="safety-bullet safety-${s.severity}"></div><div>${s.observation}</div></div>`).join('')}
+    </div>` : ''}
+
+    ${report.tomorrow ? `
+    <div class="section">
+      <div class="section-title"><span class="section-icon">📋</span> Tomorrow's Plan</div>
+      <div class="tomorrow-box">${report.tomorrow}</div>
+    </div>` : ''}
+  `;
+
+  document.getElementById('reportContent').innerHTML = html;
+}
+
+// ============ HISTORY ============
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  const projectReports = DEMO_MODE ? DEMO_REPORTS.filter(r => r.project_id === (currentProject?.id || 1)) : reports;
+
+  if (!projectReports.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)">No reports yet. Create your first one!</div>';
+    return;
+  }
+
+  list.innerHTML = projectReports.map(r => {
+    const d = new Date(r.date + 'T12:00:00');
+    const delays = JSON.parse(r.delays_json || '[]');
+    const crew = JSON.parse(r.crew_json || '[]');
+    const total = crew.reduce((s,c) => s+c.count, 0);
+    return `<div class="history-item" onclick="viewHistoryReport(${r.id})">
+      <div class="history-date-badge">
+        <div class="history-day">${d.getDate()}</div>
+        <div class="history-month">${d.toLocaleDateString('en-US',{month:'short'})}</div>
+      </div>
+      <div class="history-info">
+        <div class="history-summary">${r.summary || 'No summary'}</div>
+        <div class="history-crew">${total} workers · ${crew.length} trades</div>
+        ${delays.length ? `<div class="history-delays">${delays.length} delay${delays.length>1?'s':''} · ${delays.reduce((s,d)=>s+(d.hours||0),0)}h lost</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function viewHistoryReport(id) {
+  const all = DEMO_MODE ? DEMO_REPORTS : reports;
+  const report = all.find(r => r.id === id);
+  if (report) showReport(report);
+}
+
+// ============ DASHBOARD ============
+function renderDashboard() {
+  const all = DEMO_MODE ? DEMO_REPORTS : reports;
+  const allDelays = all.flatMap(r => JSON.parse(r.delays_json || '[]'));
+  const totalHours = allDelays.reduce((s, d) => s + (d.hours || 0), 0);
+  const allCrew = all.flatMap(r => JSON.parse(r.crew_json || '[]'));
+  const avgCrew = allCrew.length ? Math.round(allCrew.reduce((s,c) => s+c.count, 0) / all.length) : 0;
+
+  // Sub scorecard
+  const subDelays = {};
+  allDelays.forEach(d => {
+    if (d.responsible) {
+      if (!subDelays[d.responsible]) subDelays[d.responsible] = { count: 0, hours: 0 };
+      subDelays[d.responsible].count++;
+      subDelays[d.responsible].hours += (d.hours || 0);
+    }
+  });
+
+  // Delay by category
+  const catDelays = {};
+  allDelays.forEach(d => {
+    if (!catDelays[d.category]) catDelays[d.category] = { count: 0, hours: 0 };
+    catDelays[d.category].count++;
+    catDelays[d.category].hours += (d.hours || 0);
+  });
+
+  const html = `
+    <div class="dash-grid">
+      <div class="dash-stat dash-stat-blue"><div class="dash-stat-value">${all.length}</div><div class="dash-stat-label">Total Reports</div></div>
+      <div class="dash-stat dash-stat-green"><div class="dash-stat-value">${avgCrew}</div><div class="dash-stat-label">Avg Daily Crew</div></div>
+      <div class="dash-stat dash-stat-red"><div class="dash-stat-value">${allDelays.length}</div><div class="dash-stat-label">Total Delays</div></div>
+      <div class="dash-stat dash-stat-orange"><div class="dash-stat-value">${totalHours}h</div><div class="dash-stat-label">Hours Lost</div></div>
+    </div>
+
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Delay Summary</h3>
+    <div style="margin-bottom:24px">
+      ${Object.entries(catDelays).map(([cat, data]) => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius-sm);margin-bottom:6px">
+          <span class="delay-tag delay-tag-${cat}" style="min-width:70px;text-align:center">${cat}</span>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600">${data.count} occurrence${data.count>1?'s':''}</div>
+            <div style="font-size:12px;color:var(--text3)">${data.hours} hours lost</div>
+          </div>
+        </div>
+      `).join('') || '<div style="color:var(--text3);padding:12px">No delays recorded</div>'}
+    </div>
+
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Sub Scorecard</h3>
+    <div>
+      ${Object.entries(subDelays).sort((a,b) => b[1].hours - a[1].hours).map(([name, data]) => {
+        const score = Math.max(0, 100 - data.hours * 10);
+        const cls = score > 70 ? 'score-good' : score > 40 ? 'score-mid' : 'score-bad';
+        return `<div class="sub-score">
+          <div><div class="sub-name">${name}</div><div class="sub-hours">${data.count} delays · ${data.hours}h lost</div></div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;color:${score>70?'var(--green)':score>40?'var(--yellow)':'var(--red)'}">${score}%</div>
+            <div class="score-bar"><div class="score-fill ${cls}" style="width:${score}%"></div></div>
+          </div>
+        </div>`;
+      }).join('') || '<div style="color:var(--text3);padding:12px">No sub data yet</div>'}
+    </div>
+  `;
+
+  document.getElementById('dashContent').innerHTML = html;
+}
+
+// ============ PDF EXPORT ============
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const report = getCurrentReportData();
+  if (!report) return;
+
+  const projName = DEMO_PROJECTS.find(p => p.id === report.project_id)?.name || 'Project';
+  const crew = JSON.parse(report.crew_json || '[]');
+  const work = JSON.parse(report.work_json || '[]');
+  const delays = JSON.parse(report.delays_json || '[]');
+  const materials = JSON.parse(report.materials_json || '[]');
+  const safety = JSON.parse(report.safety_json || '[]');
+
+  let y = 20;
+  const lm = 20;
+  const pw = 170;
+
+  // Header
+  doc.setFillColor(15, 17, 23);
+  doc.rect(0, 0, 210, 40, 'F');
+  doc.setTextColor(255, 107, 53);
+  doc.setFontSize(22);
+  doc.setFont(undefined, 'bold');
+  doc.text('FieldVault', lm, 18);
+  doc.setFontSize(10);
+  doc.setTextColor(200, 200, 200);
+  doc.text('Daily Field Report', lm, 26);
+  doc.text(report.date, lm, 33);
+  doc.text(projName, 210 - lm, 26, { align: 'right' });
+  if (report.weather) doc.text(report.weather, 210 - lm, 33, { align: 'right' });
+
+  y = 50;
+  doc.setTextColor(0, 0, 0);
+
+  // Summary
+  if (report.summary) {
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.text('EXECUTIVE SUMMARY', lm, y); y += 7;
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    const lines = doc.splitTextToSize(report.summary, pw);
+    doc.text(lines, lm, y); y += lines.length * 5 + 8;
+  }
+
+  // Crew
+  if (crew.length) {
+    doc.setFontSize(11); doc.setFont(undefined, 'bold');
+    doc.text('CREW ON SITE', lm, y); y += 7;
+    doc.setFont(undefined, 'normal'); doc.setFontSize(10);
+    crew.forEach(c => { doc.text(`• ${c.trade}: ${c.count} workers${c.hours ? ` (${c.hours}h)` : ''}`, lm + 4, y); y += 5; });
+    doc.text(`Total: ${crew.reduce((s,c)=>s+c.count,0)} workers`, lm + 4, y); y += 10;
+  }
+
+  // Work
+  if (work.length) {
+    doc.setFontSize(11); doc.setFont(undefined, 'bold');
+    doc.text('WORK COMPLETED', lm, y); y += 7;
+    doc.setFont(undefined, 'normal'); doc.setFontSize(10);
+    work.forEach(w => {
+      const t = `• ${w.description}${w.quantity ? ` — ${w.quantity} ${w.unit||''}` : ''}`;
+      const lines = doc.splitTextToSize(t, pw - 4);
+      doc.text(lines, lm + 4, y); y += lines.length * 5 + 2;
+    });
+    y += 5;
+  }
+
+  // Delays
+  if (delays.length) {
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.setFontSize(11); doc.setFont(undefined, 'bold');
+    doc.text('DELAYS', lm, y); y += 7;
+    doc.setFont(undefined, 'normal'); doc.setFontSize(10);
+    delays.forEach(d => {
+      doc.text(`• [${d.category.toUpperCase()}]${d.responsible ? ' ' + d.responsible : ''}: ${d.description}${d.hours ? ` (${d.hours}h)` : ''}`, lm + 4, y, { maxWidth: pw - 4 });
+      y += 10;
+    });
+    y += 5;
+  }
+
+  // Materials
+  if (materials.length) {
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFontSize(11); doc.setFont(undefined, 'bold');
+    doc.text('MATERIALS', lm, y); y += 7;
+    doc.setFont(undefined, 'normal'); doc.setFontSize(10);
+    materials.forEach(m => { doc.text(`• ${m.item} [${m.status}]${m.notes ? ' — ' + m.notes : ''}`, lm + 4, y, { maxWidth: pw - 4 }); y += 7; });
+    y += 5;
+  }
+
+  // Safety
+  if (safety.length) {
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFontSize(11); doc.setFont(undefined, 'bold');
+    doc.text('SAFETY', lm, y); y += 7;
+    doc.setFont(undefined, 'normal'); doc.setFontSize(10);
+    safety.forEach(s => { doc.text(`• ${s.observation}`, lm + 4, y, { maxWidth: pw - 4 }); y += 7; });
+    y += 5;
+  }
+
+  // Tomorrow
+  if (report.tomorrow) {
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFontSize(11); doc.setFont(undefined, 'bold');
+    doc.text("TOMORROW'S PLAN", lm, y); y += 7;
+    doc.setFont(undefined, 'normal'); doc.setFontSize(10);
+    const lines = doc.splitTextToSize(report.tomorrow, pw);
+    doc.text(lines, lm + 4, y);
+  }
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`FieldVault — Generated ${new Date().toLocaleString()}`, lm, 290);
+    doc.text(`Page ${i} of ${pageCount}`, 190, 290, { align: 'right' });
+  }
+
+  doc.save(`FieldVault_Report_${report.date}.pdf`);
+}
+
+function getCurrentReportData() {
+  // Find the currently displayed report
+  const all = DEMO_MODE ? DEMO_REPORTS : reports;
+  return all.find(r => {
+    const content = document.getElementById('reportContent').innerHTML;
+    return content.includes(r.date);
+  }) || all[0];
+}
+
+// ============ EMAIL ============
+function emailReport() {
+  const email = prompt('Send report to email address:');
+  if (!email) return;
+
+  if (DEMO_MODE) {
+    alert(`Demo mode: Report would be emailed to ${email}`);
+    return;
+  }
+
+  const report = getCurrentReportData();
+  fetch(`${API_BASE}/api/email-report`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      to: email,
+      subject: `FieldVault Daily Report — ${report.date}`,
+      html: document.getElementById('reportContent').innerHTML
+    })
+  })
+  .then(r => r.json())
+  .then(() => alert('Report sent!'))
+  .catch(() => alert('Error sending email.'));
+}
+
+// ============ HELPERS ============
+function updateGreeting() {
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('greetingText').textContent = g;
+}
+</script>
+</body>
+</html>

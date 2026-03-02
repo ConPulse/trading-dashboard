@@ -2,362 +2,650 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>FieldVault</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0F1117;--surface:#1A1D27;--surface2:#242836;--surface3:#2E3344;
-  --text:#F1F3F8;--text2:#9BA3B5;--text3:#636B80;
-  --orange:#FF6B35;--orange-glow:rgba(255,107,53,0.15);--orange-dim:#CC5529;
-  --blue:#4A90D9;--blue-glow:rgba(74,144,217,0.15);
-  --green:#34D399;--red:#EF4444;--yellow:#FBBF24;
-  --radius:12px;--radius-sm:8px;
-}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#F8F9FA;--card:#FFFFFF;--text:#1A1D27;--text2:#6B7280;--accent:#FF6B35;--success:#10B981;--warn:#F59E0B;--danger:#EF4444;--border:#E5E7EB;--radius:12px;--shadow:0 2px 8px rgba(0,0,0,0.08)}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button{font-family:inherit;cursor:pointer;border:none;background:none;-webkit-appearance:none}
+input,textarea,select{font-family:inherit;font-size:16px;border:1.5px solid var(--border);border-radius:8px;padding:12px;background:var(--card);color:var(--text);width:100%}
+textarea{resize:vertical;min-height:100px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+#app{height:100%;display:flex;flex-direction:column}
+.header{background:var(--card);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;z-index:10}
+.header h1{font-size:20px;font-weight:700}
+.header h1 span{color:var(--accent)}
+.main{flex:1;overflow:hidden;position:relative}
+.bottom-nav{display:flex;background:var(--card);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.bottom-nav button{flex:1;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--text2);min-height:56px}
+.bottom-nav button.active{color:var(--accent)}
+.bottom-nav button .ico{font-size:22px}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px;transition:transform .3s ease,opacity .3s ease;will-change:transform;-webkit-overflow-scrolling:touch}
+.page.hidden{display:none}
+.page.slide-left{transform:translateX(-100%);opacity:0}
+.page.slide-right{transform:translateX(100%);opacity:0}
+#loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center}
+#loginPage .logo{font-size:64px}
+#loginPage h2{font-size:28px;font-weight:700}
+#loginPage p{color:var(--text2)}
+.pin-row{display:flex;gap:12px;justify-content:center}
+.pin-dot{width:48px;height:48px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700}
+.pin-dot.filled{border-color:var(--accent);background:rgba(255,107,53,0.1)}
+.numpad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center}
+.numpad button{width:72px;height:56px;font-size:22px;font-weight:600;background:var(--card);border-radius:12px;border:1px solid var(--border)}
+.numpad button:active{background:var(--bg)}
+.btn-demo{width:100%;max-width:300px;padding:16px;background:var(--accent);color:#fff;font-size:17px;font-weight:600;border-radius:var(--radius)}
+.progress{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.progress .step-ind{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;background:var(--border);color:var(--text2);flex-shrink:0}
+.progress .step-ind.active{background:var(--accent);color:#fff}
+.progress .step-ind.done{background:var(--success);color:#fff}
+.progress .line{flex:1;height:3px;background:var(--border);border-radius:2px}
+.progress .line.done{background:var(--success)}
+.step-title{font-size:24px;font-weight:700;margin-bottom:4px}
+.step-sub{color:var(--text2);margin-bottom:16px;font-size:15px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 24px;border-radius:var(--radius);font-size:16px;font-weight:600;min-height:48px;gap:8px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:active{opacity:0.85}
+.btn-secondary{background:var(--bg);color:var(--text);border:1.5px solid var(--border);width:100%}
+.btn-secondary:active{background:var(--border)}
+.btn-small{padding:8px 16px;font-size:14px;border-radius:8px;min-height:40px}
+.btn-ghost{color:var(--accent);font-weight:600;font-size:15px;padding:12px}
+.nav-buttons{display:flex;gap:12px;margin-top:20px;padding-bottom:24px}
+.nav-buttons .btn{flex:1}
+.sub-row{display:flex;align-items:center;gap:8px;padding:12px;background:var(--card);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow);flex-wrap:wrap}
+.sub-row .name{flex:1;font-weight:600;font-size:15px;min-width:80px}
+.stepper{display:flex;align-items:center;gap:0;background:var(--bg);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.stepper button{width:40px;height:40px;font-size:20px;font-weight:700;color:var(--accent);display:flex;align-items:center;justify-content:center}
+.stepper button:active{background:var(--border)}
+.stepper .val{width:32px;text-align:center;font-weight:700;font-size:16px}
+.sub-row select{width:70px;padding:8px;font-size:14px}
+.phase-scroll{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;-webkit-overflow-scrolling:touch}
+.phase-scroll::-webkit-scrollbar{display:none}
+.phase-btn{padding:10px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:20px;font-size:14px;font-weight:500;white-space:nowrap;min-height:40px}
+.phase-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,107,53,0.12);color:var(--accent);border-radius:16px;font-size:13px;font-weight:600}
+.tag button{font-size:16px;color:var(--accent);padding:0 2px}
+.voice-area{text-align:center;margin:20px 0}
+.voice-btn{width:88px;height:88px;border-radius:50%;background:var(--accent);color:#fff;font-size:36px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(255,107,53,0.35)}
+.voice-btn.recording{background:var(--danger);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 16px rgba(239,68,68,0)}}
+.voice-clips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.voice-clip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:13px}
+.voice-clip button{color:var(--danger);font-size:16px}
+.issue-cats{display:flex;gap:10px;margin-bottom:16px}
+.issue-cat{flex:1;padding:16px 8px;background:var(--card);border:2px solid var(--border);border-radius:var(--radius);text-align:center;font-size:14px;font-weight:600;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.issue-cat .ico{font-size:28px}
+.issue-cat:active{border-color:var(--accent)}
+.issue-card{background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:8px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:start;gap:8px}
+.issue-card .info{flex:1}
+.issue-card .type-badge{font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;text-transform:uppercase}
+.issue-card .del{color:var(--danger);font-size:20px;padding:4px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.modal-bg.hidden{display:none}
+.modal{background:var(--card);border-radius:20px 20px 0 0;padding:24px 16px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:16px}
+.modal label{display:block;font-size:14px;font-weight:600;color:var(--text2);margin-bottom:6px;margin-top:12px}
+.dur-btns{display:flex;gap:8px}
+.dur-btns button{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-weight:600;font-size:15px;min-height:48px}
+.dur-btns button.selected{border-color:var(--accent);background:rgba(255,107,53,0.1);color:var(--accent)}
+.sev-btns{display:flex;gap:8px}
+.sev-btns button{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-weight:600;font-size:14px;min-height:44px}
+.sev-btns button[data-s="Low"].selected{border-color:var(--success);background:rgba(16,185,129,0.1);color:var(--success)}
+.sev-btns button[data-s="Medium"].selected{border-color:var(--warn);background:rgba(245,158,11,0.1);color:var(--warn)}
+.sev-btns button[data-s="High"].selected{border-color:var(--danger);background:rgba(239,68,68,0.1);color:var(--danger)}
+.quick-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.quick-btns button{padding:10px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:14px;background:var(--card);min-height:40px}
+.quick-btns button.selected{border-color:var(--accent);background:rgba(255,107,53,0.1);color:var(--accent)}
+.review-section{margin-bottom:16px}
+.review-section .sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.review-section h3{font-size:16px;font-weight:700}
+.review-section .edit-btn{color:var(--accent);font-size:14px;font-weight:600}
+.review-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;justify-content:space-between}
+.review-item:last-child{border:none}
+.success-screen{text-align:center;padding:60px 16px}
+.success-screen .check{width:100px;height:100px;border-radius:50%;background:var(--success);color:#fff;font-size:52px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.success-screen h2{font-size:24px;margin-bottom:8px}
+.success-screen p{color:var(--text2);margin-bottom:24px}
+.success-btns{display:flex;flex-direction:column;gap:10px;max-width:300px;margin:0 auto}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow)}
+.history-item .meta{font-size:13px;color:var(--text2)}
+.history-item .proj{font-weight:600;font-size:15px}
+.punch-card{background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:10px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:start}
+.punch-card .thumb{width:64px;height:64px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;overflow:hidden}
+.punch-card .thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.punch-card .info{flex:1}
+.punch-card .info .loc{font-size:12px;color:var(--text2)}
+.punch-card .info .desc{font-weight:600;font-size:14px;margin:2px 0}
+.punch-card .info .sub{font-size:12px;color:var(--text2)}
+.punch-status{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;min-height:32px;display:inline-flex;align-items:center;white-space:nowrap;flex-shrink:0}
+.punch-status.open{background:rgba(239,68,68,0.12);color:var(--danger)}
+.punch-status.progress{background:rgba(245,158,11,0.12);color:var(--warn)}
+.punch-status.complete{background:rgba(16,185,129,0.12);color:var(--success)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:16px;text-align:center;box-shadow:var(--shadow)}
+.stat-card .num{font-size:28px;font-weight:700;color:var(--accent)}
+.stat-card .label{font-size:12px;color:var(--text2);margin-top:2px}
+.sub-score{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.sub-score .bar-bg{width:100px;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;flex-shrink:0}
+.sub-score .bar-fill{height:100%;border-radius:4px}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.photo-grid .photo-thumb{aspect-ratio:1;border-radius:8px;background:var(--bg);overflow:hidden;position:relative}
+.photo-grid .photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-grid .photo-thumb .del-photo{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+.weather-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--card);border-radius:var(--radius);margin-bottom:16px;box-shadow:var(--shadow);font-size:14px;color:var(--text2)}
+.weather-bar .wicon{font-size:24px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mt-12{margin-top:12px}
+.text-center{text-align:center}
+.text-sm{font-size:13px;color:var(--text2)}
+.add-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border:2px dashed var(--border);border-radius:var(--radius);color:var(--text2);font-weight:600;font-size:14px;margin-bottom:12px;min-height:48px}
+.add-btn:active{background:var(--bg)}
 .hidden{display:none!important}
-.header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--surface3);position:sticky;top:0;z-index:100}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--orange),var(--orange-dim));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
-.logo-text{font-size:20px;font-weight:800;letter-spacing:-0.5px}
-.logo-text span{color:var(--orange)}
-.header-controls{display:flex;gap:8px;align-items:center}
-.badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
-.badge-demo{background:var(--orange-glow);color:var(--orange);border:1px solid rgba(255,107,53,0.3)}
-.badge-pm{background:var(--blue-glow);color:var(--blue);border:1px solid rgba(74,144,217,0.3)}
-.toggle{position:relative;width:44px;height:24px;cursor:pointer}
-.toggle input{opacity:0;width:0;height:0}
-.toggle .slider{position:absolute;inset:0;background:var(--surface3);border-radius:12px;transition:.3s}
-.toggle .slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:.3s}
-.toggle input:checked+.slider{background:var(--orange)}
-.toggle input:checked+.slider:before{transform:translateX(20px);background:#fff}
-.btn{padding:12px 24px;border-radius:var(--radius-sm);border:none;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
-.btn-primary{background:linear-gradient(135deg,var(--orange),var(--orange-dim));color:#fff;box-shadow:0 4px 16px rgba(255,107,53,0.3)}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,107,53,0.4)}
-.btn-primary:active{transform:translateY(0)}
-.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--surface3)}
-.btn-secondary:hover{background:var(--surface3)}
-.btn-ghost{background:transparent;color:var(--text2);padding:8px 12px}
-.btn-ghost:hover{color:var(--text);background:var(--surface2)}
-.btn-sm{padding:8px 16px;font-size:13px}
-.btn-block{width:100%;justify-content:center}
-.btn-blue{background:linear-gradient(135deg,var(--blue),#3A7BC8);color:#fff;box-shadow:0 4px 16px rgba(74,144,217,0.3)}
-.card{background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius);padding:20px;margin-bottom:12px}
-select,input,textarea{background:var(--surface2);border:1px solid var(--surface3);color:var(--text);font-family:inherit;font-size:14px;padding:12px 16px;border-radius:var(--radius-sm);width:100%;outline:none;transition:border-color .2s}
-select:focus,input:focus,textarea:focus{border-color:var(--orange)}
-textarea{resize:vertical;min-height:120px}
-label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block}
-.screen{max-width:480px;margin:0 auto;padding:20px}
-.screen-wide{max-width:720px}
-.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center}
-.login-logo{width:80px;height:80px;background:linear-gradient(135deg,var(--orange),var(--orange-dim));border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800;color:#fff;margin-bottom:24px;box-shadow:0 8px 32px rgba(255,107,53,0.3)}
-.login-title{font-size:32px;font-weight:800;margin-bottom:8px;letter-spacing:-1px}
-.login-title span{color:var(--orange)}
-.login-sub{color:var(--text2);margin-bottom:32px;font-size:15px}
-.pin-input{display:flex;gap:12px;margin-bottom:24px}
-.pin-digit{width:56px;height:64px;background:var(--surface);border:2px solid var(--surface3);border-radius:var(--radius);font-size:28px;font-weight:700;text-align:center;color:var(--text);caret-color:var(--orange)}
-.pin-digit:focus{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-glow)}
-.login-error{color:var(--red);font-size:13px;margin-top:8px;min-height:20px}
-.login-demo{margin-top:24px;padding-top:24px;border-top:1px solid var(--surface3)}
-.login-demo p{color:var(--text3);font-size:13px;margin-bottom:12px}
-.weather-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--surface3);border-radius:var(--radius);margin-bottom:20px}
-.weather-icon{font-size:28px}
-.weather-temp{font-size:20px;font-weight:800}
-.weather-loc{font-size:12px;color:var(--text3)}
-.quick-buttons{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px 0;margin-bottom:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.quick-buttons::-webkit-scrollbar{display:none}
-.quick-btn{flex-shrink:0;padding:8px 14px;background:var(--surface2);border:1px solid var(--surface3);border-radius:20px;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:inherit}
-.quick-btn:hover,.quick-btn:active{background:var(--orange-glow);border-color:var(--orange);color:var(--orange)}
-.voice-clips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.voice-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface2);border:1px solid var(--surface3);border-radius:20px;font-size:13px;font-weight:500}
-.voice-pill .pill-icon{color:var(--orange);font-size:14px}
-.voice-pill .pill-time{color:var(--text2);font-size:11px}
-.voice-pill .pill-del{cursor:pointer;color:var(--text3);font-size:14px;margin-left:2px;transition:color .2s;background:none;border:none;font-family:inherit;padding:0}
-.voice-pill .pill-del:hover{color:var(--red)}
-.photo-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.photo-thumb{position:relative;width:80px;height:80px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--surface3)}
-.photo-thumb img,.photo-thumb .demo-photo{width:100%;height:100%;object-fit:cover}
-.demo-photo{display:flex;align-items:center;justify-content:center;text-align:center;font-size:9px;font-weight:700;color:#fff;padding:6px;line-height:1.2}
-.photo-thumb .photo-del{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
-.input-actions{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-.action-btn{width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.action-btn svg{width:22px;height:22px}
-.mic-btn{background:linear-gradient(135deg,var(--orange),var(--orange-dim));box-shadow:0 4px 12px rgba(255,107,53,0.3)}
-.mic-btn svg{fill:#fff}
-.mic-btn.recording{animation:pulse 1.5s infinite;background:linear-gradient(135deg,var(--red),#DC2626)}
-.cam-btn{background:var(--surface2);border:1px solid var(--surface3)!important}
-.cam-btn svg{fill:var(--text2)}
-.cam-btn:hover{background:var(--surface3)}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 20px rgba(239,68,68,0)}}
-.project-bar{display:flex;gap:8px;margin-bottom:20px;align-items:center}
-.project-bar select{flex:1}
-.greeting{font-size:22px;font-weight:700;margin-bottom:4px}
-.greeting-sub{color:var(--text2);font-size:14px;margin-bottom:24px}
-.divider{display:flex;align-items:center;gap:16px;margin:16px 0;color:var(--text3);font-size:13px;font-weight:500}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--surface3)}
-.submit-row{display:flex;gap:8px;margin-top:16px}
-.submit-row .btn{flex:1}
-.report-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-.report-date{font-size:24px;font-weight:800;letter-spacing:-0.5px}
-.report-project{color:var(--text2);font-size:14px;margin-top:4px}
-.report-weather{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface2);border-radius:20px;font-size:13px;color:var(--text2);margin-top:8px}
-.section{margin-bottom:20px}
-.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--orange);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.section-title::after{content:'';flex:1;height:1px;background:var(--surface3)}
-.section-icon{font-size:16px}
-.crew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
-.crew-item{background:var(--surface2);border-radius:var(--radius-sm);padding:12px;text-align:center}
-.crew-count{font-size:28px;font-weight:800;color:var(--blue)}
-.crew-trade{font-size:12px;color:var(--text2);margin-top:4px;font-weight:500}
-.work-item,.material-item,.safety-item{padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:6px;font-size:14px;display:flex;align-items:flex-start;gap:10px}
-.work-bullet{width:6px;height:6px;border-radius:50%;background:var(--green);margin-top:6px;flex-shrink:0}
-.material-bullet{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px}
-.material-delivered{background:var(--green)}
-.material-issue{background:var(--red)}
-.material-needed{background:var(--yellow)}
-.material-ordered{background:var(--blue)}
-.safety-bullet{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px}
-.safety-info{background:var(--blue)}
-.safety-warning{background:var(--yellow)}
-.safety-critical{background:var(--red)}
-.work-qty{color:var(--text3);font-size:12px;margin-left:auto;white-space:nowrap;padding-left:8px}
-.delay-item{padding:12px 14px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:6px;border-left:3px solid var(--red)}
-.delay-item.delay-weather{border-left-color:var(--blue)}
-.delay-item.delay-material{border-left-color:var(--yellow)}
-.delay-item.delay-gc{border-left-color:var(--orange)}
-.delay-meta{display:flex;gap:12px;margin-top:6px;font-size:12px;color:var(--text3)}
-.delay-tag{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;text-transform:uppercase}
-.delay-tag-sub{background:rgba(239,68,68,0.15);color:var(--red)}
-.delay-tag-weather{background:rgba(74,144,217,0.15);color:var(--blue)}
-.delay-tag-material{background:rgba(251,191,36,0.15);color:var(--yellow)}
-.delay-tag-gc{background:var(--orange-glow);color:var(--orange)}
-.delay-tag-other{background:rgba(99,107,128,0.15);color:var(--text3)}
-.tomorrow-box{background:linear-gradient(135deg,var(--surface2),var(--surface3));border-radius:var(--radius);padding:16px;font-size:14px;line-height:1.6;border-left:3px solid var(--green)}
-.history-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius);margin-bottom:8px;cursor:pointer;transition:all .2s}
-.history-item:hover{border-color:var(--orange);background:var(--surface2)}
-.history-date-badge{width:48px;height:48px;background:var(--surface2);border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.history-day{font-size:18px;font-weight:800;line-height:1}
-.history-month{font-size:10px;color:var(--text2);text-transform:uppercase;font-weight:600;margin-top:2px}
-.history-info{flex:1;min-width:0}
-.history-summary{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.history-crew{font-size:12px;color:var(--text3);margin-top:4px}
-.history-delays{font-size:11px;color:var(--red);font-weight:600}
-.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
-.dash-stat{background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius);padding:20px;text-align:center}
-.dash-stat-value{font-size:36px;font-weight:800}
-.dash-stat-label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;font-weight:600}
-.dash-stat-orange .dash-stat-value{color:var(--orange)}
-.dash-stat-blue .dash-stat-value{color:var(--blue)}
-.dash-stat-green .dash-stat-value{color:var(--green)}
-.dash-stat-red .dash-stat-value{color:var(--red)}
-.sub-score{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius-sm);margin-bottom:6px}
-.sub-name{font-weight:600;font-size:14px}
-.sub-hours{font-size:12px;color:var(--text3)}
-.score-bar{width:60px;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden}
-.score-fill{height:100%;border-radius:3px}
-.score-good{background:var(--green)}
-.score-mid{background:var(--yellow)}
-.score-bad{background:var(--red)}
-.tab-bar{display:flex;gap:4px;background:var(--surface);border-radius:var(--radius);padding:4px;margin-bottom:20px}
-.tab{flex:1;padding:10px;text-align:center;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .2s}
-.tab.active{background:var(--surface3);color:var(--text)}
-.tab:hover:not(.active){color:var(--text)}
-.punch-card{background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius);padding:16px;margin-bottom:12px}
-.punch-card-top{display:flex;gap:12px;margin-bottom:12px}
-.punch-photo{width:72px;height:72px;border-radius:var(--radius-sm);overflow:hidden;flex-shrink:0;background:var(--surface2)}
-.punch-photo img,.punch-photo .demo-photo{width:100%;height:100%;object-fit:cover}
-.punch-info{flex:1;min-width:0}
-.punch-note{font-size:14px;font-weight:600;margin-bottom:4px}
-.punch-meta{font-size:12px;color:var(--text2);margin-bottom:2px}
-.punch-sub{font-size:12px;color:var(--text3)}
-.punch-status{display:flex;gap:6px;margin-top:4px}
-.punch-status-btn{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--surface3);background:var(--surface2);color:var(--text3);transition:all .2s;font-family:inherit}
-.punch-status-btn.active-open{background:rgba(239,68,68,0.15);color:var(--red);border-color:var(--red)}
-.punch-status-btn.active-progress{background:rgba(251,191,36,0.15);color:var(--yellow);border-color:var(--yellow)}
-.punch-status-btn.active-complete{background:rgba(52,211,153,0.15);color:var(--green);border-color:var(--green)}
-.nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--surface3);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
-.nav-item{flex:1;padding:10px 0;text-align:center;cursor:pointer;color:var(--text3);transition:color .2s;font-size:10px;font-weight:600}
-.nav-item.active{color:var(--orange)}
-.nav-item svg{display:block;margin:0 auto 4px;width:22px;height:22px}
-.nav-item.active svg{fill:var(--orange)}
-.nav-item:not(.active) svg{fill:var(--text3)}
-.content{padding-bottom:80px}
-.spinner{width:32px;height:32px;border:3px solid var(--surface3);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite;margin:20px auto}
-@keyframes spin{to{transform:rotate(360deg)}}
-.processing-overlay{position:fixed;inset:0;background:rgba(15,17,23,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200}
-.processing-text{margin-top:16px;color:var(--text2);font-size:14px}
-.processing-sub{color:var(--text3);font-size:12px;margin-top:4px}
-@media(max-width:380px){.pin-digit{width:48px;height:56px;font-size:24px}.login-title{font-size:26px}}
 </style>
 </head>
 <body>
-<div class="header" id="mainHeader">
-  <div class="logo">
-    <div class="logo-icon">FV</div>
-    <div class="logo-text">Field<span>Vault</span></div>
+<div id="app">
+  <div class="header">
+    <h1>⛑️ <span>Field</span>Vault</h1>
+    <div id="headerRight"></div>
   </div>
-  <div class="header-controls">
-    <span class="badge badge-demo" id="demoBadge">Demo</span>
-    <span class="badge badge-pm hidden" id="pmBadge">PM View</span>
-    <button class="btn-ghost" id="logoutBtn" title="Logout">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    </button>
-  </div>
-</div>
-<div id="loginScreen" class="screen login-screen">
-  <div class="login-logo">FV</div>
-  <h1 class="login-title">Field<span>Vault</span></h1>
-  <p class="login-sub">Your jobsite gets smarter every day</p>
-  <div class="pin-input">
-    <input class="pin-digit" type="tel" maxlength="1" data-pin="0" inputmode="numeric" autocomplete="off">
-    <input class="pin-digit" type="tel" maxlength="1" data-pin="1" inputmode="numeric" autocomplete="off">
-    <input class="pin-digit" type="tel" maxlength="1" data-pin="2" inputmode="numeric" autocomplete="off">
-    <input class="pin-digit" type="tel" maxlength="1" data-pin="3" inputmode="numeric" autocomplete="off">
-  </div>
-  <div class="login-error" id="loginError"></div>
-  <div class="login-demo">
-    <p>First time? Try demo mode</p>
-    <button class="btn btn-secondary btn-sm" id="demoLoginBtn">Enter Demo Mode</button>
-  </div>
-</div>
-<div id="appScreen" class="hidden">
-  <div class="content">
-    <div id="inputView" class="screen">
-      <div class="project-bar">
-        <select id="projectSelect"></select>
-        <button class="btn btn-secondary btn-sm" id="pmToggle">PM Dashboard</button>
-      </div>
-      <div class="weather-bar" id="weatherBar">
-        <div class="weather-icon">☀️</div>
-        <div>
-          <div class="weather-temp" id="weatherTemp">72°F Sunny</div>
-          <div class="weather-loc" id="weatherLoc">Oceanside, CA</div>
-        </div>
-      </div>
-      <div class="greeting" id="greetingText">Good morning</div>
-      <div class="greeting-sub">What happened on site today?</div>
-      <div class="quick-buttons" id="quickButtons">
-        <button class="quick-btn" data-text="ABC Plumbing">ABC Plumbing</button>
-        <button class="quick-btn" data-text="DEF Electric">DEF Electric</button>
-        <button class="quick-btn" data-text="GHI Drywall">GHI Drywall</button>
-        <button class="quick-btn" data-text="Scratch Coat">Scratch Coat</button>
-        <button class="quick-btn" data-text="Brown Coat">Brown Coat</button>
-        <button class="quick-btn" data-text="Lath">Lath</button>
-        <button class="quick-btn" data-text="Cleanup">Cleanup</button>
-        <button class="quick-btn" data-text="Rain Delay">Rain Delay</button>
-      </div>
+  <div class="main" id="mainArea">
+    <div class="page" id="loginPage">
+      <div class="logo">⛑️</div>
+      <h2>FieldVault</h2>
+      <p>Daily reports, done fast.</p>
+      <div class="pin-row" id="pinDots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+      <div class="numpad" id="numpad"></div>
+      <button class="btn-demo" onclick="enterDemo()">Enter Demo</button>
+    </div>
+    <div class="page hidden" id="step1">
+      <div class="progress" id="prog1"></div>
+      <select id="projectSelect" style="margin-bottom:12px"></select>
+      <div class="weather-bar" id="weatherBar"><span class="wicon">☀️</span><span id="weatherText">Mon Mar 3 · 72°F Sunny · Oceanside</span></div>
+      <div class="step-title">Who was on site today?</div>
+      <p class="step-sub">Tap + or − to set headcount for each sub.</p>
+      <div id="subsList"></div>
+      <button class="add-btn" onclick="addSubRow()">+ Add Sub</button>
+      <div class="nav-buttons"><div style="flex:1"></div><button class="btn btn-primary" onclick="goStep(2)">Next →</button></div>
+    </div>
+    <div class="page hidden" id="step2">
+      <div class="progress" id="prog2"></div>
+      <div class="step-title">What got done?</div>
+      <p class="step-sub">Tap the mic or type below.</p>
+      <div class="voice-area"><button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎙️</button><p class="text-sm mt-12" id="voiceLabel">Tap to record</p></div>
       <div class="voice-clips" id="voiceClips"></div>
-      <div class="photo-thumbs" id="photoThumbs"></div>
-      <div class="input-actions">
-        <button class="action-btn mic-btn" id="recordBtn" title="Record voice clip">
-          <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-        </button>
-        <button class="action-btn cam-btn" id="cameraBtn" title="Add photo">
-          <svg viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
-        </button>
-        <input type="file" id="photoFileInput" accept="image/*" multiple class="hidden">
-        <div style="flex:1;text-align:right">
-          <span id="recordLabel" style="font-size:12px;color:var(--text3)">Tap 🎤 to record clips</span>
+      <div class="tags" id="phaseTags"></div>
+      <div class="phase-scroll" id="phaseScroll"></div>
+      <textarea id="workNotes" placeholder="Type or talk — what work was completed today?"></textarea>
+      <div class="nav-buttons"><button class="btn btn-secondary" onclick="goStep(1)">← Back</button><button class="btn btn-primary" onclick="goStep(3)">Next →</button></div>
+    </div>
+    <div class="page hidden" id="step3">
+      <div class="progress" id="prog3"></div>
+      <div class="step-title">Any issues today?</div>
+      <p class="step-sub">Log delays, problems, or add photos.</p>
+      <div class="issue-cats">
+        <button class="issue-cat" onclick="openModal('delay')"><span class="ico">⏰</span>Delays</button>
+        <button class="issue-cat" onclick="openModal('problem')"><span class="ico">⚠️</span>Problems</button>
+        <button class="issue-cat" onclick="openModal('photo')"><span class="ico">📸</span>Photos</button>
+      </div>
+      <div id="issuesList"></div>
+      <div id="photoGrid" class="photo-grid"></div>
+      <button class="btn btn-secondary mb-16" onclick="goStep(4)" style="background:var(--success);color:#fff;border:none">✓ Skip — No Issues</button>
+      <div class="nav-buttons"><button class="btn btn-secondary" onclick="goStep(2)">← Back</button><button class="btn btn-primary" onclick="goStep(4)">Next →</button></div>
+    </div>
+    <div class="page hidden" id="step4">
+      <div class="progress" id="prog4"></div>
+      <div class="step-title">Tomorrow's plan</div>
+      <p class="step-sub">Optional — what's happening next?</p>
+      <div class="quick-btns" id="planBtns"></div>
+      <textarea id="tomorrowNotes" placeholder="What's the plan for tomorrow?"></textarea>
+      <div class="nav-buttons"><button class="btn btn-secondary" onclick="goStep(3)">← Back</button><button class="btn btn-primary" onclick="goStep(5)">Next →</button></div>
+    </div>
+    <div class="page hidden" id="step5">
+      <div class="progress" id="prog5"></div>
+      <div class="step-title">Review & Submit</div>
+      <p class="step-sub">Make sure everything looks right.</p>
+      <div id="reviewContent"></div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:24px;margin-top:16px">
+        <button class="btn btn-primary" onclick="submitReport()" style="font-size:18px;padding:18px">✅ Submit Report</button>
+        <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+      </div>
+    </div>
+    <div class="page hidden" id="successPage">
+      <div class="success-screen">
+        <div class="check">✓</div>
+        <h2>Report Submitted!</h2>
+        <p>Sent to Project Manager</p>
+        <div class="success-btns">
+          <button class="btn btn-secondary" onclick="downloadPDF()">📄 Download PDF</button>
+          <button class="btn btn-secondary" onclick="emailReport()">📧 Email Report</button>
+          <button class="btn btn-primary" onclick="newReport()">🆕 New Report</button>
         </div>
       </div>
-      <textarea id="notesInput" placeholder="Had 8 framers today, finished second floor walls on building 3. ABC Plumbing was a no-show again..."></textarea>
-      <div class="submit-row">
-        <button class="btn btn-primary btn-block" id="submitBtn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-          Generate Report
-        </button>
-      </div>
     </div>
-    <div id="reportView" class="screen hidden">
-      <button class="btn btn-ghost" id="backToInput" style="margin-bottom:12px">← Back</button>
-      <div id="reportContent"></div>
-    </div>
-    <div id="historyView" class="screen hidden">
-      <h2 style="font-size:20px;font-weight:700;margin-bottom:16px">Report History</h2>
+    <div class="page hidden" id="historyPage">
+      <div class="step-title mb-16">Report History</div>
       <div id="historyList"></div>
     </div>
-    <div id="punchlistView" class="screen hidden">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <h2 style="font-size:20px;font-weight:700">📋 Punchlist</h2>
-        <button class="btn btn-primary btn-sm" id="exportPunchlistBtn">📄 Export PDF</button>
+    <div class="page hidden" id="punchPage">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="step-title">Punchlist</div>
+        <button class="btn btn-small" style="background:var(--accent);color:#fff" onclick="exportPunchPDF()">Export PDF</button>
       </div>
-      <div id="punchlistContent"></div>
+      <button class="add-btn" onclick="openModal('punch')">+ Add Punchlist Item</button>
+      <div id="punchList"></div>
     </div>
-    <div id="dashView" class="screen screen-wide hidden">
-      <button class="btn btn-ghost" id="backFromDash" style="margin-bottom:12px">← Back</button>
-      <h2 style="font-size:20px;font-weight:700;margin-bottom:20px">PM Dashboard</h2>
-      <div id="dashContent"></div>
+    <div class="page hidden" id="overviewPage">
+      <div class="step-title mb-16">Overview</div>
+      <div class="stat-grid" id="statGrid"></div>
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Delay Breakdown</h3>
+        <div id="delayBreakdown"></div>
+      </div>
+      <div class="card mt-12">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Sub Reliability</h3>
+        <div id="subScores"></div>
+      </div>
     </div>
   </div>
-  <div class="nav">
-    <div class="nav-item active" data-view="input">
-      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-      New
-    </div>
-    <div class="nav-item" data-view="history">
-      <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-      History
-    </div>
-    <div class="nav-item" data-view="punchlist">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 9h-2v2H9v-2H7v-2h2V7h2v2h2v2zm3-3V3.5L18.5 9H16z"/></svg>
-      Punchlist
-    </div>
-    <div class="nav-item" data-view="dash">
-      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-      Dashboard
-    </div>
+  <div class="bottom-nav" id="bottomNav" style="display:none">
+    <button onclick="navTo('report')" data-tab="report"><span class="ico">📝</span>New Report</button>
+    <button onclick="navTo('history')" data-tab="history"><span class="ico">📋</span>History</button>
+    <button onclick="navTo('punch')" data-tab="punch"><span class="ico">🔨</span>Punchlist</button>
+    <button onclick="navTo('overview')" data-tab="overview"><span class="ico">📊</span>Overview</button>
   </div>
 </div>
-<div class="processing-overlay hidden" id="processing">
-  <div class="spinner"></div>
-  <div class="processing-text">FieldVault AI is processing...</div>
-  <div class="processing-sub">Structuring your field notes into a daily report</div>
+<div class="modal-bg hidden" id="modalBg" onclick="closeModal()">
+  <div class="modal" id="modalContent" onclick="event.stopPropagation()"></div>
 </div>
 <script>
-const API_BASE='';let DEMO_MODE=true;let currentUser=null;let currentProject=null;let currentReport=null;let reports=[];let mediaRecorder=null;let audioChunks=[];let recordingTimer=null;let recordingSeconds=0;
-let voiceClips=[];let photos=[];let punchlistItems=[];
-const DEMO_PROJECTS=[{id:1,name:'Riverside Apartments — Bldg 3',gc_name:'Turner Construction',address:'1420 River Rd, Sacramento CA'},{id:2,name:'Oak Park Medical Center',gc_name:'McCarthy Building',address:'890 Oak Park Blvd, Sacramento CA'},{id:3,name:'Downtown Mixed-Use — Phase 2',gc_name:'Hensel Phelps',address:'200 K Street, Sacramento CA'}];
-const DEMO_REPORTS=[{id:1,project_id:1,date:new Date().toISOString().split('T')[0],weather:'Clear, 72°F',summary:'Strong progress on Building 3 second floor framing. ABC Plumbing no-show caused 3-hour delay on rough-in. Lumber delivery received. Roof trusses scheduled for tomorrow.',crew_json:JSON.stringify([{trade:'Framers',count:8,hours:8},{trade:'Electricians',count:3,hours:8},{trade:'Laborers',count:4,hours:8}]),work_json:JSON.stringify([{description:'Completed second floor wall framing — Building 3, north and east walls',quantity:'2,400',unit:'SF'},{description:'Installed temporary bracing on all new walls',quantity:null,unit:null},{description:'Electrical rough-in continued on first floor units 101-104',quantity:'4',unit:'units'},{description:'Site cleanup and material staging for tomorrow',quantity:null,unit:null}]),delays_json:JSON.stringify([{category:'sub',responsible:'ABC Plumbing',hours:3,description:'No-show, third time this month. Rough-in for units 105-108 not started. Pushing mechanical schedule.'},{category:'material',responsible:'Pacific Supply',hours:1,description:'Lumber delivery arrived 2 hours late, had to re-sequence afternoon work.'}]),materials_json:JSON.stringify([{item:'2x6 lumber (pressure treated)',status:'delivered',notes:'~400 pieces received, inspected, stacked on north side'},{item:'Roof trusses',status:'ordered',notes:'Confirmed delivery for tomorrow 7AM'},{item:'Simpson hardware',status:'needed',notes:'Running low on H2.5A hurricane ties, need by Thursday'}]),safety_json:JSON.stringify([{observation:'All fall protection in place on second floor perimeter',severity:'info'},{observation:'Found extension cord with damaged insulation near Bldg 3 east — replaced immediately',severity:'warning'}]),tomorrow:'Begin roof truss installation on Building 3. Need crane on site by 6:30 AM. Continue electrical rough-in units 105-108 (if plumbing clears). Hardware delivery expected.'},{id:2,project_id:1,date:(()=>{const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().split('T')[0]})(),weather:'Partly cloudy, 68°F',summary:'First floor framing complete. Started second floor walls. Concrete pour for Building 4 pad delayed due to pump truck breakdown.',crew_json:JSON.stringify([{trade:'Framers',count:8,hours:8},{trade:'Concrete',count:5,hours:4},{trade:'Laborers',count:3,hours:8}]),work_json:JSON.stringify([{description:'Completed all first floor wall framing — Building 3',quantity:'3,200',unit:'SF'},{description:'Started second floor framing, south wall section',quantity:'600',unit:'SF'},{description:'Set up scaffolding for second floor access',quantity:null,unit:null}]),delays_json:JSON.stringify([{category:'other',responsible:'Valley Concrete Pumping',hours:4,description:'Pump truck mechanical failure. Building 4 slab pour pushed to tomorrow.'}]),materials_json:JSON.stringify([{item:'Ready-mix concrete',status:'ordered',notes:'40 yards for Building 4 slab, rescheduled for tomorrow AM'}]),safety_json:JSON.stringify([{observation:'Toolbox talk: ladder safety and 3-point contact',severity:'info'}]),tomorrow:'Continue second floor framing Bldg 3. Reschedule Building 4 concrete pour. Expecting ABC Plumbing for rough-in.'},{id:3,project_id:1,date:(()=>{const d=new Date();d.setDate(d.getDate()-2);return d.toISOString().split('T')[0]})(),weather:'Rain until 10 AM, then clearing. 62°F',summary:'Weather delay in morning, lost 2 hours. Afternoon production was good — pushed hard on first floor walls. Inspection passed.',crew_json:JSON.stringify([{trade:'Framers',count:6,hours:6},{trade:'Laborers',count:2,hours:6}]),work_json:JSON.stringify([{description:'First floor framing — west and south walls',quantity:'1,800',unit:'SF'},{description:'Passed framing inspection on units 101-102',quantity:null,unit:null}]),delays_json:JSON.stringify([{category:'weather',responsible:null,hours:2,description:'Rain until 10 AM, couldn\'t start framing. Site was muddy, needed to wait for access road to dry.'}]),materials_json:JSON.stringify([]),safety_json:JSON.stringify([{observation:'Wet conditions — extra caution on ladders and scaffolding, no incidents',severity:'info'}]),tomorrow:'Finish first floor framing. Start second floor layout.'},{id:4,project_id:2,date:new Date().toISOString().split('T')[0],weather:'Clear, 75°F',summary:'Interior metal stud framing progressing on second floor. HVAC ductwork installation started in wing A. Minor issue with door frame specs.',crew_json:JSON.stringify([{trade:'Metal Stud Framers',count:6,hours:8},{trade:'HVAC',count:4,hours:8},{trade:'Electricians',count:2,hours:8}]),work_json:JSON.stringify([{description:'Metal stud framing — 2nd floor corridor and rooms 201-208',quantity:'1,600',unit:'SF'},{description:'HVAC main duct runs — Wing A',quantity:'120',unit:'LF'},{description:'Electrical panel installation — MDP room',quantity:'2',unit:'panels'}]),delays_json:JSON.stringify([{category:'gc',responsible:'McCarthy Building',hours:1.5,description:'Door frame specs changed mid-day via RFI response. Had to re-measure and adjust 6 openings.'}]),materials_json:JSON.stringify([{item:'3-5/8" metal studs',status:'delivered',notes:'Full truck received'},{item:'Flex duct',status:'needed',notes:'Running low, need 200 LF by Wednesday'}]),safety_json:JSON.stringify([{observation:'Fire watch maintained during welding on structural connections',severity:'info'}]),tomorrow:'Continue 2nd floor framing rooms 209-216. HVAC branch lines in Wing A. Fire caulking inspection at 2 PM.'}];
-const DEMO_PUNCHLIST=[{id:1,photo_color:'#4A90D9',photo_label:'Drywall damage\nUnit 204',note:'Drywall patch needed — hole from plumbing access',unit:'Unit 204',sub:'GHI Drywall',status:'open'},{id:2,photo_color:'#FF6B35',photo_label:'Paint touch-up\nHallway 2F',note:'Paint scuffs on corridor wall from material staging',unit:'Hallway 2F',sub:'Finish Painters Inc',status:'in-progress'},{id:3,photo_color:'#34D399',photo_label:'Outlet cover\nUnit 101',note:'Missing outlet cover plate — bedroom east wall',unit:'Unit 101',sub:'DEF Electric',status:'complete'},{id:4,photo_color:'#EF4444',photo_label:'Baseboard gap\nUnit 308',note:'Baseboard not flush with tile transition — 1/4" gap',unit:'Unit 308',sub:'ABC Plumbing',status:'open'}];
-const DEMO_USER={id:1,name:'Mike Rodriguez',pin:'1234'};
-document.addEventListener('DOMContentLoaded',()=>{setupPinInputs();setupNav();setupEvents();updateGreeting();showLogin()});
-function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('appScreen').classList.add('hidden');document.getElementById('mainHeader').style.display='none';document.querySelector('[data-pin="0"]').focus()}
-function showApp(){document.getElementById('loginScreen').classList.add('hidden');document.getElementById('appScreen').classList.remove('hidden');document.getElementById('mainHeader').style.display='';loadProjects();loadReports();if(DEMO_MODE)loadDemoInputState();initWeather();switchView('input')}
-function loadDemoInputState(){voiceClips=[{id:1,blob:null,time:'7:02 AM'},{id:2,blob:null,time:'11:15 AM'},{id:3,blob:null,time:'2:45 PM'}];renderVoiceClips();photos=[{id:1,dataUrl:null,label:'Delivery - 3 pallets lath',color:'#4A90D9'},{id:2,dataUrl:null,label:'Crack in foundation - Bldg C',color:'#EF4444'}];renderPhotos()}
-function initWeather(){if(DEMO_MODE){document.getElementById('weatherTemp').textContent='72°F Sunny';document.getElementById('weatherLoc').textContent='Oceanside, CA';document.querySelector('.weather-icon').textContent='☀️';return}if(navigator.geolocation){navigator.geolocation.getCurrentPosition(pos=>{const{latitude,longitude}=pos.coords;fetch('https://wttr.in/'+latitude+','+longitude+'?format=%t+%C&u').then(r=>r.text()).then(text=>{document.getElementById('weatherTemp').textContent=text.trim();fetch('https://wttr.in/'+latitude+','+longitude+'?format=%l').then(r=>r.text()).then(loc=>document.getElementById('weatherLoc').textContent=loc.trim())}).catch(()=>{})},()=>{document.getElementById('weatherTemp').textContent='Location unavailable';document.getElementById('weatherLoc').textContent=''})}}
-function setupPinInputs(){const digits=document.querySelectorAll('.pin-digit');digits.forEach((input,i)=>{input.addEventListener('input',e=>{if(e.target.value.length===1&&i<3)digits[i+1].focus();if(i===3&&e.target.value.length===1)attemptLogin()});input.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!e.target.value&&i>0)digits[i-1].focus()})})}
-function attemptLogin(){const pin=Array.from(document.querySelectorAll('.pin-digit')).map(d=>d.value).join('');if(pin.length!==4)return;if(DEMO_MODE||pin==='1234'){currentUser=DEMO_USER;showApp();return}fetch(API_BASE+'/api/auth?pin='+pin).then(r=>r.json()).then(data=>{if(data.error){document.getElementById('loginError').textContent='Invalid PIN. Try again.';document.querySelectorAll('.pin-digit').forEach(d=>d.value='');document.querySelector('[data-pin="0"]').focus()}else{currentUser=data;DEMO_MODE=false;document.getElementById('demoBadge').classList.add('hidden');showApp()}}).catch(()=>{currentUser=DEMO_USER;showApp()})}
-function setupNav(){document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>switchView(item.dataset.view))})}
-function switchView(view){document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===view));document.getElementById('inputView').classList.toggle('hidden',view!=='input');document.getElementById('historyView').classList.toggle('hidden',view!=='history');document.getElementById('punchlistView').classList.toggle('hidden',view!=='punchlist');document.getElementById('dashView').classList.toggle('hidden',view!=='dash');document.getElementById('reportView').classList.add('hidden');document.getElementById('pmBadge').classList.toggle('hidden',view!=='dash');if(view==='history')renderHistory();if(view==='dash')renderDashboard();if(view==='punchlist')renderPunchlist()}
-function setupEvents(){document.getElementById('demoLoginBtn').addEventListener('click',()=>{DEMO_MODE=true;currentUser=DEMO_USER;document.getElementById('demoBadge').classList.remove('hidden');showApp()});document.getElementById('logoutBtn').addEventListener('click',()=>{currentUser=null;voiceClips=[];photos=[];document.querySelectorAll('.pin-digit').forEach(d=>d.value='');showLogin()});document.getElementById('recordBtn').addEventListener('click',toggleRecording);document.getElementById('submitBtn').addEventListener('click',submitReport);document.getElementById('backToInput').addEventListener('click',()=>switchView('input'));document.getElementById('backFromDash').addEventListener('click',()=>switchView('input'));document.getElementById('pmToggle').addEventListener('click',()=>switchView('dash'));document.getElementById('exportPunchlistBtn').addEventListener('click',exportPunchlistPDF);document.querySelectorAll('.quick-btn').forEach(btn=>{btn.addEventListener('click',()=>{const ta=document.getElementById('notesInput');const text=btn.dataset.text;if(ta.value&&!ta.value.endsWith(' ')&&!ta.value.endsWith('\n'))ta.value+=' ';ta.value+=text;ta.focus()})});document.getElementById('cameraBtn').addEventListener('click',()=>{document.getElementById('photoFileInput').click()});document.getElementById('photoFileInput').addEventListener('change',e=>{Array.from(e.target.files).forEach(file=>{const reader=new FileReader();reader.onload=ev=>{photos.push({id:Date.now()+Math.random(),dataUrl:ev.target.result,label:file.name});renderPhotos()};reader.readAsDataURL(file)});e.target.value=''})}
-function renderVoiceClips(){const c=document.getElementById('voiceClips');if(!voiceClips.length){c.innerHTML='';return}c.innerHTML=voiceClips.map(clip=>'<div class="voice-pill"><span class="pill-icon">🎤</span><span>'+clip.time+'</span><button class="pill-del" onclick="deleteVoiceClip('+clip.id+')">✕</button></div>').join('')}
-function deleteVoiceClip(id){voiceClips=voiceClips.filter(c=>c.id!==id);renderVoiceClips()}
-function renderPhotos(){const c=document.getElementById('photoThumbs');if(!photos.length){c.innerHTML='';return}c.innerHTML=photos.map(p=>{const inner=p.dataUrl?'<img src="'+p.dataUrl+'" alt="">':'<div class="demo-photo" style="background:'+(p.color||'#4A90D9')+'">'+p.label+'</div>';return'<div class="photo-thumb">'+inner+'<button class="photo-del" onclick="deletePhoto(\''+p.id+'\')">✕</button></div>'}).join('')}
-function deletePhoto(id){photos=photos.filter(p=>String(p.id)!==String(id));renderPhotos()}
-function loadProjects(){const sel=document.getElementById('projectSelect');const projects=DEMO_MODE?DEMO_PROJECTS:[];sel.innerHTML=projects.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('');currentProject=projects[0]||null;sel.addEventListener('change',()=>{currentProject=projects.find(p=>p.id==sel.value);loadReports()})}
-function loadReports(){if(DEMO_MODE){reports=DEMO_REPORTS.filter(r=>r.project_id===(currentProject?.id||1));return}fetch(API_BASE+'/api/reports?projectId='+(currentProject?.id||1)).then(r=>r.json()).then(data=>{reports=data}).catch(()=>{reports=[]})}
-function toggleRecording(){if(mediaRecorder&&mediaRecorder.state==='recording'){stopRecording()}else{startRecording()}}
-async function startRecording(){try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});mediaRecorder=new MediaRecorder(stream,{mimeType:'audio/webm'});audioChunks=[];mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data)};mediaRecorder.onstop=()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(audioChunks,{type:'audio/webm'});const now=new Date();const time=now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});voiceClips.push({id:Date.now(),blob,time});renderVoiceClips()};mediaRecorder.start();document.getElementById('recordBtn').classList.add('recording');document.getElementById('recordLabel').textContent='Recording... tap to stop';recordingSeconds=0;recordingTimer=setInterval(()=>{recordingSeconds++},1000)}catch(e){alert('Microphone access denied.')}}
-function stopRecording(){if(mediaRecorder)mediaRecorder.stop();document.getElementById('recordBtn').classList.remove('recording');document.getElementById('recordLabel').textContent='Clip saved ✓ — Tap 🎤 for another';clearInterval(recordingTimer)}
-async function submitReport(){const text=document.getElementById('notesInput').value.trim();const hasAudio=voiceClips.some(c=>c.blob);if(!text&&!hasAudio&&!voiceClips.length){alert('Please record audio or type your notes.');return}document.getElementById('processing').classList.remove('hidden');if(DEMO_MODE){await new Promise(r=>setTimeout(r,2000));const report=generateDemoReport(text);reports.unshift(report);currentReport=report;document.getElementById('processing').classList.add('hidden');showReport(report);document.getElementById('notesInput').value='';voiceClips=[];photos=[];renderVoiceClips();renderPhotos();document.getElementById('recordLabel').textContent='Tap 🎤 to record clips';return}try{let audioBase64=null;if(hasAudio){const blobs=voiceClips.filter(c=>c.blob).map(c=>c.blob);const combined=new Blob(blobs,{type:'audio/webm'});audioBase64=await blobToBase64(combined)}const res=await fetch(API_BASE+'/api/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rawText:text,audioBase64,projectId:currentProject?.id,foremanId:currentUser?.id})});const data=await res.json();const report={...data.report,id:data.id,project_id:currentProject?.id,date:data.report.date};reports.unshift(report);currentReport=report;showReport(report);document.getElementById('notesInput').value='';voiceClips=[];photos=[];renderVoiceClips();renderPhotos()}catch(e){alert('Error submitting report.')}document.getElementById('processing').classList.add('hidden')}
-function blobToBase64(blob){return new Promise(resolve=>{const reader=new FileReader();reader.onloadend=()=>resolve(reader.result.split(',')[1]);reader.readAsDataURL(blob)})}
-function generateDemoReport(text){const today=new Date().toISOString().split('T')[0];return{id:Date.now(),project_id:currentProject?.id||1,date:today,weather:'Clear, 72°F',summary:text?text.substring(0,120)+'...':'General progress on framing and electrical. No major delays reported.',crew_json:JSON.stringify([{trade:'Framers',count:6,hours:8},{trade:'Electricians',count:2,hours:8},{trade:'Laborers',count:3,hours:8}]),work_json:JSON.stringify([{description:text||'Continued framing and general work per schedule',quantity:null,unit:null}]),delays_json:JSON.stringify([]),materials_json:JSON.stringify([]),safety_json:JSON.stringify([{observation:'No safety incidents to report',severity:'info'}]),tomorrow:'Continue per schedule.'}}
-function showReport(report){document.getElementById('inputView').classList.add('hidden');document.getElementById('historyView').classList.add('hidden');document.getElementById('punchlistView').classList.add('hidden');document.getElementById('dashView').classList.add('hidden');document.getElementById('reportView').classList.remove('hidden');const crew=JSON.parse(report.crew_json||'[]');const work=JSON.parse(report.work_json||'[]');const delays=JSON.parse(report.delays_json||'[]');const materials=JSON.parse(report.materials_json||'[]');const safety=JSON.parse(report.safety_json||'[]');const projName=DEMO_PROJECTS.find(p=>p.id===report.project_id)?.name||'Project';const dateObj=new Date(report.date+'T12:00:00');const dateStr=dateObj.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});let html='<div class="report-header"><div><div class="report-date">'+dateStr+'</div><div class="report-project">'+projName+'</div>'+(report.weather?'<div class="report-weather">🌤️ '+report.weather+'</div>':'')+'</div></div><div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="exportPDF()">📄 Export PDF</button><button class="btn btn-blue btn-sm" onclick="emailReport()">📧 Email Report</button></div>';if(report.summary)html+='<div class="card" style="border-left:3px solid var(--blue);margin-bottom:20px"><div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:8px">EXECUTIVE SUMMARY</div><div style="font-size:14px;line-height:1.6;color:var(--text2)">'+report.summary+'</div></div>';if(crew.length){html+='<div class="section"><div class="section-title"><span class="section-icon">👷</span> Crew on Site</div><div class="crew-grid">'+crew.map(c=>'<div class="crew-item"><div class="crew-count">'+c.count+'</div><div class="crew-trade">'+c.trade+(c.hours?' · '+c.hours+'h':'')+'</div></div>').join('')+'</div><div style="text-align:center;margin-top:8px;font-size:13px;color:var(--text3)">Total: <strong style="color:var(--text)">'+crew.reduce((s,c)=>s+c.count,0)+'</strong> workers</div></div>'}if(work.length){html+='<div class="section"><div class="section-title"><span class="section-icon">🔨</span> Work Completed</div>'+work.map(w=>'<div class="work-item"><div class="work-bullet"></div><div style="flex:1">'+w.description+'</div>'+(w.quantity?'<div class="work-qty">'+w.quantity+' '+(w.unit||'')+'</div>':'')+'</div>').join('')+'</div>'}if(delays.length){html+='<div class="section"><div class="section-title"><span class="section-icon">⚠️</span> Delays</div>'+delays.map(d=>'<div class="delay-item delay-'+d.category+'"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="delay-tag delay-tag-'+d.category+'">'+d.category+'</span>'+(d.responsible?'<span style="font-weight:600;font-size:13px">'+d.responsible+'</span>':'')+'</div><div style="font-size:14px">'+d.description+'</div><div class="delay-meta">'+(d.hours?'<span>⏱️ '+d.hours+' hours lost</span>':'')+'</div></div>').join('')+'</div>'}if(materials.length){html+='<div class="section"><div class="section-title"><span class="section-icon">📦</span> Materials</div>'+materials.map(m=>'<div class="material-item"><div class="material-bullet material-'+m.status+'"></div><div style="flex:1"><div>'+m.item+'</div>'+(m.notes?'<div style="font-size:12px;color:var(--text3);margin-top:2px">'+m.notes+'</div>':'')+'</div><span class="badge" style="font-size:10px;padding:2px 6px;background:var(--surface3)">'+m.status+'</span></div>').join('')+'</div>'}if(safety.length){html+='<div class="section"><div class="section-title"><span class="section-icon">🦺</span> Safety</div>'+safety.map(s=>'<div class="safety-item"><div class="safety-bullet safety-'+s.severity+'"></div><div>'+s.observation+'</div></div>').join('')+'</div>'}if(report.tomorrow)html+='<div class="section"><div class="section-title"><span class="section-icon">📋</span> Tomorrow\'s Plan</div><div class="tomorrow-box">'+report.tomorrow+'</div></div>';document.getElementById('reportContent').innerHTML=html}
-function renderHistory(){const list=document.getElementById('historyList');const projectReports=DEMO_MODE?DEMO_REPORTS.filter(r=>r.project_id===(currentProject?.id||1)):reports;if(!projectReports.length){list.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">No reports yet. Create your first one!</div>';return}list.innerHTML=projectReports.map(r=>{const d=new Date(r.date+'T12:00:00');const delays=JSON.parse(r.delays_json||'[]');const crew=JSON.parse(r.crew_json||'[]');const total=crew.reduce((s,c)=>s+c.count,0);return'<div class="history-item" onclick="viewHistoryReport('+r.id+')"><div class="history-date-badge"><div class="history-day">'+d.getDate()+'</div><div class="history-month">'+d.toLocaleDateString('en-US',{month:'short'})+'</div></div><div class="history-info"><div class="history-summary">'+(r.summary||'No summary')+'</div><div class="history-crew">'+total+' workers · '+crew.length+' trades</div>'+(delays.length?'<div class="history-delays">'+delays.length+' delay'+(delays.length>1?'s':'')+' · '+delays.reduce((s,d)=>s+(d.hours||0),0)+'h lost</div>':'')+'</div></div>'}).join('')}
-function viewHistoryReport(id){const all=DEMO_MODE?DEMO_REPORTS:reports;const report=all.find(r=>r.id===id);if(report)showReport(report)}
-function renderPunchlist(){const items=DEMO_MODE?DEMO_PUNCHLIST:punchlistItems;const container=document.getElementById('punchlistContent');if(!items.length){container.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">No punchlist items yet.</div>';return}container.innerHTML=items.map(item=>{const statusBtns=['open','in-progress','complete'].map(s=>{const label=s==='open'?'Open':s==='in-progress'?'In Progress':'Complete';const cls=item.status===s?'active-'+(s==='in-progress'?'progress':s):'';return'<button class="punch-status-btn '+cls+'" onclick="setPunchStatus('+item.id+',\''+s+'\')">'+label+'</button>'}).join('');return'<div class="punch-card"><div class="punch-card-top"><div class="punch-photo"><div class="demo-photo" style="background:'+item.photo_color+'">'+item.photo_label+'</div></div><div class="punch-info"><div class="punch-note">'+item.note+'</div><div class="punch-meta">📍 '+item.unit+'</div><div class="punch-sub">🔧 '+item.sub+'</div></div></div><div class="punch-status">'+statusBtns+'</div></div>'}).join('')}
-function setPunchStatus(id,status){const items=DEMO_MODE?DEMO_PUNCHLIST:punchlistItems;const item=items.find(i=>i.id===id);if(item){item.status=status;renderPunchlist()}}
-function exportPunchlistPDF(){const{jsPDF}=window.jspdf;const doc=new jsPDF();const items=DEMO_MODE?DEMO_PUNCHLIST:punchlistItems;const projName=currentProject?.name||'Project';let y=20;const lm=20;doc.setFillColor(15,17,23);doc.rect(0,0,210,35,'F');doc.setTextColor(255,107,53);doc.setFontSize(22);doc.setFont(undefined,'bold');doc.text('FieldVault — Punchlist',lm,18);doc.setFontSize(10);doc.setTextColor(200,200,200);doc.text(projName,lm,28);doc.text(new Date().toLocaleDateString(),190,28,{align:'right'});y=45;doc.setTextColor(0,0,0);items.forEach((item,i)=>{if(y>260){doc.addPage();y=20}doc.setFontSize(11);doc.setFont(undefined,'bold');doc.text((i+1)+'. '+item.note,lm,y);y+=6;doc.setFont(undefined,'normal');doc.setFontSize(10);doc.text('Location: '+item.unit+'  |  Sub: '+item.sub+'  |  Status: '+item.status.toUpperCase(),lm+4,y);y+=10});const pageCount=doc.internal.getNumberOfPages();for(let i=1;i<=pageCount;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150);doc.text('FieldVault Punchlist — Generated '+new Date().toLocaleString(),lm,290);doc.text('Page '+i+' of '+pageCount,190,290,{align:'right'})}doc.save('FieldVault_Punchlist_'+new Date().toISOString().split('T')[0]+'.pdf')}
-function renderDashboard(){const all=DEMO_MODE?DEMO_REPORTS:reports;const allDelays=all.flatMap(r=>JSON.parse(r.delays_json||'[]'));const totalHours=allDelays.reduce((s,d)=>s+(d.hours||0),0);const allCrew=all.flatMap(r=>JSON.parse(r.crew_json||'[]'));const avgCrew=allCrew.length?Math.round(allCrew.reduce((s,c)=>s+c.count,0)/all.length):0;const subDelays={};allDelays.forEach(d=>{if(d.responsible){if(!subDelays[d.responsible])subDelays[d.responsible]={count:0,hours:0};subDelays[d.responsible].count++;subDelays[d.responsible].hours+=(d.hours||0)}});const catDelays={};allDelays.forEach(d=>{if(!catDelays[d.category])catDelays[d.category]={count:0,hours:0};catDelays[d.category].count++;catDelays[d.category].hours+=(d.hours||0)});const html='<div class="dash-grid"><div class="dash-stat dash-stat-blue"><div class="dash-stat-value">'+all.length+'</div><div class="dash-stat-label">Total Reports</div></div><div class="dash-stat dash-stat-green"><div class="dash-stat-value">'+avgCrew+'</div><div class="dash-stat-label">Avg Daily Crew</div></div><div class="dash-stat dash-stat-red"><div class="dash-stat-value">'+allDelays.length+'</div><div class="dash-stat-label">Total Delays</div></div><div class="dash-stat dash-stat-orange"><div class="dash-stat-value">'+totalHours+'h</div><div class="dash-stat-label">Hours Lost</div></div></div><h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Delay Summary</h3><div style="margin-bottom:24px">'+(Object.entries(catDelays).map(([cat,data])=>'<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius-sm);margin-bottom:6px"><span class="delay-tag delay-tag-'+cat+'" style="min-width:70px;text-align:center">'+cat+'</span><div style="flex:1"><div style="font-size:14px;font-weight:600">'+data.count+' occurrence'+(data.count>1?'s':'')+'</div><div style="font-size:12px;color:var(--text3)">'+data.hours+' hours lost</div></div></div>').join('')||'<div style="color:var(--text3);padding:12px">No delays recorded</div>')+'</div><h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Sub Scorecard</h3><div>'+(Object.entries(subDelays).sort((a,b)=>b[1].hours-a[1].hours).map(([name,data])=>{const score=Math.max(0,100-data.hours*10);const cls=score>70?'score-good':score>40?'score-mid':'score-bad';return'<div class="sub-score"><div><div class="sub-name">'+name+'</div><div class="sub-hours">'+data.count+' delays · '+data.hours+'h lost</div></div><div style="text-align:right"><div style="font-size:13px;font-weight:700;margin-bottom:4px;color:'+(score>70?'var(--green)':score>40?'var(--yellow)':'var(--red)')+'">'+score+'%</div><div class="score-bar"><div class="score-fill '+cls+'" style="width:'+score+'%"></div></div></div></div>'}).join('')||'<div style="color:var(--text3);padding:12px">No sub data yet</div>')+'</div>';document.getElementById('dashContent').innerHTML=html}
-function exportPDF(){const{jsPDF}=window.jspdf;const doc=new jsPDF();const report=getCurrentReportData();if(!report)return;const projName=DEMO_PROJECTS.find(p=>p.id===report.project_id)?.name||'Project';const crew=JSON.parse(report.crew_json||'[]');const work=JSON.parse(report.work_json||'[]');const delays=JSON.parse(report.delays_json||'[]');const materials=JSON.parse(report.materials_json||'[]');const safety=JSON.parse(report.safety_json||'[]');let y=20;const lm=20;const pw=170;doc.setFillColor(15,17,23);doc.rect(0,0,210,40,'F');doc.setTextColor(255,107,53);doc.setFontSize(22);doc.setFont(undefined,'bold');doc.text('FieldVault',lm,18);doc.setFontSize(10);doc.setTextColor(200,200,200);doc.text('Daily Field Report',lm,26);doc.text(report.date,lm,33);doc.text(projName,210-lm,26,{align:'right'});if(report.weather)doc.text(report.weather,210-lm,33,{align:'right'});y=50;doc.setTextColor(0,0,0);if(report.summary){doc.setFontSize(11);doc.setFont(undefined,'bold');doc.text('EXECUTIVE SUMMARY',lm,y);y+=7;doc.setFont(undefined,'normal');doc.setFontSize(10);const lines=doc.splitTextToSize(report.summary,pw);doc.text(lines,lm,y);y+=lines.length*5+8}if(crew.length){doc.setFontSize(11);doc.setFont(undefined,'bold');doc.text('CREW ON SITE',lm,y);y+=7;doc.setFont(undefined,'normal');doc.setFontSize(10);crew.forEach(c=>{doc.text('• '+c.trade+': '+c.count+' workers'+(c.hours?' ('+c.hours+'h)':''),lm+4,y);y+=5});doc.text('Total: '+crew.reduce((s,c)=>s+c.count,0)+' workers',lm+4,y);y+=10}if(work.length){doc.setFontSize(11);doc.setFont(undefined,'bold');doc.text('WORK COMPLETED',lm,y);y+=7;doc.setFont(undefined,'normal');doc.setFontSize(10);work.forEach(w=>{const t='• '+w.description+(w.quantity?' — '+w.quantity+' '+(w.unit||''):'');const lines=doc.splitTextToSize(t,pw-4);doc.text(lines,lm+4,y);y+=lines.length*5+2});y+=5}if(delays.length){if(y>240){doc.addPage();y=20}doc.setFontSize(11);doc.setFont(undefined,'bold');doc.text('DELAYS',lm,y);y+=7;doc.setFont(undefined,'normal');doc.setFontSize(10);delays.forEach(d=>{doc.text('• ['+d.category.toUpperCase()+']'+(d.responsible?' '+d.responsible:'')+': '+d.description+(d.hours?' ('+d.hours+'h)':''),lm+4,y,{maxWidth:pw-4});y+=10});y+=5}if(materials.length){if(y>250){doc.addPage();y=20}doc.setFontSize(11);doc.setFont(undefined,'bold');doc.text('MATERIALS',lm,y);y+=7;doc.setFont(undefined,'normal');doc.setFontSize(10);materials.forEach(m=>{doc.text('• '+m.item+' ['+m.status+']'+(m.notes?' — '+m.notes:''),lm+4,y,{maxWidth:pw-4});y+=7});y+=5}if(safety.length){if(y>250){doc.addPage();y=20}doc.setFontSize(11);doc.setFont(undefined,'bold');doc.text('SAFETY',lm,y);y+=7;doc.setFont(undefined,'normal');doc.setFontSize(10);safety.forEach(s=>{doc.text('• '+s.observation,lm+4,y,{maxWidth:pw-4});y+=7});y+=5}if(report.tomorrow){if(y>250){doc.addPage();y=20}doc.setFontSize(11);doc.setFont(undefined,'bold');doc.text("TOMORROW'S PLAN",lm,y);y+=7;doc.setFont(undefined,'normal');doc.setFontSize(10);const lines=doc.splitTextToSize(report.tomorrow,pw);doc.text(lines,lm+4,y)}const pageCount=doc.internal.getNumberOfPages();for(let i=1;i<=pageCount;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(150);doc.text('FieldVault — Generated '+new Date().toLocaleString(),lm,290);doc.text('Page '+i+' of '+pageCount,190,290,{align:'right'})}doc.save('FieldVault_Report_'+report.date+'.pdf')}
-function getCurrentReportData(){const all=DEMO_MODE?DEMO_REPORTS:reports;return all.find(r=>{const content=document.getElementById('reportContent').innerHTML;return content.includes(r.date)})||all[0]}
-function emailReport(){const email=prompt('Send report to email address:');if(!email)return;if(DEMO_MODE){alert('Demo mode: Report would be emailed to '+email);return}const report=getCurrentReportData();fetch(API_BASE+'/api/email-report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({to:email,subject:'FieldVault Daily Report — '+report.date,html:document.getElementById('reportContent').innerHTML})}).then(r=>r.json()).then(()=>alert('Report sent!')).catch(()=>alert('Error sending email.'))}
-function updateGreeting(){const h=new Date().getHours();const g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';document.getElementById('greetingText').textContent=g}
+let S={demo:false,step:1,pin:'',subs:[],phases:[],voiceClips:[],issues:[],photos:[],planTags:[],reports:[],punchItems:[],projects:[]};
+const PHASES=['Framing','Rough Electric','Rough Plumb','Scratch Coat','Brown Coat','Lath','Drywall','Paint','Cleanup','Inspections'];
+const PLAN_OPTS=['Continue per schedule','Waiting on inspection','Weather dependent','Need materials'];
+
+function demoData(){
+  S.projects=[
+    {id:1,name:'Riverside Apartments',subs:['ABC Plumbing','DEF Electric','GHI Drywall','JKL Framing','MNO Laborers']},
+    {id:2,name:'Oak Valley Townhomes',subs:['ABC Plumbing','PQR Concrete','STU Roofing','DEF Electric','VWX Painters']}
+  ];
+  S.reports=[
+    {id:1,project:'Riverside Apartments',date:'2026-03-02',crew:[{name:'ABC Plumbing',count:4,hours:8},{name:'DEF Electric',count:3,hours:8},{name:'JKL Framing',count:6,hours:10}],work:'Completed 2nd floor rough plumbing. Framing crew finished units 201-204. Electrical running conduit in Building B.',issues:[{type:'delay',who:'ABC Plumbing',duration:'2h',note:'Waiting on fixtures delivery'}],tomorrow:'Continue framing Building B. Plumbing fixtures expected AM delivery.'},
+    {id:2,project:'Riverside Apartments',date:'2026-03-01',crew:[{name:'GHI Drywall',count:8,hours:8},{name:'MNO Laborers',count:4,hours:6}],work:'Drywall hanging on 1st floor units 101-108. Cleanup crew cleared debris from south lot.',issues:[],tomorrow:'Continue drywall. Inspection scheduled 10 AM.'},
+    {id:3,project:'Oak Valley Townhomes',date:'2026-03-02',crew:[{name:'PQR Concrete',count:5,hours:10},{name:'STU Roofing',count:4,hours:8}],work:'Poured foundation for units 5-8. Roofing crew completed units 1-2.',issues:[{type:'problem',text:'Concrete crack in unit 6 foundation',severity:'Medium'}],tomorrow:'Continue roofing units 3-4. Concrete cure check.'},
+    {id:4,project:'Oak Valley Townhomes',date:'2026-02-28',crew:[{name:'DEF Electric',count:3,hours:8},{name:'VWX Painters',count:6,hours:8}],work:'Electrical rough-in units 1-4. Paint crew started exterior primer.',issues:[{type:'delay',who:'VWX Painters',duration:'3h',note:'Rain delay — stopped exterior work'}],tomorrow:'Weather dependent for exterior. Continue interior electric.'}
+  ];
+  S.punchItems=[
+    {id:1,desc:'Drywall crack above unit 103 door',location:'Unit 103, hallway',sub:'GHI Drywall',status:'open',photo:null},
+    {id:2,desc:'Missing outlet cover plate',location:'Unit 201, kitchen',sub:'DEF Electric',status:'progress',photo:null},
+    {id:3,desc:'Paint touch-up needed on stairwell',location:'Building A, stairwell 2',sub:'VWX Painters',status:'open',photo:null},
+    {id:4,desc:'Leaking shutoff valve',location:'Unit 105, bathroom',sub:'ABC Plumbing',status:'complete',photo:null},
+    {id:5,desc:'Uneven tile grout line',location:'Unit 202, master bath',sub:'GHI Drywall',status:'open',photo:null}
+  ];
+}
+
+function init(){buildNumpad();buildPhases();buildPlanBtns()}
+
+function buildNumpad(){
+  const np=document.getElementById('numpad');
+  for(let i=1;i<=9;i++){const b=document.createElement('button');b.textContent=i;b.onclick=()=>pinInput(i);np.appendChild(b)}
+  const del=document.createElement('button');del.textContent='⌫';del.onclick=pinClear;np.appendChild(del);
+  const z=document.createElement('button');z.textContent='0';z.onclick=()=>pinInput(0);np.appendChild(z);
+  const empty=document.createElement('div');np.appendChild(empty);
+}
+
+function pinInput(n){
+  if(S.pin.length>=4)return;
+  S.pin+=n;updatePinDots();
+  if(S.pin.length===4){
+    if(S.pin==='1234'){enterDemo()}
+    else{S.pin='';updatePinDots();document.getElementById('pinDots').style.animation='shake .3s';setTimeout(()=>document.getElementById('pinDots').style.animation='',300)}
+  }
+}
+function pinClear(){S.pin=S.pin.slice(0,-1);updatePinDots()}
+function updatePinDots(){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.classList.toggle('filled',i<S.pin.length);d.textContent=i<S.pin.length?'●':''})}
+
+function enterDemo(){
+  S.demo=true;demoData();
+  document.getElementById('bottomNav').style.display='flex';
+  showPage('step1');initStep1();setActiveTab('report');
+}
+
+function setActiveTab(t){document.querySelectorAll('.bottom-nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===t)})}
+
+function navTo(t){
+  setActiveTab(t);
+  if(t==='report'){showPage('step'+S.step);if(S.step===1)initStep1()}
+  else if(t==='history'){showPage('historyPage');renderHistory()}
+  else if(t==='punch'){showPage('punchPage');renderPunch()}
+  else if(t==='overview'){showPage('overviewPage');renderOverview()}
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>{if(p.id!==id)p.classList.add('hidden')});
+  const pg=document.getElementById(id);
+  pg.classList.remove('hidden','slide-left','slide-right');
+  pg.scrollTop=0;
+}
+
+function goStep(n){
+  S.step=n;
+  if(n<=4)showPage('step'+n);
+  else if(n===5){renderReview();showPage('step5')}
+  updateAllProgress();
+}
+
+function updateAllProgress(){
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('prog'+i);if(!el)continue;
+    let html='';
+    for(let s=1;s<=5;s++){
+      const cls=s<S.step?'done':s===S.step?'active':'';
+      const label=s===5?'✓':s;
+      html+='<div class="step-ind '+cls+'">'+(s<S.step?'✓':label)+'</div>';
+      if(s<5)html+='<div class="line '+(s<S.step?'done':'')+'"></div>';
+    }
+    el.innerHTML=html;
+  }
+}
+
+function initStep1(){
+  const sel=document.getElementById('projectSelect');
+  sel.innerHTML=S.projects.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('');
+  sel.onchange=loadProjectSubs;
+  loadProjectSubs();updateAllProgress();
+}
+
+function loadProjectSubs(){
+  const pid=+document.getElementById('projectSelect').value;
+  const proj=S.projects.find(p=>p.id===pid);if(!proj)return;
+  S.subs=proj.subs.map(n=>({name:n,count:S.demo?Math.floor(Math.random()*5)+2:0,hours:8}));
+  renderSubs();
+}
+
+function renderSubs(){
+  document.getElementById('subsList').innerHTML=S.subs.map((s,i)=>
+    '<div class="sub-row"><div class="name">'+s.name+'</div><div class="stepper"><button onclick="adjCount('+i+',-1)">−</button><span class="val">'+s.count+'</span><button onclick="adjCount('+i+',1)">+</button></div><select onchange="S.subs['+i+'].hours=+this.value">'+[4,6,8,10].map(h=>'<option value="'+h+'"'+(s.hours===h?' selected':'')+'>'+h+'h</option>').join('')+'</select></div>'
+  ).join('');
+}
+function adjCount(i,d){S.subs[i].count=Math.max(0,S.subs[i].count+d);renderSubs()}
+function addSubRow(){const name=prompt('Sub name:');if(name){S.subs.push({name,count:0,hours:8});renderSubs()}}
+
+function buildPhases(){
+  document.getElementById('phaseScroll').innerHTML=PHASES.map(p=>'<button class="phase-btn" onclick="togglePhase(this)">'+p+'</button>').join('');
+}
+function togglePhase(btn){
+  const p=btn.textContent;
+  const i=S.phases.indexOf(p);
+  if(i>=0){S.phases.splice(i,1);btn.classList.remove('selected')}
+  else{S.phases.push(p);btn.classList.add('selected')}
+  renderPhaseTags();
+}
+function renderPhaseTags(){
+  document.getElementById('phaseTags').innerHTML=S.phases.map((p,i)=>'<span class="tag">'+p+'<button onclick="removePhase('+i+')">×</button></span>').join('');
+}
+function removePhase(i){
+  const p=S.phases[i];S.phases.splice(i,1);renderPhaseTags();
+  document.querySelectorAll('.phase-btn').forEach(b=>{b.classList.toggle('selected',S.phases.includes(b.textContent))});
+}
+
+let mediaRec=null,chunks=[],recStart=0;
+function toggleVoice(){
+  const btn=document.getElementById('voiceBtn');
+  if(mediaRec&&mediaRec.state==='recording'){
+    mediaRec.stop();btn.classList.remove('recording');
+    document.getElementById('voiceLabel').textContent='Tap to record';return;
+  }
+  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+    mediaRec=new MediaRecorder(stream);chunks=[];
+    mediaRec.ondataavailable=e=>chunks.push(e.data);
+    mediaRec.onstop=()=>{
+      const blob=new Blob(chunks,{type:'audio/webm'});
+      const url=URL.createObjectURL(blob);
+      const dur=Math.round((Date.now()-recStart)/1000);
+      S.voiceClips.push({url,dur});renderVoiceClips();
+      stream.getTracks().forEach(t=>t.stop());
+    };
+    mediaRec.start();recStart=Date.now();
+    btn.classList.add('recording');
+    document.getElementById('voiceLabel').textContent='Recording... tap to stop';
+  }).catch(()=>alert('Microphone access needed'));
+}
+function renderVoiceClips(){
+  document.getElementById('voiceClips').innerHTML=S.voiceClips.map((c,i)=>
+    '<span class="voice-clip">🎙️ '+c.dur+'s <button onclick="S.voiceClips.splice('+i+',1);renderVoiceClips()">×</button></span>').join('');
+}
+
+function openModal(type){
+  const m=document.getElementById('modalContent');
+  document.getElementById('modalBg').classList.remove('hidden');
+  const subs=S.subs.filter(s=>s.count>0).map(s=>s.name);
+  const subOpts=subs.map(s=>'<option>'+s+'</option>').join('');
+  if(type==='delay'){
+    m.innerHTML='<h3>⏰ Log a Delay</h3><label>Who caused it?</label><select id="mDelaySub">'+subOpts+'</select><label>How long?</label><div class="dur-btns">'+['1h','2h','3h','4h+'].map(d=>'<button onclick="selDur(this,\''+d+'\')" data-d="'+d+'">'+d+'</button>').join('')+'</div><label>Quick note</label><input id="mDelayNote" placeholder="What happened?"><button class="btn btn-primary mt-12" onclick="addDelay()">Add Delay</button>';
+  }else if(type==='problem'){
+    m.innerHTML='<h3>⚠️ Log a Problem</h3><label>What happened?</label><textarea id="mProbText" placeholder="Describe the issue"></textarea><label>Severity</label><div class="sev-btns">'+['Low','Medium','High'].map(s=>'<button data-s="'+s+'" onclick="selSev(this)">'+s+'</button>').join('')+'</div><button class="btn btn-primary mt-12" onclick="addProblem()">Add Problem</button>';
+  }else if(type==='photo'){
+    m.innerHTML='<h3>📸 Add Photos</h3><p class="text-sm mb-12">Take a photo or choose from gallery.</p><input type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(this.files)" style="margin-bottom:12px"><button class="btn btn-secondary" onclick="closeModal()">Done</button>';
+  }else if(type==='punch'){
+    const allSubs=[...new Set(S.projects.flatMap(p=>p.subs))];
+    m.innerHTML='<h3>🔨 New Punchlist Item</h3><label>Photo (required)</label><input type="file" accept="image/*" capture="environment" id="mPunchPhoto"><label>What\'s wrong?</label><input id="mPunchDesc" placeholder="Describe the issue"><label>Where?</label><input id="mPunchLoc" placeholder="Unit / room"><label>Who fixes it?</label><select id="mPunchSub">'+allSubs.map(s=>'<option>'+s+'</option>').join('')+'</select><button class="btn btn-primary mt-12" onclick="addPunchItem()">Add Item</button>';
+  }
+}
+function closeModal(){document.getElementById('modalBg').classList.add('hidden')}
+let selDurVal='',selSevVal='';
+function selDur(btn,v){selDurVal=v;btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected')}
+function selSev(btn){selSevVal=btn.dataset.s;btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected')}
+
+function addDelay(){
+  const who=document.getElementById('mDelaySub').value;
+  const note=document.getElementById('mDelayNote').value;
+  if(!selDurVal){alert('Select duration');return}
+  S.issues.push({type:'delay',who,duration:selDurVal,note});
+  renderIssues();closeModal();selDurVal='';
+}
+function addProblem(){
+  const text=document.getElementById('mProbText').value;
+  if(!text){alert('Describe the problem');return}
+  S.issues.push({type:'problem',text,severity:selSevVal||'Medium'});
+  renderIssues();closeModal();selSevVal='';
+}
+function renderIssues(){
+  document.getElementById('issuesList').innerHTML=S.issues.map((iss,i)=>{
+    if(iss.type==='delay')return'<div class="issue-card"><div class="info"><span class="type-badge" style="background:rgba(245,158,11,0.12);color:var(--warn)">DELAY</span> <strong>'+iss.who+'</strong> · '+iss.duration+'<br><span class="text-sm">'+iss.note+'</span></div><button class="del" onclick="S.issues.splice('+i+',1);renderIssues()">×</button></div>';
+    return'<div class="issue-card"><div class="info"><span class="type-badge" style="background:rgba(239,68,68,0.12);color:var(--danger)">PROBLEM</span> <strong>'+iss.severity+'</strong><br><span class="text-sm">'+iss.text+'</span></div><button class="del" onclick="S.issues.splice('+i+',1);renderIssues()">×</button></div>';
+  }).join('');
+}
+
+function addPhotos(files){
+  for(const f of files){S.photos.push({url:URL.createObjectURL(f),name:f.name})}
+  renderPhotos();
+}
+function renderPhotos(){
+  document.getElementById('photoGrid').innerHTML=S.photos.map((p,i)=>
+    '<div class="photo-thumb"><img src="'+p.url+'"><button class="del-photo" onclick="S.photos.splice('+i+',1);renderPhotos()">×</button></div>').join('');
+}
+
+function buildPlanBtns(){
+  document.getElementById('planBtns').innerHTML=PLAN_OPTS.map(o=>'<button onclick="togglePlan(this)">'+o+'</button>').join('');
+}
+function togglePlan(btn){
+  const o=btn.textContent;
+  const i=S.planTags.indexOf(o);
+  if(i>=0){S.planTags.splice(i,1);btn.classList.remove('selected')}
+  else{S.planTags.push(o);btn.classList.add('selected')}
+  const ta=document.getElementById('tomorrowNotes');
+  if(!ta.value&&S.planTags.length)ta.value=S.planTags.join('. ')+'.';
+}
+
+function renderReview(){
+  const crew=S.subs.filter(s=>s.count>0);
+  const work=(S.phases.length?S.phases.join(', ')+'. ':'')+(document.getElementById('workNotes').value||'');
+  const tomorrow=document.getElementById('tomorrowNotes').value||S.planTags.join('. ');
+  const proj=document.getElementById('projectSelect');
+  const projName=proj.options[proj.selectedIndex].text;
+  let h='<div class="weather-bar"><span class="wicon">☀️</span><span>'+projName+' · '+document.getElementById('weatherText').textContent+'</span></div>';
+  h+='<div class="review-section card"><div class="sec-head"><h3>👷 Crew ('+crew.reduce((a,c)=>a+c.count,0)+' workers)</h3><button class="edit-btn" onclick="goStep(1)">✏️ Edit</button></div>';
+  crew.forEach(c=>{h+='<div class="review-item"><span>'+c.name+'</span><span>'+c.count+' ppl · '+c.hours+'h</span></div>'});
+  h+='</div>';
+  h+='<div class="review-section card"><div class="sec-head"><h3>🔨 Work Completed</h3><button class="edit-btn" onclick="goStep(2)">✏️ Edit</button></div><p style="font-size:14px;padding:4px 0">'+(work||'<em>Nothing entered</em>')+'</p></div>';
+  h+='<div class="review-section card"><div class="sec-head"><h3>⚠️ Issues ('+S.issues.length+')</h3><button class="edit-btn" onclick="goStep(3)">✏️ Edit</button></div>';
+  if(!S.issues.length)h+='<p class="text-sm">No issues — clean day! ✅</p>';
+  S.issues.forEach(iss=>{
+    if(iss.type==='delay')h+='<div class="review-item"><span>⏰ '+iss.who+' — '+iss.duration+'</span><span>'+iss.note+'</span></div>';
+    else h+='<div class="review-item"><span>⚠️ '+iss.severity+'</span><span>'+iss.text+'</span></div>';
+  });
+  h+='</div>';
+  h+='<div class="review-section card"><div class="sec-head"><h3>📅 Tomorrow</h3><button class="edit-btn" onclick="goStep(4)">✏️ Edit</button></div><p style="font-size:14px;padding:4px 0">'+(tomorrow||'<em>Nothing planned</em>')+'</p></div>';
+  document.getElementById('reviewContent').innerHTML=h;
+}
+
+function submitReport(){
+  const crew=S.subs.filter(s=>s.count>0);
+  const proj=document.getElementById('projectSelect');
+  S.reports.unshift({
+    id:S.reports.length+1,project:proj.options[proj.selectedIndex].text,
+    date:new Date().toISOString().slice(0,10),
+    crew:crew.map(c=>({name:c.name,count:c.count,hours:c.hours})),
+    work:(S.phases.length?S.phases.join(', ')+'. ':'')+(document.getElementById('workNotes').value||''),
+    issues:[...S.issues],
+    tomorrow:document.getElementById('tomorrowNotes').value||S.planTags.join('. ')
+  });
+  showPage('successPage');
+}
+
+function newReport(){
+  S.step=1;S.phases=[];S.voiceClips=[];S.issues=[];S.photos=[];S.planTags=[];
+  document.querySelectorAll('.phase-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('workNotes').value='';
+  document.getElementById('tomorrowNotes').value='';
+  navTo('report');
+}
+function saveDraft(){alert('Draft saved!');newReport()}
+
+function downloadPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  const proj=document.getElementById('projectSelect');
+  const projName=proj.options[proj.selectedIndex].text;
+  const crew=S.subs.filter(s=>s.count>0);
+  let y=20;
+  doc.setFontSize(20);doc.text('FieldVault Daily Report',20,y);y+=12;
+  doc.setFontSize(12);doc.text('Project: '+projName,20,y);y+=8;
+  doc.text('Date: '+new Date().toLocaleDateString(),20,y);y+=12;
+  doc.setFontSize(14);doc.text('Crew',20,y);y+=8;doc.setFontSize(11);
+  crew.forEach(c=>{doc.text(c.name+': '+c.count+' workers, '+c.hours+'h',24,y);y+=6});
+  y+=6;doc.setFontSize(14);doc.text('Work Completed',20,y);y+=8;doc.setFontSize(11);
+  const work=(S.phases.join(', ')+'. '+(document.getElementById('workNotes').value||'')).trim();
+  const lines=doc.splitTextToSize(work||'None',170);doc.text(lines,24,y);y+=lines.length*6+6;
+  doc.setFontSize(14);doc.text('Issues',20,y);y+=8;doc.setFontSize(11);
+  if(!S.issues.length){doc.text('No issues',24,y);y+=6}
+  S.issues.forEach(iss=>{
+    if(iss.type==='delay')doc.text('Delay: '+iss.who+' - '+iss.duration+' - '+iss.note,24,y);
+    else doc.text('Problem ('+iss.severity+'): '+iss.text,24,y);y+=6;
+  });
+  y+=6;doc.setFontSize(14);doc.text("Tomorrow's Plan",20,y);y+=8;doc.setFontSize(11);
+  const tmrw=document.getElementById('tomorrowNotes').value||S.planTags.join('. ')||'None';
+  doc.text(doc.splitTextToSize(tmrw,170),24,y);
+  doc.save('FieldVault_'+projName+'_'+new Date().toISOString().slice(0,10)+'.pdf');
+}
+function emailReport(){alert('Email feature coming soon!')}
+
+function renderHistory(){
+  const el=document.getElementById('historyList');
+  if(!S.reports.length){el.innerHTML='<p class="text-sm text-center">No reports yet.</p>';return}
+  el.innerHTML=S.reports.map(r=>
+    '<div class="history-item" onclick="viewReport('+r.id+')"><div><div class="proj">'+r.project+'</div><div class="meta">'+r.date+' · '+r.crew.reduce((a,c)=>a+c.count,0)+' workers</div></div><div style="font-size:20px;color:var(--text2)">›</div></div>').join('');
+}
+function viewReport(id){
+  const r=S.reports.find(x=>x.id===id);if(!r)return;
+  const m=document.getElementById('modalContent');
+  document.getElementById('modalBg').classList.remove('hidden');
+  let h='<h3>'+r.project+'</h3><p class="text-sm mb-12">'+r.date+'</p>';
+  h+='<h4 style="font-size:14px;font-weight:700;margin-bottom:4px">Crew</h4>';
+  r.crew.forEach(c=>{h+='<p class="text-sm">'+c.name+': '+c.count+' workers, '+c.hours+'h</p>'});
+  h+='<h4 style="font-size:14px;font-weight:700;margin:12px 0 4px">Work</h4><p class="text-sm">'+(r.work||'—')+'</p>';
+  h+='<h4 style="font-size:14px;font-weight:700;margin:12px 0 4px">Issues</h4>';
+  if(!r.issues.length)h+='<p class="text-sm">None</p>';
+  r.issues.forEach(iss=>{
+    if(iss.type==='delay')h+='<p class="text-sm">⏰ '+iss.who+' — '+iss.duration+': '+iss.note+'</p>';
+    else h+='<p class="text-sm">⚠️ '+iss.severity+': '+iss.text+'</p>';
+  });
+  h+='<h4 style="font-size:14px;font-weight:700;margin:12px 0 4px">Tomorrow</h4><p class="text-sm">'+(r.tomorrow||'—')+'</p>';
+  h+='<button class="btn btn-secondary mt-12" onclick="closeModal()">Close</button>';
+  m.innerHTML=h;
+}
+
+function renderPunch(){
+  const el=document.getElementById('punchList');
+  if(!S.punchItems.length){el.innerHTML='<p class="text-sm text-center">No punchlist items.</p>';return}
+  el.innerHTML=S.punchItems.map((p,i)=>{
+    const sc=p.status==='open'?'open':p.status==='progress'?'progress':'complete';
+    const sl=p.status==='open'?'Open':p.status==='progress'?'In Progress':'Complete';
+    return'<div class="punch-card"><div class="thumb">'+(p.photo?'<img src="'+p.photo+'">':'📷')+'</div><div class="info"><div class="loc">'+p.location+'</div><div class="desc">'+p.desc+'</div><div class="sub">'+p.sub+'</div></div><button class="punch-status '+sc+'" onclick="cyclePunch('+i+')">'+sl+'</button></div>';
+  }).join('');
+}
+function cyclePunch(i){
+  const p=S.punchItems[i];
+  p.status=p.status==='open'?'progress':p.status==='progress'?'complete':'open';
+  renderPunch();
+}
+function addPunchItem(){
+  const desc=document.getElementById('mPunchDesc').value;
+  const loc=document.getElementById('mPunchLoc').value;
+  const sub=document.getElementById('mPunchSub').value;
+  if(!desc){alert('Describe the issue');return}
+  const photoInput=document.getElementById('mPunchPhoto');
+  let photo=null;
+  if(photoInput.files&&photoInput.files.length)photo=URL.createObjectURL(photoInput.files[0]);
+  S.punchItems.push({id:S.punchItems.length+1,desc,location:loc,sub,status:'open',photo});
+  renderPunch();closeModal();
+}
+function exportPunchPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();let y=20;
+  doc.setFontSize(18);doc.text('FieldVault Punchlist',20,y);y+=12;
+  doc.setFontSize(10);doc.text('Exported: '+new Date().toLocaleDateString(),20,y);y+=10;
+  S.punchItems.forEach((p,i)=>{
+    doc.setFontSize(12);doc.text((i+1)+'. '+p.desc,20,y);y+=6;
+    doc.setFontSize(10);doc.text('   Location: '+p.location+' | Sub: '+p.sub+' | Status: '+p.status,20,y);y+=8;
+    if(y>270){doc.addPage();y=20}
+  });
+  doc.save('FieldVault_Punchlist_'+new Date().toISOString().slice(0,10)+'.pdf');
+}
+
+function renderOverview(){
+  const totalReports=S.reports.length;
+  const totalCrew=S.reports.reduce((a,r)=>a+r.crew.reduce((b,c)=>b+c.count,0),0);
+  const avgCrew=totalReports?Math.round(totalCrew/totalReports):0;
+  const delays=S.reports.reduce((a,r)=>a+r.issues.filter(i=>i.type==='delay').length,0);
+  const hoursLost=S.reports.reduce((a,r)=>a+r.issues.filter(i=>i.type==='delay').reduce((b,d)=>b+parseInt(d.duration)||0,0),0);
+  document.getElementById('statGrid').innerHTML=
+    '<div class="stat-card"><div class="num">'+totalReports+'</div><div class="label">Total Reports</div></div>'+
+    '<div class="stat-card"><div class="num">'+avgCrew+'</div><div class="label">Avg Crew Size</div></div>'+
+    '<div class="stat-card"><div class="num">'+delays+'</div><div class="label">Total Delays</div></div>'+
+    '<div class="stat-card"><div class="num">'+hoursLost+'h</div><div class="label">Hours Lost</div></div>';
+  const delaySubs={};
+  S.reports.forEach(r=>r.issues.filter(i=>i.type==='delay').forEach(d=>{delaySubs[d.who]=(delaySubs[d.who]||0)+1}));
+  const db=document.getElementById('delayBreakdown');
+  if(!Object.keys(delaySubs).length){db.innerHTML='<p class="text-sm">No delays recorded 🎉</p>';}
+  else{const maxD=Math.max(...Object.values(delaySubs));
+    db.innerHTML=Object.entries(delaySubs).sort((a,b)=>b[1]-a[1]).map(([sub,cnt])=>
+      '<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><span style="width:120px;font-size:13px;font-weight:600">'+sub+'</span><div style="flex:1;height:20px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:'+cnt/maxD*100+'%;height:100%;background:var(--warn);border-radius:4px"></div></div><span style="font-size:13px;font-weight:700;width:30px;text-align:right">'+cnt+'</span></div>').join('');}
+  const allSubs=[...new Set(S.reports.flatMap(r=>r.crew.map(c=>c.name)))];
+  const subDelays={};
+  S.reports.forEach(r=>r.issues.filter(i=>i.type==='delay').forEach(d=>{subDelays[d.who]=(subDelays[d.who]||0)+1}));
+  document.getElementById('subScores').innerHTML=allSubs.map(sub=>{
+    const d=subDelays[sub]||0;const pct=totalReports?Math.round((1-d/totalReports)*100):100;
+    const color=pct>=80?'var(--success)':pct>=50?'var(--warn)':'var(--danger)';
+    return'<div class="sub-score"><span style="font-size:13px;font-weight:600;width:120px">'+sub+'</span><div class="bar-bg"><div class="bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div><span style="font-size:13px;font-weight:700;width:40px;text-align:right">'+pct+'%</span></div>';
+  }).join('');
+}
+
+init();
 </script>
 </body>
 </html>

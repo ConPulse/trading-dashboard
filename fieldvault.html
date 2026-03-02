@@ -26,8 +26,6 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .bottom-nav button .ico{font-size:22px}
 .page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px;transition:transform .3s ease,opacity .3s ease;will-change:transform;-webkit-overflow-scrolling:touch}
 .page.hidden{display:none}
-.page.slide-left{transform:translateX(-100%);opacity:0}
-.page.slide-right{transform:translateX(100%);opacity:0}
 #loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center}
 #loginPage .logo{font-size:64px}
 #loginPage h2{font-size:28px;font-weight:700}
@@ -54,15 +52,34 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .btn-secondary{background:var(--bg);color:var(--text);border:1.5px solid var(--border);width:100%}
 .btn-secondary:active{background:var(--border)}
 .btn-small{padding:8px 16px;font-size:14px;border-radius:8px;min-height:40px}
-.btn-ghost{color:var(--accent);font-weight:600;font-size:15px;padding:12px}
 .nav-buttons{display:flex;gap:12px;margin-top:20px;padding-bottom:24px}
 .nav-buttons .btn{flex:1}
-.sub-row{background:var(--card);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow);overflow:hidden}.sub-row-main{display:flex;align-items:center;gap:8px;padding:12px;flex-wrap:wrap}
-.sub-row .name{flex:1;font-weight:600;font-size:15px;min-width:80px}.crew-toggle{width:28px;height:28px;font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--bg);transition:transform .2s}.crew-toggle.open{transform:rotate(90deg)}.crew-members{padding:0 12px 12px;display:none}.crew-members.open{display:block}.crew-members-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.crew-member{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:var(--bg);border-radius:16px;font-size:13px;color:var(--text)}.crew-member button{font-size:14px;color:var(--muted);padding:0 2px}.add-member-btn{font-size:13px;color:var(--accent);font-weight:600;padding:4px 0}
+.sub-row{background:var(--card);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow);overflow:hidden}
+.sub-row-main{display:flex;align-items:center;gap:8px;padding:12px;flex-wrap:wrap}
+.sub-row .name{flex:1;font-weight:600;font-size:15px;min-width:80px}
+.sub-row .total-badge{font-size:12px;color:var(--text2);font-weight:600;background:var(--bg);padding:3px 8px;border-radius:10px}
+.crew-toggle{width:28px;height:28px;font-size:11px;color:var(--text2);display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--bg);transition:transform .2s}
+.crew-toggle.open{transform:rotate(90deg)}
+.type-children{padding:0 12px 12px;display:none}
+.type-children.open{display:block}
+.direct-members{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.crew-member{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:var(--bg);border-radius:16px;font-size:13px;color:var(--text)}
+.named-crew .crew-member{background:var(--card)}
+.crew-member button{font-size:14px;color:var(--text2);padding:0 2px}
+.named-crew{background:var(--bg);border-radius:8px;padding:10px;margin-bottom:6px}
+.named-crew-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.named-crew .nc-name{flex:1;font-weight:600;font-size:14px;min-width:60px}
+.nc-members{padding:4px 8px 0;display:none}
+.nc-members.open{display:block}
+.nc-members-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.add-member-btn{font-size:13px;color:var(--accent);font-weight:600;padding:4px 0}
+.add-crew-btn{font-size:13px;color:var(--accent);font-weight:600;padding:6px 0;display:inline-block;margin-right:16px}
+.type-actions{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap}
 .stepper{display:flex;align-items:center;gap:0;background:var(--bg);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
 .stepper button{width:40px;height:40px;font-size:20px;font-weight:700;color:var(--accent);display:flex;align-items:center;justify-content:center}
 .stepper button:active{background:var(--border)}
 .stepper .val{width:32px;text-align:center;font-weight:700;font-size:16px}
+.named-crew .stepper{background:var(--card)}
 .sub-row select{width:70px;padding:8px;font-size:14px}
 .phase-scroll{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;-webkit-overflow-scrolling:touch}
 .phase-scroll::-webkit-scrollbar{display:none}
@@ -166,13 +183,12 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
     </div>
     <div class="page hidden" id="step1">
       <div class="progress" id="prog1"></div>
-      <label for="projectSelect" style="font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px">📋 Project</label><select id="projectSelect" style="margin-bottom:12px;font-size:16px;font-weight:600;padding:12px"></select>
-      
+      <select id="projectSelect" style="margin-bottom:12px"></select>
       <div class="weather-bar" id="weatherBar"><span class="wicon">☀️</span><span id="weatherText">Mon Mar 3 · 72°F Sunny · Oceanside</span></div>
       <div class="step-title">Who's on site today?</div>
-      <p class="step-sub">Tap + or − to set headcount for each sub.</p>
+      <p class="step-sub">Tap ▶ to expand. Add names directly or organize into named crews.</p>
       <div id="subsList"></div>
-      <button class="add-btn" onclick="addSubRow()">+ Add Sub</button>
+      <button class="add-btn" onclick="addCrewType()">+ Add Crew Type</button>
       <div class="nav-buttons"><div style="flex:1"></div><button class="btn btn-primary" onclick="goStep(2)">Next →</button></div>
     </div>
     <div class="page hidden" id="step2">
@@ -245,14 +261,8 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
     <div class="page hidden" id="overviewPage">
       <div class="step-title mb-16">Overview</div>
       <div class="stat-grid" id="statGrid"></div>
-      <div class="card">
-        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Delay Breakdown</h3>
-        <div id="delayBreakdown"></div>
-      </div>
-      <div class="card mt-12">
-        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Crew Performance</h3>
-        <div id="subScores"></div>
-      </div>
+      <div class="card"><h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Delay Breakdown</h3><div id="delayBreakdown"></div></div>
+      <div class="card mt-12"><h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Crew Performance</h3><div id="subScores"></div></div>
     </div>
   </div>
   <div class="bottom-nav" id="bottomNav" style="display:none">
@@ -266,387 +276,298 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
   <div class="modal" id="modalContent" onclick="event.stopPropagation()"></div>
 </div>
 <script>
-let S={demo:false,step:1,pin:'',crews:[],phases:[],voiceClips:[],issues:[],photos:[],planTags:[],reports:[],punchItems:[],projects:[]};
+let S={demo:false,step:1,pin:'',crewTypes:[],phases:[],voiceClips:[],issues:[],photos:[],planTags:[],reports:[],punchItems:[],projects:[]};
 const PHASES=['Scaffold','Lath','Gun Crew','Scratch Coat','Brown Coat','Finish','Touch Up','Masking','Siding','Veneer','Clean Up','Inspections'];
 const PLAN_OPTS=['Continue per schedule','Waiting on inspection','Weather dependent','Need materials','Waiting on other trades'];
 
 function demoData(){
   S.projects=[
-    {id:1,name:'Riverside Apartments — Bldg A-C',crews:['Scaffold','Lath','Gun Crew','Finish','Touch Up','Clean Up','Masking']},
-    {id:2,name:'Oak Valley Townhomes — Phase 2',crews:['Scaffold','Lath','Siding','Veneer','Clean Up','Masking']}
+    {id:1,name:'Riverside Apartments — Bldg A-C',crewTypes:[
+      {type:'Scaffold',hours:8,directMembers:[],namedCrews:[
+        {name:'Gomez',count:4,hours:8,members:['Mike R.','Jose L.','Dave K.','Tommy S.']},
+        {name:'Rivera',count:3,hours:8,members:[]}
+      ]},
+      {type:'Lath',hours:8,directMembers:[],namedCrews:[
+        {name:'Martinez',count:6,hours:8,members:['Carlos M.','Miguel A.','Pedro G.','Juan R.','Luis H.','Marco T.']}
+      ]},
+      {type:'Gun Crew',hours:10,directMembers:[],namedCrews:[
+        {name:'Delgado',count:3,hours:10,members:['Danny F.','Ray P.','Chris B.']},
+        {name:'Santos',count:4,hours:8,members:[]}
+      ]},
+      {type:'Finish',hours:8,directMembers:[],namedCrews:[]},
+      {type:'Touch Up',hours:8,directMembers:[],namedCrews:[]},
+      {type:'Clean Up',hours:8,directMembers:['Jorge V.','Ricky M.','Sam T.'],namedCrews:[]},
+      {type:'Masking',hours:8,directMembers:['Alex P.','Tony G.'],namedCrews:[]}
+    ]},
+    {id:2,name:'Oak Valley Townhomes — Phase 2',crewTypes:[
+      {type:'Siding',hours:10,directMembers:[],namedCrews:[
+        {name:'Hernandez',count:5,hours:10,members:[]}
+      ]},
+      {type:'Scaffold',hours:8,directMembers:[],namedCrews:[
+        {name:'Reyes',count:3,hours:8,members:[]}
+      ]},
+      {type:'Lath',hours:8,directMembers:[],namedCrews:[]},
+      {type:'Veneer',hours:8,directMembers:['Eddie C.','Frank W.','Manny L.','Oscar D.'],namedCrews:[]},
+      {type:'Clean Up',hours:6,directMembers:['Jorge V.','Ricky M.'],namedCrews:[]},
+      {type:'Masking',hours:8,directMembers:[],namedCrews:[]}
+    ]}
   ];
   S.reports=[
-    {id:1,project:'Riverside Apartments',date:'2026-03-02',crew:[{name:'Scaffold',count:4,hours:8,members:['Mike R.','Jose L.','Dave K.','Tommy S.']},{name:'Lath',count:6,hours:8,members:['Carlos M.','Miguel A.','Pedro G.','Juan R.','Luis H.','Marco T.']},{name:'Gun Crew',count:3,hours:10,members:['Danny F.','Ray P.','Chris B.']}],work:'Scaffold set on Building B east side. Lath crew hung 2nd floor units 201-208. Gun crew shot scratch coat on Building A 1st floor.',issues:[{type:'delay',who:'Scaffold',duration:'2h',note:'Waiting on material delivery — scaffold planks short'}],tomorrow:'Continue lath Building B. Gun crew moves to 2nd floor Building A.'},
-    {id:2,project:'Riverside Apartments',date:'2026-03-01',crew:[{name:'Finish',count:8,hours:8},{name:'Clean Up',count:3,hours:6}],work:'Finish crew completed brown coat on Building A units 101-108. Cleanup cleared debris and prepped Building B staging area.',issues:[],tomorrow:'Continue finish on 2nd floor. Cleanup move to Building C.'},
-    {id:3,project:'Oak Valley Townhomes',date:'2026-03-02',crew:[{name:'Siding',count:5,hours:10},{name:'Scaffold',count:3,hours:8}],work:'Siding crew installed HardiePlank on units 5-8 front elevation. Scaffold set up on units 9-12.',issues:[{type:'problem',text:'Siding material color mismatch — wrong lot number on 2 pallets',severity:'Medium'}],tomorrow:'Continue siding units 9-12. Scaffold move to rear elevation.'},
-    {id:4,project:'Oak Valley Townhomes',date:'2026-02-28',crew:[{name:'Veneer',count:4,hours:8},{name:'Masking',count:2,hours:8}],work:'Veneer stone installed on units 1-4 entry columns. Masking crew prepped windows and doors on units 5-8.',issues:[{type:'delay',who:'Masking',duration:'3h',note:'Rain delay — stopped exterior masking work'}],tomorrow:'Weather dependent for masking. Continue veneer if dry.'}
+    {id:1,project:'Riverside Apartments',date:'2026-03-02',crew:[
+      {type:'Scaffold',namedCrews:[{name:'Gomez',count:4,hours:8},{name:'Rivera',count:3,hours:8}],directCount:0,directHours:8},
+      {type:'Lath',namedCrews:[{name:'Martinez',count:6,hours:8}],directCount:0,directHours:8},
+      {type:'Gun Crew',namedCrews:[{name:'Delgado',count:3,hours:10}],directCount:0,directHours:10}
+    ],work:'Scaffold set on Building B east side. Lath crew hung 2nd floor units 201-208. Gun crew shot scratch coat on Building A 1st floor.',issues:[{type:'delay',who:'Scaffold — Gomez',duration:'2h',note:'Waiting on material delivery — scaffold planks short'}],tomorrow:'Continue lath Building B. Gun crew moves to 2nd floor Building A.'},
+    {id:2,project:'Riverside Apartments',date:'2026-03-01',crew:[
+      {type:'Finish',namedCrews:[{name:'Lopez',count:8,hours:8}],directCount:0,directHours:8},
+      {type:'Clean Up',namedCrews:[],directCount:3,directHours:6}
+    ],work:'Finish crew completed brown coat on Building A units 101-108. Cleanup cleared debris and prepped Building B staging area.',issues:[],tomorrow:'Continue finish on 2nd floor. Cleanup move to Building C.'},
+    {id:3,project:'Oak Valley Townhomes',date:'2026-03-02',crew:[
+      {type:'Siding',namedCrews:[{name:'Hernandez',count:5,hours:10}],directCount:0,directHours:10},
+      {type:'Scaffold',namedCrews:[{name:'Reyes',count:3,hours:8}],directCount:0,directHours:8}
+    ],work:'Siding crew installed HardiePlank on units 5-8 front elevation. Scaffold set up on units 9-12.',issues:[{type:'problem',text:'Siding material color mismatch — wrong lot number on 2 pallets',severity:'Medium'}],tomorrow:'Continue siding units 9-12. Scaffold move to rear elevation.'},
+    {id:4,project:'Oak Valley Townhomes',date:'2026-02-28',crew:[
+      {type:'Veneer',namedCrews:[],directCount:4,directHours:8},
+      {type:'Masking',namedCrews:[{name:'Ortiz',count:2,hours:8}],directCount:0,directHours:8}
+    ],work:'Veneer stone installed on units 1-4 entry columns. Masking crew prepped windows and doors on units 5-8.',issues:[{type:'delay',who:'Masking — Ortiz',duration:'3h',note:'Rain delay — stopped exterior masking work'}],tomorrow:'Weather dependent for masking. Continue veneer if dry.'}
   ];
   S.punchItems=[
-    {id:1,desc:'Scratch coat crack above unit 103 window',location:'Unit 103, east wall',sub:'Gun Crew',status:'open',photo:null},
-    {id:2,desc:'Lath overlap gap at corner bead',location:'Unit 201, NW corner',sub:'Lath',status:'progress',photo:null},
+    {id:1,desc:'Scratch coat crack above unit 103 window',location:'Unit 103, east wall',sub:'Gun Crew — Delgado',status:'open',photo:null},
+    {id:2,desc:'Lath overlap gap at corner bead',location:'Unit 201, NW corner',sub:'Lath — Martinez',status:'progress',photo:null},
     {id:3,desc:'Touch up needed on finish coat — trowel marks',location:'Building A, stairwell 2',sub:'Touch Up',status:'open',photo:null},
-    {id:4,desc:'Scaffold brace loose on 3rd floor',location:'Building B, south side',sub:'Scaffold',status:'complete',photo:null},
-    {id:5,desc:'Siding gap at J-channel transition',location:'Unit 8, rear elevation',sub:'Siding',status:'open',photo:null}
+    {id:4,desc:'Scaffold brace loose on 3rd floor',location:'Building B, south side',sub:'Scaffold — Gomez',status:'complete',photo:null},
+    {id:5,desc:'Siding gap at J-channel transition',location:'Unit 8, rear elevation',sub:'Siding — Hernandez',status:'open',photo:null}
   ];
 }
+
+function totalForType(ct){return (ct.directMembers||[]).length+(ct.namedCrews||[]).reduce(function(a,nc){return a+nc.count},0)}
+function reportCrewTotal(r){return r.crew.reduce(function(a,ct){return a+(ct.directCount||0)+(ct.namedCrews||[]).reduce(function(b,nc){return b+nc.count},0)},0)}
+function getActiveCrewLabels(){var labels=[];S.crewTypes.forEach(function(ct){if(ct.directMembers&&ct.directMembers.length)labels.push(ct.type);(ct.namedCrews||[]).forEach(function(nc){if(nc.count>0)labels.push(ct.type+' — '+nc.name)})});return labels}
 
 function init(){buildNumpad();buildPhases();buildPlanBtns()}
 
 function buildNumpad(){
-  const np=document.getElementById('numpad');
-  for(let i=1;i<=9;i++){const b=document.createElement('button');b.textContent=i;b.onclick=()=>pinInput(i);np.appendChild(b)}
-  const del=document.createElement('button');del.textContent='⌫';del.onclick=pinClear;np.appendChild(del);
-  const z=document.createElement('button');z.textContent='0';z.onclick=()=>pinInput(0);np.appendChild(z);
-  const empty=document.createElement('div');np.appendChild(empty);
+  var np=document.getElementById('numpad');
+  for(var i=1;i<=9;i++){(function(n){var b=document.createElement('button');b.textContent=n;b.onclick=function(){pinInput(n)};np.appendChild(b)})(i)}
+  var del=document.createElement('button');del.textContent='⌫';del.onclick=pinClear;np.appendChild(del);
+  var z=document.createElement('button');z.textContent='0';z.onclick=function(){pinInput(0)};np.appendChild(z);
+  np.appendChild(document.createElement('div'));
 }
-
-function pinInput(n){
-  if(S.pin.length>=4)return;
-  S.pin+=n;updatePinDots();
-  if(S.pin.length===4){
-    if(S.pin==='1234'){enterDemo()}
-    else{S.pin='';updatePinDots();document.getElementById('pinDots').style.animation='shake .3s';setTimeout(()=>document.getElementById('pinDots').style.animation='',300)}
-  }
-}
+function pinInput(n){if(S.pin.length>=4)return;S.pin+=n;updatePinDots();if(S.pin.length===4){if(S.pin==='1234')enterDemo();else{S.pin='';updatePinDots()}}}
 function pinClear(){S.pin=S.pin.slice(0,-1);updatePinDots()}
-function updatePinDots(){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.classList.toggle('filled',i<S.pin.length);d.textContent=i<S.pin.length?'●':''})}
+function updatePinDots(){document.querySelectorAll('.pin-dot').forEach(function(d,i){d.classList.toggle('filled',i<S.pin.length);d.textContent=i<S.pin.length?'●':''})}
 
-function enterDemo(){
-  S.demo=true;demoData();
-  document.getElementById('bottomNav').style.display='flex';
-  showPage('step1');initStep1();setActiveTab('report');
-}
-
-function setActiveTab(t){document.querySelectorAll('.bottom-nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===t)})}
-
-function navTo(t){
-  setActiveTab(t);
-  if(t==='report'){showPage('step'+S.step);if(S.step===1)initStep1()}
-  else if(t==='history'){showPage('historyPage');renderHistory()}
-  else if(t==='punch'){showPage('punchPage');renderPunch()}
-  else if(t==='overview'){showPage('overviewPage');renderOverview()}
-}
-
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>{if(p.id!==id)p.classList.add('hidden')});
-  const pg=document.getElementById(id);
-  pg.classList.remove('hidden','slide-left','slide-right');
-  pg.scrollTop=0;
-}
-
-function goStep(n){
-  S.step=n;
-  if(n<=4)showPage('step'+n);
-  else if(n===5){renderReview();showPage('step5')}
-  updateAllProgress();
-}
-
-function updateAllProgress(){
-  for(let i=1;i<=5;i++){
-    const el=document.getElementById('prog'+i);if(!el)continue;
-    let html='';
-    for(let s=1;s<=5;s++){
-      const cls=s<S.step?'done':s===S.step?'active':'';
-      const label=s===5?'✓':s;
-      html+='<div class="step-ind '+cls+'">'+(s<S.step?'✓':label)+'</div>';
-      if(s<5)html+='<div class="line '+(s<S.step?'done':'')+'"></div>';
-    }
-    el.innerHTML=html;
-  }
-}
+function enterDemo(){S.demo=true;demoData();document.getElementById('bottomNav').style.display='flex';showPage('step1');initStep1();setActiveTab('report')}
+function setActiveTab(t){document.querySelectorAll('.bottom-nav button').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t)})}
+function navTo(t){setActiveTab(t);if(t==='report'){showPage('step'+S.step);if(S.step===1)initStep1()}else if(t==='history'){showPage('historyPage');renderHistory()}else if(t==='punch'){showPage('punchPage');renderPunch()}else if(t==='overview'){showPage('overviewPage');renderOverview()}}
+function showPage(id){document.querySelectorAll('.page').forEach(function(p){if(p.id!==id)p.classList.add('hidden')});var pg=document.getElementById(id);pg.classList.remove('hidden');pg.scrollTop=0}
+function goStep(n){S.step=n;if(n<=4)showPage('step'+n);else if(n===5){renderReview();showPage('step5')}updateAllProgress()}
+function updateAllProgress(){for(var i=1;i<=5;i++){var el=document.getElementById('prog'+i);if(!el)continue;var html='';for(var s=1;s<=5;s++){var cls=s<S.step?'done':s===S.step?'active':'';html+='<div class="step-ind '+cls+'">'+(s<S.step?'✓':s===5?'✓':s)+'</div>';if(s<5)html+='<div class="line '+(s<S.step?'done':'')+'"></div>'}el.innerHTML=html}}
 
 function initStep1(){
-  const sel=document.getElementById('projectSelect');
-  sel.innerHTML=S.projects.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('');
-  sel.onchange=loadProjectSubs;
-  loadProjectSubs();updateAllProgress();
+  var sel=document.getElementById('projectSelect');
+  sel.innerHTML=S.projects.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>'}).join('');
+  sel.onchange=loadProjectCrews;
+  loadProjectCrews();updateAllProgress();
 }
-
-function loadProjectSubs(){
-  const pid=+document.getElementById('projectSelect').value;
-  const proj=S.projects.find(p=>p.id===pid);if(!proj)return;
-  S.crews=proj.crews.map(n=>({name:n,count:S.demo?Math.floor(Math.random()*5)+2:0,hours:8}));
+function loadProjectCrews(){
+  var pid=+document.getElementById('projectSelect').value;
+  var proj=S.projects.find(function(p){return p.id===pid});if(!proj)return;
+  S.crewTypes=JSON.parse(JSON.stringify(proj.crewTypes));
   renderSubs();
 }
 
-function renderSubs(){if(!S.crews.forEach)return;
-  document.getElementById('subsList').innerHTML=S.crews.map((s,i)=>
-    '<div class="sub-row"><div class="sub-row-main"><button class="crew-toggle'+(s._open?' open':'')+'" onclick="toggleMembers('+i+')">▶</button><div class="name">'+s.name+'</div><div class="stepper"><button onclick="adjCount('+i+',-1)">−</button><span class="val">'+s.count+'</span><button onclick="adjCount('+i+',1)">+</button></div><select onchange="S.crews['+i+'].hours=+this.value">'+[4,6,8,10].map(h=>'<option value="'+h+'"'+(s.hours===h?' selected':'')+'>'+h+'h</option>').join('')+'</select></div><div class="crew-members'+(s._open?' open':'')+'" id="members-'+i+'"><div class="crew-members-list">'+((s.members||[]).map((m,mi)=>"<span class=\"crew-member\">"+m+"<button onclick=\"removeMember("+i+","+mi+")\">×</button></span>").join("")||"<span style=\"color:var(--muted);font-size:13px\">No names added</span>")+'</div><button class="add-member-btn" onclick="addMember('+i+')">+ Add Name</button></div></div>'
-  ).join('');
-}
-function adjCount(i,d){S.crews[i].count=Math.max(0,S.crews[i].count+d);renderSubs()}
-function addSubRow(){const name=prompt('Crew name:');if(name){S.crews.push({name,count:0,hours:8,members:[]});renderSubs()}}
-function toggleMembers(i){S.crews[i]._open=!S.crews[i]._open;renderSubs()}
-function addMember(i){const name=prompt('Name:');if(name){if(!S.crews[i].members)S.crews[i].members=[];S.crews[i].members.push(name);renderSubs()}}
-function removeMember(ci,mi){S.crews[ci].members.splice(mi,1);renderSubs()}
-
-function buildPhases(){
-  document.getElementById('phaseScroll').innerHTML=PHASES.map(p=>'<button class="phase-btn" onclick="togglePhase(this)">'+p+'</button>').join('');
-}
-function togglePhase(btn){
-  const p=btn.textContent;
-  const i=S.phases.indexOf(p);
-  if(i>=0){S.phases.splice(i,1);btn.classList.remove('selected')}
-  else{S.phases.push(p);btn.classList.add('selected')}
-  renderPhaseTags();
-}
-function renderPhaseTags(){
-  document.getElementById('phaseTags').innerHTML=S.phases.map((p,i)=>'<span class="tag">'+p+'<button onclick="removePhase('+i+')">×</button></span>').join('');
-}
-function removePhase(i){
-  const p=S.phases[i];S.phases.splice(i,1);renderPhaseTags();
-  document.querySelectorAll('.phase-btn').forEach(b=>{b.classList.toggle('selected',S.phases.includes(b.textContent))});
-}
-
-let mediaRec=null,chunks=[],recStart=0;
-function toggleVoice(){
-  const btn=document.getElementById('voiceBtn');
-  if(mediaRec&&mediaRec.state==='recording'){
-    mediaRec.stop();btn.classList.remove('recording');
-    document.getElementById('voiceLabel').textContent='Tap to record';return;
-  }
-  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
-    mediaRec=new MediaRecorder(stream);chunks=[];
-    mediaRec.ondataavailable=e=>chunks.push(e.data);
-    mediaRec.onstop=()=>{
-      const blob=new Blob(chunks,{type:'audio/webm'});
-      const url=URL.createObjectURL(blob);
-      const dur=Math.round((Date.now()-recStart)/1000);
-      S.voiceClips.push({url,dur});renderVoiceClips();
-      stream.getTracks().forEach(t=>t.stop());
-    };
-    mediaRec.start();recStart=Date.now();
-    btn.classList.add('recording');
-    document.getElementById('voiceLabel').textContent='Recording... tap to stop';
-  }).catch(()=>alert('Microphone access needed'));
-}
-function renderVoiceClips(){
-  document.getElementById('voiceClips').innerHTML=S.voiceClips.map((c,i)=>
-    '<span class="voice-clip">🎙️ '+c.dur+'s <button onclick="S.voiceClips.splice('+i+',1);renderVoiceClips()">×</button></span>').join('');
-}
-
-function openModal(type){
-  const m=document.getElementById('modalContent');
-  document.getElementById('modalBg').classList.remove('hidden');
-  const subs=S.crews.filter(s=>s.count>0).map(s=>s.name);
-  const subOpts=subs.map(s=>'<option>'+s+'</option>').join('');
-  if(type==='delay'){
-    m.innerHTML='<h3>⏰ Log a Delay</h3><label>Who caused it?</label><select id="mDelaySub">'+subOpts+'</select><label>How long?</label><div class="dur-btns">'+['1h','2h','3h','4h+'].map(d=>'<button onclick="selDur(this,\''+d+'\')" data-d="'+d+'">'+d+'</button>').join('')+'</div><label>Quick note</label><input id="mDelayNote" placeholder="What happened?"><button class="btn btn-primary mt-12" onclick="addDelay()">Add Delay</button>';
-  }else if(type==='problem'){
-    m.innerHTML='<h3>⚠️ Log a Problem</h3><label>What happened?</label><textarea id="mProbText" placeholder="Describe the issue"></textarea><label>Severity</label><div class="sev-btns">'+['Low','Medium','High'].map(s=>'<button data-s="'+s+'" onclick="selSev(this)">'+s+'</button>').join('')+'</div><button class="btn btn-primary mt-12" onclick="addProblem()">Add Problem</button>';
-  }else if(type==='photo'){
-    m.innerHTML='<h3>📸 Add Photos</h3><p class="text-sm mb-12">Take a photo or choose from gallery.</p><input type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(this.files)" style="margin-bottom:12px"><button class="btn btn-secondary" onclick="closeModal()">Done</button>';
-  }else if(type==='punch'){
-    const allSubs=[...new Set(S.projects.flatMap(p=>p.crews))];
-    m.innerHTML='<h3>🔨 New Punchlist Item</h3><label>Photo (required)</label><input type="file" accept="image/*" capture="environment" id="mPunchPhoto"><label>What\'s wrong?</label><input id="mPunchDesc" placeholder="Describe the issue"><label>Where?</label><input id="mPunchLoc" placeholder="Unit / room"><label>Who fixes it?</label><select id="mPunchSub">'+allSubs.map(s=>'<option>'+s+'</option>').join('')+'</select><button class="btn btn-primary mt-12" onclick="addPunchItem()">Add Item</button>';
-  }
-}
-function closeModal(){document.getElementById('modalBg').classList.add('hidden')}
-let selDurVal='',selSevVal='';
-function selDur(btn,v){selDurVal=v;btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected')}
-function selSev(btn){selSevVal=btn.dataset.s;btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected')}
-
-function addDelay(){
-  const who=document.getElementById('mDelaySub').value;
-  const note=document.getElementById('mDelayNote').value;
-  if(!selDurVal){alert('Select duration');return}
-  S.issues.push({type:'delay',who,duration:selDurVal,note});
-  renderIssues();closeModal();selDurVal='';
-}
-function addProblem(){
-  const text=document.getElementById('mProbText').value;
-  if(!text){alert('Describe the problem');return}
-  S.issues.push({type:'problem',text,severity:selSevVal||'Medium'});
-  renderIssues();closeModal();selSevVal='';
-}
-function renderIssues(){
-  document.getElementById('issuesList').innerHTML=S.issues.map((iss,i)=>{
-    if(iss.type==='delay')return'<div class="issue-card"><div class="info"><span class="type-badge" style="background:rgba(245,158,11,0.12);color:var(--warn)">DELAY</span> <strong>'+iss.who+'</strong> · '+iss.duration+'<br><span class="text-sm">'+iss.note+'</span></div><button class="del" onclick="S.issues.splice('+i+',1);renderIssues()">×</button></div>';
-    return'<div class="issue-card"><div class="info"><span class="type-badge" style="background:rgba(239,68,68,0.12);color:var(--danger)">PROBLEM</span> <strong>'+iss.severity+'</strong><br><span class="text-sm">'+iss.text+'</span></div><button class="del" onclick="S.issues.splice('+i+',1);renderIssues()">×</button></div>';
+function renderSubs(){
+  var el=document.getElementById('subsList');
+  el.innerHTML=S.crewTypes.map(function(ct,ti){
+    var total=totalForType(ct);
+    var dm=ct.directMembers||[];
+    var ncs=ct.namedCrews||[];
+    var h='<div class="sub-row"><div class="sub-row-main">';
+    h+='<button class="crew-toggle'+(ct._open?' open':'')+'" onclick="toggleType('+ti+')">▶</button>';
+    h+='<div class="name">'+ct.type+'</div>';
+    h+='<span class="total-badge">'+total+' ppl</span></div>';
+    h+='<div class="type-children'+(ct._open?' open':'')+'">';
+    if(dm.length){
+      h+='<div class="direct-members">';
+      dm.forEach(function(m,mi){h+='<span class="crew-member">'+m+'<button onclick="removeDirectMember('+ti+','+mi+')">×</button></span>'});
+      h+='</div>';
+      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:12px;color:var(--text2)">Direct: '+dm.length+' ppl ·</span>';
+      h+='<select style="width:70px;padding:6px;font-size:13px" onchange="S.crewTypes['+ti+'].hours=+this.value">';
+      [4,6,8,10].forEach(function(hr){h+='<option value="'+hr+'"'+(ct.hours===hr?' selected':'')+'>'+hr+'h</option>'});
+      h+='</select></div>';
+    }
+    ncs.forEach(function(nc,ni){
+      h+='<div class="named-crew"><div class="named-crew-header">';
+      h+='<button class="crew-toggle'+(nc._open?' open':'')+'" onclick="toggleNC('+ti+','+ni+')">▶</button>';
+      h+='<div class="nc-name">'+nc.name+' Crew</div>';
+      h+='<div class="stepper"><button onclick="adjNC('+ti+','+ni+',-1)">−</button><span class="val">'+nc.count+'</span><button onclick="adjNC('+ti+','+ni+',1)">+</button></div>';
+      h+='<select onchange="S.crewTypes['+ti+'].namedCrews['+ni+'].hours=+this.value">';
+      [4,6,8,10].forEach(function(hr){h+='<option value="'+hr+'"'+(nc.hours===hr?' selected':'')+'>'+hr+'h</option>'});
+      h+='</select></div>';
+      h+='<div class="nc-members'+(nc._open?' open':'')+'">';
+      h+='<div class="nc-members-list">';
+      if(nc.members&&nc.members.length){nc.members.forEach(function(m,mi){h+='<span class="crew-member">'+m+'<button onclick="removeNCMember('+ti+','+ni+','+mi+')">×</button></span>'})}
+      else{h+='<span style="color:var(--text2);font-size:13px">No names added</span>'}
+      h+='</div><button class="add-member-btn" onclick="addNCMember('+ti+','+ni+')">+ Add Name</button></div></div>';
+    });
+    h+='<div class="type-actions">';
+    h+='<button class="add-crew-btn" onclick="addDirectMember('+ti+')">+ Add Name</button>';
+    h+='<button class="add-crew-btn" onclick="addNamedCrew('+ti+')">+ Add Crew</button>';
+    h+='</div></div></div>';
+    return h;
   }).join('');
 }
 
-function addPhotos(files){
-  for(const f of files){S.photos.push({url:URL.createObjectURL(f),name:f.name})}
-  renderPhotos();
-}
-function renderPhotos(){
-  document.getElementById('photoGrid').innerHTML=S.photos.map((p,i)=>
-    '<div class="photo-thumb"><img src="'+p.url+'"><button class="del-photo" onclick="S.photos.splice('+i+',1);renderPhotos()">×</button></div>').join('');
-}
+function toggleType(ti){S.crewTypes[ti]._open=!S.crewTypes[ti]._open;renderSubs()}
+function toggleNC(ti,ni){S.crewTypes[ti].namedCrews[ni]._open=!S.crewTypes[ti].namedCrews[ni]._open;renderSubs()}
+function adjNC(ti,ni,d){S.crewTypes[ti].namedCrews[ni].count=Math.max(0,S.crewTypes[ti].namedCrews[ni].count+d);renderSubs()}
+function addDirectMember(ti){var n=prompt('Name:');if(n){if(!S.crewTypes[ti].directMembers)S.crewTypes[ti].directMembers=[];S.crewTypes[ti].directMembers.push(n);S.crewTypes[ti]._open=true;renderSubs()}}
+function removeDirectMember(ti,mi){S.crewTypes[ti].directMembers.splice(mi,1);renderSubs()}
+function addNamedCrew(ti){var n=prompt(S.crewTypes[ti].type+' crew name (e.g. last name):');if(n){if(!S.crewTypes[ti].namedCrews)S.crewTypes[ti].namedCrews=[];S.crewTypes[ti].namedCrews.push({name:n,count:0,hours:8,members:[]});S.crewTypes[ti]._open=true;renderSubs()}}
+function addNCMember(ti,ni){var n=prompt('Name:');if(n){if(!S.crewTypes[ti].namedCrews[ni].members)S.crewTypes[ti].namedCrews[ni].members=[];S.crewTypes[ti].namedCrews[ni].members.push(n);S.crewTypes[ti].namedCrews[ni]._open=true;renderSubs()}}
+function removeNCMember(ti,ni,mi){S.crewTypes[ti].namedCrews[ni].members.splice(mi,1);renderSubs()}
+function addCrewType(){var n=prompt('Crew type name:');if(n){S.crewTypes.push({type:n,hours:8,directMembers:[],namedCrews:[],_open:true});renderSubs()}}
 
-function buildPlanBtns(){
-  document.getElementById('planBtns').innerHTML=PLAN_OPTS.map(o=>'<button onclick="togglePlan(this)">'+o+'</button>').join('');
+function buildPhases(){document.getElementById('phaseScroll').innerHTML=PHASES.map(function(p){return '<button class="phase-btn" onclick="togglePhase(this)">'+p+'</button>'}).join('')}
+function togglePhase(btn){var p=btn.textContent;var i=S.phases.indexOf(p);if(i>=0){S.phases.splice(i,1);btn.classList.remove('selected')}else{S.phases.push(p);btn.classList.add('selected')}renderPhaseTags()}
+function renderPhaseTags(){document.getElementById('phaseTags').innerHTML=S.phases.map(function(p,i){return '<span class="tag">'+p+'<button onclick="removePhase('+i+')">×</button></span>'}).join('')}
+function removePhase(i){S.phases.splice(i,1);renderPhaseTags();document.querySelectorAll('.phase-btn').forEach(function(b){b.classList.toggle('selected',S.phases.includes(b.textContent))})}
+
+var mediaRec=null,chunks=[],recStart=0;
+function toggleVoice(){
+  var btn=document.getElementById('voiceBtn');
+  if(mediaRec&&mediaRec.state==='recording'){mediaRec.stop();btn.classList.remove('recording');document.getElementById('voiceLabel').textContent='Tap to record';return}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    mediaRec=new MediaRecorder(stream);chunks=[];
+    mediaRec.ondataavailable=function(e){chunks.push(e.data)};
+    mediaRec.onstop=function(){var blob=new Blob(chunks,{type:'audio/webm'});var url=URL.createObjectURL(blob);var dur=Math.round((Date.now()-recStart)/1000);S.voiceClips.push({url:url,dur:dur});renderVoiceClips();stream.getTracks().forEach(function(t){t.stop()})};
+    mediaRec.start();recStart=Date.now();btn.classList.add('recording');document.getElementById('voiceLabel').textContent='Recording... tap to stop';
+  }).catch(function(){alert('Microphone access needed')});
 }
-function togglePlan(btn){
-  const o=btn.textContent;
-  const i=S.planTags.indexOf(o);
-  if(i>=0){S.planTags.splice(i,1);btn.classList.remove('selected')}
-  else{S.planTags.push(o);btn.classList.add('selected')}
-  const ta=document.getElementById('tomorrowNotes');
-  if(!ta.value&&S.planTags.length)ta.value=S.planTags.join('. ')+'.';
+function renderVoiceClips(){document.getElementById('voiceClips').innerHTML=S.voiceClips.map(function(c,i){return '<span class="voice-clip">🎙️ '+c.dur+'s <button onclick="S.voiceClips.splice('+i+',1);renderVoiceClips()">×</button></span>'}).join('')}
+
+function openModal(type){
+  var m=document.getElementById('modalContent');document.getElementById('modalBg').classList.remove('hidden');
+  var labels=getActiveCrewLabels();var subOpts=labels.map(function(s){return '<option>'+s+'</option>'}).join('');
+  if(type==='delay'){m.innerHTML='<h3>⏰ Log a Delay</h3><label>Who caused it?</label><select id="mDelaySub">'+subOpts+'</select><label>How long?</label><div class="dur-btns">'+ ['1h','2h','3h','4h+'].map(function(d){return '<button onclick="selDur(this,\''+d+'\')" data-d="'+d+'">'+d+'</button>'}).join('')+'</div><label>Quick note</label><input id="mDelayNote" placeholder="What happened?"><button class="btn btn-primary mt-12" onclick="addDelay()">Add Delay</button>'}
+  else if(type==='problem'){m.innerHTML='<h3>⚠️ Log a Problem</h3><label>What happened?</label><textarea id="mProbText" placeholder="Describe the issue"></textarea><label>Severity</label><div class="sev-btns">'+ ['Low','Medium','High'].map(function(s){return '<button data-s="'+s+'" onclick="selSev(this)">'+s+'</button>'}).join('')+'</div><button class="btn btn-primary mt-12" onclick="addProblem()">Add Problem</button>'}
+  else if(type==='photo'){m.innerHTML='<h3>📸 Add Photos</h3><p class="text-sm mb-12">Take a photo or choose from gallery.</p><input type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(this.files)" style="margin-bottom:12px"><button class="btn btn-secondary" onclick="closeModal()">Done</button>'}
+  else if(type==='punch'){var allTypes=[].concat.apply([],S.projects.map(function(p){return p.crewTypes.map(function(ct){return ct.type})}));allTypes=[...new Set(allTypes)];m.innerHTML='<h3>🔨 New Punchlist Item</h3><label>Photo (required)</label><input type="file" accept="image/*" capture="environment" id="mPunchPhoto"><label>What\'s wrong?</label><input id="mPunchDesc" placeholder="Describe the issue"><label>Where?</label><input id="mPunchLoc" placeholder="Unit / room"><label>Who fixes it?</label><select id="mPunchSub">'+allTypes.map(function(s){return '<option>'+s+'</option>'}).join('')+'</select><button class="btn btn-primary mt-12" onclick="addPunchItem()">Add Item</button>'}
 }
+function closeModal(){document.getElementById('modalBg').classList.add('hidden')}
+var selDurVal='',selSevVal='';
+function selDur(btn,v){selDurVal=v;btn.parentElement.querySelectorAll('button').forEach(function(b){b.classList.remove('selected')});btn.classList.add('selected')}
+function selSev(btn){selSevVal=btn.dataset.s;btn.parentElement.querySelectorAll('button').forEach(function(b){b.classList.remove('selected')});btn.classList.add('selected')}
+function addDelay(){var who=document.getElementById('mDelaySub').value;var note=document.getElementById('mDelayNote').value;if(!selDurVal){alert('Select duration');return}S.issues.push({type:'delay',who:who,duration:selDurVal,note:note});renderIssues();closeModal();selDurVal=''}
+function addProblem(){var text=document.getElementById('mProbText').value;if(!text){alert('Describe the problem');return}S.issues.push({type:'problem',text:text,severity:selSevVal||'Medium'});renderIssues();closeModal();selSevVal=''}
+function renderIssues(){document.getElementById('issuesList').innerHTML=S.issues.map(function(iss,i){if(iss.type==='delay')return '<div class="issue-card"><div class="info"><span class="type-badge" style="background:rgba(245,158,11,0.12);color:var(--warn)">DELAY</span> <strong>'+iss.who+'</strong> · '+iss.duration+'<br><span class="text-sm">'+iss.note+'</span></div><button class="del" onclick="S.issues.splice('+i+',1);renderIssues()">×</button></div>';return '<div class="issue-card"><div class="info"><span class="type-badge" style="background:rgba(239,68,68,0.12);color:var(--danger)">PROBLEM</span> <strong>'+iss.severity+'</strong><br><span class="text-sm">'+iss.text+'</span></div><button class="del" onclick="S.issues.splice('+i+',1);renderIssues()">×</button></div>'}).join('')}
+function addPhotos(files){for(var i=0;i<files.length;i++){S.photos.push({url:URL.createObjectURL(files[i]),name:files[i].name})}renderPhotos()}
+function renderPhotos(){document.getElementById('photoGrid').innerHTML=S.photos.map(function(p,i){return '<div class="photo-thumb"><img src="'+p.url+'"><button class="del-photo" onclick="S.photos.splice('+i+',1);renderPhotos()">×</button></div>'}).join('')}
+
+function buildPlanBtns(){document.getElementById('planBtns').innerHTML=PLAN_OPTS.map(function(o){return '<button onclick="togglePlan(this)">'+o+'</button>'}).join('')}
+function togglePlan(btn){var o=btn.textContent;var i=S.planTags.indexOf(o);if(i>=0){S.planTags.splice(i,1);btn.classList.remove('selected')}else{S.planTags.push(o);btn.classList.add('selected')}var ta=document.getElementById('tomorrowNotes');if(!ta.value&&S.planTags.length)ta.value=S.planTags.join('. ')+'.'}
+
+function getActiveTypes(){return S.crewTypes.filter(function(ct){return totalForType(ct)>0})}
+function flatCrewCount(){return S.crewTypes.reduce(function(a,ct){return a+totalForType(ct)},0)}
 
 function renderReview(){
-  const crew=S.crews.filter(s=>s.count>0);
-  const work=(S.phases.length?S.phases.join(', ')+'. ':'')+(document.getElementById('workNotes').value||'');
-  const tomorrow=document.getElementById('tomorrowNotes').value||S.planTags.join('. ');
-  const proj=document.getElementById('projectSelect');
-  const projName=proj.options[proj.selectedIndex].text;
-  let h='<div class="weather-bar"><span class="wicon">☀️</span><span>'+projName+' · '+document.getElementById('weatherText').textContent+'</span></div>';
-  h+='<div class="review-section card"><div class="sec-head"><h3>👷 Crew ('+crew.reduce((a,c)=>a+c.count,0)+' workers)</h3><button class="edit-btn" onclick="goStep(1)">✏️ Edit</button></div>';
-  crew.forEach(c=>{h+='<div class="review-item"><span>'+c.name+'</span><span>'+c.count+' ppl · '+c.hours+'h</span></div>'});
+  var activeTypes=getActiveTypes();var totalWorkers=flatCrewCount();
+  var work=(S.phases.length?S.phases.join(', ')+'. ':'')+(document.getElementById('workNotes').value||'');
+  var tomorrow=document.getElementById('tomorrowNotes').value||S.planTags.join('. ');
+  var proj=document.getElementById('projectSelect');var projName=proj.options[proj.selectedIndex].text;
+  var h='<div class="weather-bar"><span class="wicon">☀️</span><span>'+projName+' · '+document.getElementById('weatherText').textContent+'</span></div>';
+  h+='<div class="review-section card"><div class="sec-head"><h3>👷 Crew ('+totalWorkers+' workers)</h3><button class="edit-btn" onclick="goStep(1)">✏️ Edit</button></div>';
+  activeTypes.forEach(function(ct){
+    var dm=ct.directMembers||[];var activeNc=(ct.namedCrews||[]).filter(function(nc){return nc.count>0});
+    h+='<div style="font-weight:700;font-size:14px;margin-top:8px">'+ct.type+' ('+totalForType(ct)+')</div>';
+    if(dm.length)h+='<div class="review-item"><span>'+dm.join(', ')+'</span><span>'+dm.length+' ppl · '+ct.hours+'h</span></div>';
+    activeNc.forEach(function(nc){h+='<div class="review-item"><span>'+nc.name+' Crew</span><span>'+nc.count+' ppl · '+nc.hours+'h</span></div>'});
+  });
   h+='</div>';
   h+='<div class="review-section card"><div class="sec-head"><h3>🔨 Work Completed</h3><button class="edit-btn" onclick="goStep(2)">✏️ Edit</button></div><p style="font-size:14px;padding:4px 0">'+(work||'<em>Nothing entered</em>')+'</p></div>';
   h+='<div class="review-section card"><div class="sec-head"><h3>⚠️ Issues ('+S.issues.length+')</h3><button class="edit-btn" onclick="goStep(3)">✏️ Edit</button></div>';
   if(!S.issues.length)h+='<p class="text-sm">No issues — clean day! ✅</p>';
-  S.issues.forEach(iss=>{
-    if(iss.type==='delay')h+='<div class="review-item"><span>⏰ '+iss.who+' — '+iss.duration+'</span><span>'+iss.note+'</span></div>';
-    else h+='<div class="review-item"><span>⚠️ '+iss.severity+'</span><span>'+iss.text+'</span></div>';
-  });
+  S.issues.forEach(function(iss){if(iss.type==='delay')h+='<div class="review-item"><span>⏰ '+iss.who+' — '+iss.duration+'</span><span>'+iss.note+'</span></div>';else h+='<div class="review-item"><span>⚠️ '+iss.severity+'</span><span>'+iss.text+'</span></div>'});
   h+='</div>';
   h+='<div class="review-section card"><div class="sec-head"><h3>📅 Tomorrow</h3><button class="edit-btn" onclick="goStep(4)">✏️ Edit</button></div><p style="font-size:14px;padding:4px 0">'+(tomorrow||'<em>Nothing planned</em>')+'</p></div>';
   document.getElementById('reviewContent').innerHTML=h;
 }
 
 function submitReport(){
-  const crew=S.crews.filter(s=>s.count>0);
-  const proj=document.getElementById('projectSelect');
-  S.reports.unshift({
-    id:S.reports.length+1,project:proj.options[proj.selectedIndex].text,
-    date:new Date().toISOString().slice(0,10),
-    crew:crew.map(c=>({name:c.name,count:c.count,hours:c.hours})),
-    work:(S.phases.length?S.phases.join(', ')+'. ':'')+(document.getElementById('workNotes').value||''),
-    issues:[...S.issues],
-    tomorrow:document.getElementById('tomorrowNotes').value||S.planTags.join('. ')
-  });
+  var activeTypes=getActiveTypes();var proj=document.getElementById('projectSelect');
+  S.reports.unshift({id:S.reports.length+1,project:proj.options[proj.selectedIndex].text,date:new Date().toISOString().slice(0,10),
+    crew:activeTypes.map(function(ct){return {type:ct.type,namedCrews:(ct.namedCrews||[]).filter(function(nc){return nc.count>0}).map(function(nc){return {name:nc.name,count:nc.count,hours:nc.hours}}),directCount:(ct.directMembers||[]).length,directHours:ct.hours}}),
+    work:(S.phases.length?S.phases.join(', ')+'. ':'')+(document.getElementById('workNotes').value||''),issues:[].concat(S.issues),tomorrow:document.getElementById('tomorrowNotes').value||S.planTags.join('. ')});
   showPage('successPage');
 }
-
-function newReport(){
-  S.step=1;S.phases=[];S.voiceClips=[];S.issues=[];S.photos=[];S.planTags=[];
-  document.querySelectorAll('.phase-btn').forEach(b=>b.classList.remove('selected'));
-  document.getElementById('workNotes').value='';
-  document.getElementById('tomorrowNotes').value='';
-  navTo('report');
-}
+function newReport(){S.step=1;S.phases=[];S.voiceClips=[];S.issues=[];S.photos=[];S.planTags=[];document.querySelectorAll('.phase-btn').forEach(function(b){b.classList.remove('selected')});document.getElementById('workNotes').value='';document.getElementById('tomorrowNotes').value='';navTo('report')}
 function saveDraft(){alert('Draft saved!');newReport()}
 
 function downloadPDF(){
-  const{jsPDF}=window.jspdf;const doc=new jsPDF();
-  const proj=document.getElementById('projectSelect');
-  const projName=proj.options[proj.selectedIndex].text;
-  const crew=S.crews.filter(s=>s.count>0);
-  let y=20;
+  var jsPDF=window.jspdf.jsPDF;var doc=new jsPDF();var proj=document.getElementById('projectSelect');var projName=proj.options[proj.selectedIndex].text;var activeTypes=getActiveTypes();var y=20;
   doc.setFontSize(20);doc.text('FieldVault Daily Report',20,y);y+=12;
-  doc.setFontSize(12);doc.text('Project: '+projName,20,y);y+=8;
-  doc.text('Date: '+new Date().toLocaleDateString(),20,y);y+=12;
-  doc.setFontSize(14);doc.text('Crew',20,y);y+=8;doc.setFontSize(11);
-  crew.forEach(c=>{doc.text(c.name+': '+c.count+' workers, '+c.hours+'h',24,y);y+=6});
-  y+=6;doc.setFontSize(14);doc.text('Work Completed',20,y);y+=8;doc.setFontSize(11);
-  const work=(S.phases.join(', ')+'. '+(document.getElementById('workNotes').value||'')).trim();
-  const lines=doc.splitTextToSize(work||'None',170);doc.text(lines,24,y);y+=lines.length*6+6;
+  doc.setFontSize(12);doc.text('Project: '+projName,20,y);y+=8;doc.text('Date: '+new Date().toLocaleDateString(),20,y);y+=12;
+  doc.setFontSize(14);doc.text('Crew',20,y);y+=8;
+  activeTypes.forEach(function(ct){
+    var dm=ct.directMembers||[];doc.setFontSize(12);doc.text(ct.type+' ('+totalForType(ct)+')',24,y);y+=6;doc.setFontSize(10);
+    if(dm.length){doc.text('Direct: '+dm.join(', ')+' — '+ct.hours+'h',30,y);y+=5}
+    (ct.namedCrews||[]).filter(function(nc){return nc.count>0}).forEach(function(nc){doc.text(nc.name+' Crew: '+nc.count+' workers, '+nc.hours+'h',30,y);y+=5});y+=2;
+  });
+  y+=4;doc.setFontSize(14);doc.text('Work Completed',20,y);y+=8;doc.setFontSize(11);
+  var work=(S.phases.join(', ')+'. '+(document.getElementById('workNotes').value||'')).trim();
+  var lines=doc.splitTextToSize(work||'None',170);doc.text(lines,24,y);y+=lines.length*6+6;
   doc.setFontSize(14);doc.text('Issues',20,y);y+=8;doc.setFontSize(11);
   if(!S.issues.length){doc.text('No issues',24,y);y+=6}
-  S.issues.forEach(iss=>{
-    if(iss.type==='delay')doc.text('Delay: '+iss.who+' - '+iss.duration+' - '+iss.note,24,y);
-    else doc.text('Problem ('+iss.severity+'): '+iss.text,24,y);y+=6;
-  });
+  S.issues.forEach(function(iss){if(iss.type==='delay')doc.text('Delay: '+iss.who+' - '+iss.duration+' - '+iss.note,24,y);else doc.text('Problem ('+iss.severity+'): '+iss.text,24,y);y+=6});
   y+=6;doc.setFontSize(14);doc.text("Tomorrow's Plan",20,y);y+=8;doc.setFontSize(11);
-  const tmrw=document.getElementById('tomorrowNotes').value||S.planTags.join('. ')||'None';
-  doc.text(doc.splitTextToSize(tmrw,170),24,y);
+  var tmrw=document.getElementById('tomorrowNotes').value||S.planTags.join('. ')||'None';doc.text(doc.splitTextToSize(tmrw,170),24,y);
   doc.save('FieldVault_'+projName+'_'+new Date().toISOString().slice(0,10)+'.pdf');
 }
 function emailReport(){alert('Email feature coming soon!')}
 
 function renderHistory(){
-  const el=document.getElementById('historyList');
-  if(!S.reports.length){el.innerHTML='<p class="text-sm text-center">No reports yet.</p>';return}
-  el.innerHTML=S.reports.map(r=>
-    '<div class="history-item" onclick="viewReport('+r.id+')"><div><div class="proj">'+r.project+'</div><div class="meta">'+r.date+' · '+r.crew.reduce((a,c)=>a+c.count,0)+' workers</div></div><div style="font-size:20px;color:var(--text2)">›</div></div>').join('');
+  var el=document.getElementById('historyList');if(!S.reports.length){el.innerHTML='<p class="text-sm text-center">No reports yet.</p>';return}
+  el.innerHTML=S.reports.map(function(r){return '<div class="history-item" onclick="viewReport('+r.id+')"><div><div class="proj">'+r.project+'</div><div class="meta">'+r.date+' · '+reportCrewTotal(r)+' workers</div></div><div style="font-size:20px;color:var(--text2)">›</div></div>'}).join('');
 }
 function viewReport(id){
-  const r=S.reports.find(x=>x.id===id);if(!r)return;
-  const m=document.getElementById('modalContent');
-  document.getElementById('modalBg').classList.remove('hidden');
-  let h='<h3>'+r.project+'</h3><p class="text-sm mb-12">'+r.date+'</p>';
-  h+='<h4 style="font-size:14px;font-weight:700;margin-bottom:4px">Crew</h4>';
-  r.crew.forEach(c=>{h+='<p class="text-sm">'+c.name+': '+c.count+' workers, '+c.hours+'h</p>'});
+  var r=S.reports.find(function(x){return x.id===id});if(!r)return;
+  var m=document.getElementById('modalContent');document.getElementById('modalBg').classList.remove('hidden');
+  var h='<h3>'+r.project+'</h3><p class="text-sm mb-12">'+r.date+'</p><h4 style="font-size:14px;font-weight:700;margin-bottom:4px">Crew</h4>';
+  r.crew.forEach(function(ct){
+    h+='<p style="font-weight:700;font-size:13px;margin-top:6px">'+ct.type+'</p>';
+    if(ct.directCount>0)h+='<p class="text-sm" style="padding-left:12px">Direct: '+ct.directCount+' workers, '+ct.directHours+'h</p>';
+    (ct.namedCrews||[]).forEach(function(nc){h+='<p class="text-sm" style="padding-left:12px">'+nc.name+' Crew: '+nc.count+' workers, '+nc.hours+'h</p>'});
+  });
   h+='<h4 style="font-size:14px;font-weight:700;margin:12px 0 4px">Work</h4><p class="text-sm">'+(r.work||'—')+'</p>';
   h+='<h4 style="font-size:14px;font-weight:700;margin:12px 0 4px">Issues</h4>';
   if(!r.issues.length)h+='<p class="text-sm">None</p>';
-  r.issues.forEach(iss=>{
-    if(iss.type==='delay')h+='<p class="text-sm">⏰ '+iss.who+' — '+iss.duration+': '+iss.note+'</p>';
-    else h+='<p class="text-sm">⚠️ '+iss.severity+': '+iss.text+'</p>';
-  });
+  r.issues.forEach(function(iss){if(iss.type==='delay')h+='<p class="text-sm">⏰ '+iss.who+' — '+iss.duration+': '+iss.note+'</p>';else h+='<p class="text-sm">⚠️ '+iss.severity+': '+iss.text+'</p>'});
   h+='<h4 style="font-size:14px;font-weight:700;margin:12px 0 4px">Tomorrow</h4><p class="text-sm">'+(r.tomorrow||'—')+'</p>';
-  h+='<button class="btn btn-secondary mt-12" onclick="closeModal()">Close</button>';
-  m.innerHTML=h;
+  h+='<button class="btn btn-secondary mt-12" onclick="closeModal()">Close</button>';m.innerHTML=h;
 }
 
 function renderPunch(){
-  const el=document.getElementById('punchList');
-  if(!S.punchItems.length){el.innerHTML='<p class="text-sm text-center">No punchlist items.</p>';return}
-  el.innerHTML=S.punchItems.map((p,i)=>{
-    const sc=p.status==='open'?'open':p.status==='progress'?'progress':'complete';
-    const sl=p.status==='open'?'Open':p.status==='progress'?'In Progress':'Complete';
-    return'<div class="punch-card"><div class="thumb">'+(p.photo?'<img src="'+p.photo+'">':'📷')+'</div><div class="info"><div class="loc">'+p.location+'</div><div class="desc">'+p.desc+'</div><div class="sub">'+p.sub+'</div></div><button class="punch-status '+sc+'" onclick="cyclePunch('+i+')">'+sl+'</button></div>';
-  }).join('');
+  var el=document.getElementById('punchList');if(!S.punchItems.length){el.innerHTML='<p class="text-sm text-center">No punchlist items.</p>';return}
+  el.innerHTML=S.punchItems.map(function(p,i){var sc=p.status==='open'?'open':p.status==='progress'?'progress':'complete';var sl=p.status==='open'?'Open':p.status==='progress'?'In Progress':'Complete';return '<div class="punch-card"><div class="thumb">'+(p.photo?'<img src="'+p.photo+'">':'📷')+'</div><div class="info"><div class="loc">'+p.location+'</div><div class="desc">'+p.desc+'</div><div class="sub">'+p.sub+'</div></div><button class="punch-status '+sc+'" onclick="cyclePunch('+i+')">'+sl+'</button></div>'}).join('');
 }
-function cyclePunch(i){
-  const p=S.punchItems[i];
-  p.status=p.status==='open'?'progress':p.status==='progress'?'complete':'open';
-  renderPunch();
-}
-function addPunchItem(){
-  const desc=document.getElementById('mPunchDesc').value;
-  const loc=document.getElementById('mPunchLoc').value;
-  const sub=document.getElementById('mPunchSub').value;
-  if(!desc){alert('Describe the issue');return}
-  const photoInput=document.getElementById('mPunchPhoto');
-  let photo=null;
-  if(photoInput.files&&photoInput.files.length)photo=URL.createObjectURL(photoInput.files[0]);
-  S.punchItems.push({id:S.punchItems.length+1,desc,location:loc,sub,status:'open',photo});
-  renderPunch();closeModal();
-}
-function exportPunchPDF(){
-  const{jsPDF}=window.jspdf;const doc=new jsPDF();let y=20;
-  doc.setFontSize(18);doc.text('FieldVault Punchlist',20,y);y+=12;
-  doc.setFontSize(10);doc.text('Exported: '+new Date().toLocaleDateString(),20,y);y+=10;
-  S.punchItems.forEach((p,i)=>{
-    doc.setFontSize(12);doc.text((i+1)+'. '+p.desc,20,y);y+=6;
-    doc.setFontSize(10);doc.text('   Location: '+p.location+' | Sub: '+p.sub+' | Status: '+p.status,20,y);y+=8;
-    if(y>270){doc.addPage();y=20}
-  });
-  doc.save('FieldVault_Punchlist_'+new Date().toISOString().slice(0,10)+'.pdf');
-}
+function cyclePunch(i){var p=S.punchItems[i];p.status=p.status==='open'?'progress':p.status==='progress'?'complete':'open';renderPunch()}
+function addPunchItem(){var desc=document.getElementById('mPunchDesc').value;var loc=document.getElementById('mPunchLoc').value;var sub=document.getElementById('mPunchSub').value;if(!desc){alert('Describe the issue');return}var photoInput=document.getElementById('mPunchPhoto');var photo=null;if(photoInput.files&&photoInput.files.length)photo=URL.createObjectURL(photoInput.files[0]);S.punchItems.push({id:S.punchItems.length+1,desc:desc,location:loc,sub:sub,status:'open',photo:photo});renderPunch();closeModal()}
+function exportPunchPDF(){var jsPDF=window.jspdf.jsPDF;var doc=new jsPDF();var y=20;doc.setFontSize(18);doc.text('FieldVault Punchlist',20,y);y+=12;doc.setFontSize(10);doc.text('Exported: '+new Date().toLocaleDateString(),20,y);y+=10;S.punchItems.forEach(function(p,i){doc.setFontSize(12);doc.text((i+1)+'. '+p.desc,20,y);y+=6;doc.setFontSize(10);doc.text('   Location: '+p.location+' | Sub: '+p.sub+' | Status: '+p.status,20,y);y+=8;if(y>270){doc.addPage();y=20}});doc.save('FieldVault_Punchlist_'+new Date().toISOString().slice(0,10)+'.pdf')}
 
 function renderOverview(){
-  const totalReports=S.reports.length;
-  const totalCrew=S.reports.reduce((a,r)=>a+r.crew.reduce((b,c)=>b+c.count,0),0);
-  const avgCrew=totalReports?Math.round(totalCrew/totalReports):0;
-  const delays=S.reports.reduce((a,r)=>a+r.issues.filter(i=>i.type==='delay').length,0);
-  const hoursLost=S.reports.reduce((a,r)=>a+r.issues.filter(i=>i.type==='delay').reduce((b,d)=>b+parseInt(d.duration)||0,0),0);
-  document.getElementById('statGrid').innerHTML=
-    '<div class="stat-card"><div class="num">'+totalReports+'</div><div class="label">Total Reports</div></div>'+
-    '<div class="stat-card"><div class="num">'+avgCrew+'</div><div class="label">Avg Crew Size</div></div>'+
-    '<div class="stat-card"><div class="num">'+delays+'</div><div class="label">Total Delays</div></div>'+
-    '<div class="stat-card"><div class="num">'+hoursLost+'h</div><div class="label">Hours Lost</div></div>';
-  const delaySubs={};
-  S.reports.forEach(r=>r.issues.filter(i=>i.type==='delay').forEach(d=>{delaySubs[d.who]=(delaySubs[d.who]||0)+1}));
-  const db=document.getElementById('delayBreakdown');
-  if(!Object.keys(delaySubs).length){db.innerHTML='<p class="text-sm">No delays recorded 🎉</p>';}
-  else{const maxD=Math.max(...Object.values(delaySubs));
-    db.innerHTML=Object.entries(delaySubs).sort((a,b)=>b[1]-a[1]).map(([sub,cnt])=>
-      '<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><span style="width:120px;font-size:13px;font-weight:600">'+sub+'</span><div style="flex:1;height:20px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:'+cnt/maxD*100+'%;height:100%;background:var(--warn);border-radius:4px"></div></div><span style="font-size:13px;font-weight:700;width:30px;text-align:right">'+cnt+'</span></div>').join('');}
-  const allSubs=[...new Set(S.reports.flatMap(r=>r.crew.map(c=>c.name)))];
-  const subDelays={};
-  S.reports.forEach(r=>r.issues.filter(i=>i.type==='delay').forEach(d=>{subDelays[d.who]=(subDelays[d.who]||0)+1}));
-  document.getElementById('subScores').innerHTML=allSubs.map(sub=>{
-    const d=subDelays[sub]||0;const pct=totalReports?Math.round((1-d/totalReports)*100):100;
-    const color=pct>=80?'var(--success)':pct>=50?'var(--warn)':'var(--danger)';
-    return'<div class="sub-score"><span style="font-size:13px;font-weight:600;width:120px">'+sub+'</span><div class="bar-bg"><div class="bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div><span style="font-size:13px;font-weight:700;width:40px;text-align:right">'+pct+'%</span></div>';
-  }).join('');
+  var totalReports=S.reports.length;var totalCrew=S.reports.reduce(function(a,r){return a+reportCrewTotal(r)},0);
+  var avgCrew=totalReports?Math.round(totalCrew/totalReports):0;
+  var delays=S.reports.reduce(function(a,r){return a+r.issues.filter(function(i){return i.type==='delay'}).length},0);
+  var hoursLost=S.reports.reduce(function(a,r){return a+r.issues.filter(function(i){return i.type==='delay'}).reduce(function(b,d){return b+(parseInt(d.duration)||0)},0)},0);
+  document.getElementById('statGrid').innerHTML='<div class="stat-card"><div class="num">'+totalReports+'</div><div class="label">Total Reports</div></div><div class="stat-card"><div class="num">'+avgCrew+'</div><div class="label">Avg Crew Size</div></div><div class="stat-card"><div class="num">'+delays+'</div><div class="label">Total Delays</div></div><div class="stat-card"><div class="num">'+hoursLost+'h</div><div class="label">Hours Lost</div></div>';
+  var delaySubs={};S.reports.forEach(function(r){r.issues.filter(function(i){return i.type==='delay'}).forEach(function(d){delaySubs[d.who]=(delaySubs[d.who]||0)+1})});
+  var db=document.getElementById('delayBreakdown');
+  if(!Object.keys(delaySubs).length){db.innerHTML='<p class="text-sm">No delays recorded 🎉</p>'}
+  else{var maxD=Math.max.apply(null,Object.values(delaySubs));db.innerHTML=Object.entries(delaySubs).sort(function(a,b){return b[1]-a[1]}).map(function(e){return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><span style="width:140px;font-size:13px;font-weight:600">'+e[0]+'</span><div style="flex:1;height:20px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:'+e[1]/maxD*100+'%;height:100%;background:var(--warn);border-radius:4px"></div></div><span style="font-size:13px;font-weight:700;width:30px;text-align:right">'+e[1]+'</span></div>'}).join('')}
+  var allLabels=new Set();S.reports.forEach(function(r){r.crew.forEach(function(ct){if(ct.directCount>0)allLabels.add(ct.type);(ct.namedCrews||[]).forEach(function(nc){allLabels.add(ct.type+' — '+nc.name)})})});
+  var subDelays={};S.reports.forEach(function(r){r.issues.filter(function(i){return i.type==='delay'}).forEach(function(d){subDelays[d.who]=(subDelays[d.who]||0)+1})});
+  document.getElementById('subScores').innerHTML=Array.from(allLabels).map(function(sub){var d=subDelays[sub]||0;var pct=totalReports?Math.round((1-d/totalReports)*100):100;var color=pct>=80?'var(--success)':pct>=50?'var(--warn)':'var(--danger)';return '<div class="sub-score"><span style="font-size:13px;font-weight:600;width:140px">'+sub+'</span><div class="bar-bg"><div class="bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div><span style="font-size:13px;font-weight:700;width:40px;text-align:right">'+pct+'%</span></div>'}).join('');
 }
 
 init();

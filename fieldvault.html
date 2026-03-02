@@ -168,7 +168,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
       <div class="progress" id="prog1"></div>
       <select id="projectSelect" style="margin-bottom:12px"></select>
       <div class="weather-bar" id="weatherBar"><span class="wicon">☀️</span><span id="weatherText">Mon Mar 3 · 72°F Sunny · Oceanside</span></div>
-      <div class="step-title">Who was on site today?</div>
+      <div class="step-title">Who's on site today?</div>
       <p class="step-sub">Tap + or − to set headcount for each sub.</p>
       <div id="subsList"></div>
       <button class="add-btn" onclick="addSubRow()">+ Add Sub</button>
@@ -249,7 +249,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
         <div id="delayBreakdown"></div>
       </div>
       <div class="card mt-12">
-        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Sub Reliability</h3>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Crew Performance</h3>
         <div id="subScores"></div>
       </div>
     </div>
@@ -265,27 +265,27 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
   <div class="modal" id="modalContent" onclick="event.stopPropagation()"></div>
 </div>
 <script>
-let S={demo:false,step:1,pin:'',subs:[],phases:[],voiceClips:[],issues:[],photos:[],planTags:[],reports:[],punchItems:[],projects:[]};
-const PHASES=['Framing','Rough Electric','Rough Plumb','Scratch Coat','Brown Coat','Lath','Drywall','Paint','Cleanup','Inspections'];
-const PLAN_OPTS=['Continue per schedule','Waiting on inspection','Weather dependent','Need materials'];
+let S={demo:false,step:1,pin:'',crews:[],phases:[],voiceClips:[],issues:[],photos:[],planTags:[],reports:[],punchItems:[],projects:[]};
+const PHASES=['Scaffold','Lath','Gun Crew','Scratch Coat','Brown Coat','Finish','Touch Up','Masking','Siding','Veneer','Clean Up','Inspections'];
+const PLAN_OPTS=['Continue per schedule','Waiting on inspection','Weather dependent','Need materials','Waiting on other trades'];
 
 function demoData(){
   S.projects=[
-    {id:1,name:'Riverside Apartments',subs:['ABC Plumbing','DEF Electric','GHI Drywall','JKL Framing','MNO Laborers']},
-    {id:2,name:'Oak Valley Townhomes',subs:['ABC Plumbing','PQR Concrete','STU Roofing','DEF Electric','VWX Painters']}
+    {id:1,name:'Riverside Apartments — Bldg A-C',crews:['Scaffold','Lath','Gun Crew','Finish','Touch Up','Clean Up','Masking']},
+    {id:2,name:'Oak Valley Townhomes — Phase 2',crews:['Scaffold','Lath','Siding','Veneer','Clean Up','Masking']}
   ];
   S.reports=[
-    {id:1,project:'Riverside Apartments',date:'2026-03-02',crew:[{name:'ABC Plumbing',count:4,hours:8},{name:'DEF Electric',count:3,hours:8},{name:'JKL Framing',count:6,hours:10}],work:'Completed 2nd floor rough plumbing. Framing crew finished units 201-204. Electrical running conduit in Building B.',issues:[{type:'delay',who:'ABC Plumbing',duration:'2h',note:'Waiting on fixtures delivery'}],tomorrow:'Continue framing Building B. Plumbing fixtures expected AM delivery.'},
-    {id:2,project:'Riverside Apartments',date:'2026-03-01',crew:[{name:'GHI Drywall',count:8,hours:8},{name:'MNO Laborers',count:4,hours:6}],work:'Drywall hanging on 1st floor units 101-108. Cleanup crew cleared debris from south lot.',issues:[],tomorrow:'Continue drywall. Inspection scheduled 10 AM.'},
-    {id:3,project:'Oak Valley Townhomes',date:'2026-03-02',crew:[{name:'PQR Concrete',count:5,hours:10},{name:'STU Roofing',count:4,hours:8}],work:'Poured foundation for units 5-8. Roofing crew completed units 1-2.',issues:[{type:'problem',text:'Concrete crack in unit 6 foundation',severity:'Medium'}],tomorrow:'Continue roofing units 3-4. Concrete cure check.'},
-    {id:4,project:'Oak Valley Townhomes',date:'2026-02-28',crew:[{name:'DEF Electric',count:3,hours:8},{name:'VWX Painters',count:6,hours:8}],work:'Electrical rough-in units 1-4. Paint crew started exterior primer.',issues:[{type:'delay',who:'VWX Painters',duration:'3h',note:'Rain delay — stopped exterior work'}],tomorrow:'Weather dependent for exterior. Continue interior electric.'}
+    {id:1,project:'Riverside Apartments',date:'2026-03-02',crew:[{name:'Scaffold',count:4,hours:8},{name:'Lath',count:6,hours:8},{name:'Gun Crew',count:3,hours:10}],work:'Scaffold set on Building B east side. Lath crew hung 2nd floor units 201-208. Gun crew shot scratch coat on Building A 1st floor.',issues:[{type:'delay',who:'Scaffold',duration:'2h',note:'Waiting on material delivery — scaffold planks short'}],tomorrow:'Continue lath Building B. Gun crew moves to 2nd floor Building A.'},
+    {id:2,project:'Riverside Apartments',date:'2026-03-01',crew:[{name:'Finish',count:8,hours:8},{name:'Clean Up',count:3,hours:6}],work:'Finish crew completed brown coat on Building A units 101-108. Cleanup cleared debris and prepped Building B staging area.',issues:[],tomorrow:'Continue finish on 2nd floor. Cleanup move to Building C.'},
+    {id:3,project:'Oak Valley Townhomes',date:'2026-03-02',crew:[{name:'Siding',count:5,hours:10},{name:'Scaffold',count:3,hours:8}],work:'Siding crew installed HardiePlank on units 5-8 front elevation. Scaffold set up on units 9-12.',issues:[{type:'problem',text:'Siding material color mismatch — wrong lot number on 2 pallets',severity:'Medium'}],tomorrow:'Continue siding units 9-12. Scaffold move to rear elevation.'},
+    {id:4,project:'Oak Valley Townhomes',date:'2026-02-28',crew:[{name:'Veneer',count:4,hours:8},{name:'Masking',count:2,hours:8}],work:'Veneer stone installed on units 1-4 entry columns. Masking crew prepped windows and doors on units 5-8.',issues:[{type:'delay',who:'Masking',duration:'3h',note:'Rain delay — stopped exterior masking work'}],tomorrow:'Weather dependent for masking. Continue veneer if dry.'}
   ];
   S.punchItems=[
-    {id:1,desc:'Drywall crack above unit 103 door',location:'Unit 103, hallway',sub:'GHI Drywall',status:'open',photo:null},
-    {id:2,desc:'Missing outlet cover plate',location:'Unit 201, kitchen',sub:'DEF Electric',status:'progress',photo:null},
-    {id:3,desc:'Paint touch-up needed on stairwell',location:'Building A, stairwell 2',sub:'VWX Painters',status:'open',photo:null},
-    {id:4,desc:'Leaking shutoff valve',location:'Unit 105, bathroom',sub:'ABC Plumbing',status:'complete',photo:null},
-    {id:5,desc:'Uneven tile grout line',location:'Unit 202, master bath',sub:'GHI Drywall',status:'open',photo:null}
+    {id:1,desc:'Scratch coat crack above unit 103 window',location:'Unit 103, east wall',sub:'Gun Crew',status:'open',photo:null},
+    {id:2,desc:'Lath overlap gap at corner bead',location:'Unit 201, NW corner',sub:'Lath',status:'progress',photo:null},
+    {id:3,desc:'Touch up needed on finish coat — trowel marks',location:'Building A, stairwell 2',sub:'Touch Up',status:'open',photo:null},
+    {id:4,desc:'Scaffold brace loose on 3rd floor',location:'Building B, south side',sub:'Scaffold',status:'complete',photo:null},
+    {id:5,desc:'Siding gap at J-channel transition',location:'Unit 8, rear elevation',sub:'Siding',status:'open',photo:null}
   ];
 }
 
@@ -364,17 +364,17 @@ function initStep1(){
 function loadProjectSubs(){
   const pid=+document.getElementById('projectSelect').value;
   const proj=S.projects.find(p=>p.id===pid);if(!proj)return;
-  S.subs=proj.subs.map(n=>({name:n,count:S.demo?Math.floor(Math.random()*5)+2:0,hours:8}));
+  S.crews=proj.crews.map(n=>({name:n,count:S.demo?Math.floor(Math.random()*5)+2:0,hours:8}));
   renderSubs();
 }
 
 function renderSubs(){
-  document.getElementById('subsList').innerHTML=S.subs.map((s,i)=>
-    '<div class="sub-row"><div class="name">'+s.name+'</div><div class="stepper"><button onclick="adjCount('+i+',-1)">−</button><span class="val">'+s.count+'</span><button onclick="adjCount('+i+',1)">+</button></div><select onchange="S.subs['+i+'].hours=+this.value">'+[4,6,8,10].map(h=>'<option value="'+h+'"'+(s.hours===h?' selected':'')+'>'+h+'h</option>').join('')+'</select></div>'
+  document.getElementById('subsList').innerHTML=S.crews.map((s,i)=>
+    '<div class="sub-row"><div class="name">'+s.name+'</div><div class="stepper"><button onclick="adjCount('+i+',-1)">−</button><span class="val">'+s.count+'</span><button onclick="adjCount('+i+',1)">+</button></div><select onchange="S.crews['+i+'].hours=+this.value">'+[4,6,8,10].map(h=>'<option value="'+h+'"'+(s.hours===h?' selected':'')+'>'+h+'h</option>').join('')+'</select></div>'
   ).join('');
 }
-function adjCount(i,d){S.subs[i].count=Math.max(0,S.subs[i].count+d);renderSubs()}
-function addSubRow(){const name=prompt('Sub name:');if(name){S.subs.push({name,count:0,hours:8});renderSubs()}}
+function adjCount(i,d){S.crews[i].count=Math.max(0,S.crews[i].count+d);renderSubs()}
+function addSubRow(){const name=prompt('Crew name:');if(name){S.crews.push({name,count:0,hours:8});renderSubs()}}
 
 function buildPhases(){
   document.getElementById('phaseScroll').innerHTML=PHASES.map(p=>'<button class="phase-btn" onclick="togglePhase(this)">'+p+'</button>').join('');
@@ -424,7 +424,7 @@ function renderVoiceClips(){
 function openModal(type){
   const m=document.getElementById('modalContent');
   document.getElementById('modalBg').classList.remove('hidden');
-  const subs=S.subs.filter(s=>s.count>0).map(s=>s.name);
+  const subs=S.crews.filter(s=>s.count>0).map(s=>s.name);
   const subOpts=subs.map(s=>'<option>'+s+'</option>').join('');
   if(type==='delay'){
     m.innerHTML='<h3>⏰ Log a Delay</h3><label>Who caused it?</label><select id="mDelaySub">'+subOpts+'</select><label>How long?</label><div class="dur-btns">'+['1h','2h','3h','4h+'].map(d=>'<button onclick="selDur(this,\''+d+'\')" data-d="'+d+'">'+d+'</button>').join('')+'</div><label>Quick note</label><input id="mDelayNote" placeholder="What happened?"><button class="btn btn-primary mt-12" onclick="addDelay()">Add Delay</button>';
@@ -433,7 +433,7 @@ function openModal(type){
   }else if(type==='photo'){
     m.innerHTML='<h3>📸 Add Photos</h3><p class="text-sm mb-12">Take a photo or choose from gallery.</p><input type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(this.files)" style="margin-bottom:12px"><button class="btn btn-secondary" onclick="closeModal()">Done</button>';
   }else if(type==='punch'){
-    const allSubs=[...new Set(S.projects.flatMap(p=>p.subs))];
+    const allSubs=[...new Set(S.projects.flatMap(p=>p.crews))];
     m.innerHTML='<h3>🔨 New Punchlist Item</h3><label>Photo (required)</label><input type="file" accept="image/*" capture="environment" id="mPunchPhoto"><label>What\'s wrong?</label><input id="mPunchDesc" placeholder="Describe the issue"><label>Where?</label><input id="mPunchLoc" placeholder="Unit / room"><label>Who fixes it?</label><select id="mPunchSub">'+allSubs.map(s=>'<option>'+s+'</option>').join('')+'</select><button class="btn btn-primary mt-12" onclick="addPunchItem()">Add Item</button>';
   }
 }
@@ -484,7 +484,7 @@ function togglePlan(btn){
 }
 
 function renderReview(){
-  const crew=S.subs.filter(s=>s.count>0);
+  const crew=S.crews.filter(s=>s.count>0);
   const work=(S.phases.length?S.phases.join(', ')+'. ':'')+(document.getElementById('workNotes').value||'');
   const tomorrow=document.getElementById('tomorrowNotes').value||S.planTags.join('. ');
   const proj=document.getElementById('projectSelect');
@@ -506,7 +506,7 @@ function renderReview(){
 }
 
 function submitReport(){
-  const crew=S.subs.filter(s=>s.count>0);
+  const crew=S.crews.filter(s=>s.count>0);
   const proj=document.getElementById('projectSelect');
   S.reports.unshift({
     id:S.reports.length+1,project:proj.options[proj.selectedIndex].text,
@@ -532,7 +532,7 @@ function downloadPDF(){
   const{jsPDF}=window.jspdf;const doc=new jsPDF();
   const proj=document.getElementById('projectSelect');
   const projName=proj.options[proj.selectedIndex].text;
-  const crew=S.subs.filter(s=>s.count>0);
+  const crew=S.crews.filter(s=>s.count>0);
   let y=20;
   doc.setFontSize(20);doc.text('FieldVault Daily Report',20,y);y+=12;
   doc.setFontSize(12);doc.text('Project: '+projName,20,y);y+=8;

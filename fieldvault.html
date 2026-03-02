@@ -166,7 +166,8 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
     </div>
     <div class="page hidden" id="step1">
       <div class="progress" id="prog1"></div>
-      <select id="projectSelect" style="margin-bottom:12px"></select>
+      <select id="projectSelect" style="margin-bottom:12px" onchange="updateProjectHeader()"></select>
+      <div id="projectHeader" style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px;padding:4px 0"></div>
       <div class="weather-bar" id="weatherBar"><span class="wicon">☀️</span><span id="weatherText">Mon Mar 3 · 72°F Sunny · Oceanside</span></div>
       <div class="step-title">Who's on site today?</div>
       <p class="step-sub">Tap + or − to set headcount for each sub.</p>
@@ -174,7 +175,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
       <button class="add-btn" onclick="addSubRow()">+ Add Sub</button>
       <div class="nav-buttons"><div style="flex:1"></div><button class="btn btn-primary" onclick="goStep(2)">Next →</button></div>
     </div>
-    <div class="page hidden" id="step2">
+    <div class="page hidden" id="step2"><div class="proj-name-bar" style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:4px;padding:4px 0"></div>
       <div class="progress" id="prog2"></div>
       <div class="step-title">What got done?</div>
       <p class="step-sub">Tap the mic or type below.</p>
@@ -185,7 +186,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
       <textarea id="workNotes" placeholder="Type or talk — what work was completed today?"></textarea>
       <div class="nav-buttons"><button class="btn btn-secondary" onclick="goStep(1)">← Back</button><button class="btn btn-primary" onclick="goStep(3)">Next →</button></div>
     </div>
-    <div class="page hidden" id="step3">
+    <div class="page hidden" id="step3"><div class="proj-name-bar" style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:4px;padding:4px 0"></div>
       <div class="progress" id="prog3"></div>
       <div class="step-title">Any issues today?</div>
       <p class="step-sub">Log delays, problems, or add photos.</p>
@@ -199,7 +200,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
       <button class="btn btn-secondary mb-16" onclick="goStep(4)" style="background:var(--success);color:#fff;border:none">✓ Skip — No Issues</button>
       <div class="nav-buttons"><button class="btn btn-secondary" onclick="goStep(2)">← Back</button><button class="btn btn-primary" onclick="goStep(4)">Next →</button></div>
     </div>
-    <div class="page hidden" id="step4">
+    <div class="page hidden" id="step4"><div class="proj-name-bar" style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:4px;padding:4px 0"></div>
       <div class="progress" id="prog4"></div>
       <div class="step-title">Tomorrow's plan</div>
       <p class="step-sub">Optional — what's happening next?</p>
@@ -313,7 +314,7 @@ function updatePinDots(){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d
 function enterDemo(){
   S.demo=true;demoData();
   document.getElementById('bottomNav').style.display='flex';
-  showPage('step1');initStep1();setActiveTab('report');
+  showPage('step1');initStep1();updateProjectHeader();setActiveTab('report');
 }
 
 function setActiveTab(t){document.querySelectorAll('.bottom-nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===t)})}
@@ -354,6 +355,13 @@ function updateAllProgress(){
   }
 }
 
+function updateProjectHeader(){
+  var sel=document.getElementById('projectSelect');
+  var name=sel&&sel.selectedIndex>=0?sel.options[sel.selectedIndex].text:'';
+  var h=document.getElementById('projectHeader');
+  if(h)h.textContent=name;
+  document.querySelectorAll('.proj-name-bar').forEach(function(el){el.textContent=name});
+}
 function initStep1(){
   const sel=document.getElementById('projectSelect');
   sel.innerHTML=S.projects.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('');

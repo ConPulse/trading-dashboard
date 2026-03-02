@@ -58,7 +58,7 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .nav-buttons{display:flex;gap:12px;margin-top:20px;padding-bottom:24px}
 .nav-buttons .btn{flex:1}
 .sub-row{background:var(--card);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow);overflow:hidden}.sub-row-main{display:flex;align-items:center;gap:8px;padding:12px;flex-wrap:wrap}
-.sub-row .name{flex:1;font-weight:600;font-size:15px;min-width:80px}.crew-toggle{width:28px;height:28px;font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--bg);transition:transform .2s}.crew-toggle.open{transform:rotate(90deg)}.crew-members{padding:0 12px 12px;display:none}.crew-members.open{display:block}.crew-members-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.crew-member{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:var(--bg);border-radius:16px;font-size:13px;color:var(--text)}.crew-member button{font-size:14px;color:var(--muted);padding:0 2px}.add-member-btn{font-size:13px;color:var(--accent);font-weight:600;padding:4px 0}
+.sub-row .name{flex:1;font-weight:600;font-size:15px;min-width:80px}.sub-row .total-badge{font-size:12px;color:var(--text2);font-weight:600;background:var(--bg);padding:3px 8px;border-radius:10px}.crew-toggle{width:28px;height:28px;font-size:11px;color:var(--text2);display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--bg);transition:transform .2s}.crew-toggle.open{transform:rotate(90deg)}.type-children{padding:0 12px 12px;display:none}.type-children.open{display:block}.named-crew{background:var(--bg);border-radius:8px;padding:10px;margin-bottom:6px}.named-crew-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.named-crew .nc-name{flex:1;font-weight:600;font-size:14px;min-width:60px}.crew-members{padding:4px 8px 0;display:none}.crew-members.open{display:block}.crew-members-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.crew-member{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:var(--card);border-radius:16px;font-size:13px;color:var(--text)}.crew-member button{font-size:14px;color:var(--text2);padding:0 2px}.add-member-btn{font-size:13px;color:var(--accent);font-weight:600;padding:4px 0}.add-crew-btn{font-size:13px;color:var(--accent);font-weight:600;padding:6px 0;display:block}
 .stepper{display:flex;align-items:center;gap:0;background:var(--bg);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
 .stepper button{width:40px;height:40px;font-size:20px;font-weight:700;color:var(--accent);display:flex;align-items:center;justify-content:center}
 .stepper button:active{background:var(--border)}
@@ -172,7 +172,787 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
       <div class="step-title">Who's on site today?</div>
       <p class="step-sub">Tap + or − to set headcount for each sub.</p>
       <div id="subsList"></div>
-      <button class="add-btn" onclick="addSubRow()">+ Add Sub</button>
+      <button class="add-btn" onclick="addSubRow()">+ Add Crew Type</button>
+      <div class="nav-buttons"><div style="flex:1"></div><button class="btn btn-primary" onclick="goStep(2)">Next →</button></div>
+    </div>
+    <div class="page hidden" id="step2"><div class="proj-name-bar" style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:4px;padding:4px 0"></div>
+      <div class="progress" id="prog2"></div>
+      <div class="step-title">What got done?</div>
+      <p class="step-sub">Tap the mic or type below.</p>
+      <div class="voice-area"><button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎙️</button><p class="text-sm mt-12" id="voiceLabel">Tap to record</p></div>
+      <div class="voice-clips" id="voiceClips"></div>
+      <div class="tags" id="phaseTags"></div>
+      <div class="phase-scroll" id="phaseScroll"></div>
+      <textarea id="workNotes" placeholder="Type or talk — what work was completed today?"></textarea>
+      <div class="nav-buttons"><button class="btn btn-secondary" onclick="goStep(1)">← Back</button><button class="btn btn-primary" onclick="goStep(3)">Next →</button></div>
+    </div>
+    <div class="page hidden" id="step3"><div class="proj-name-bar" style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:4px;padding:4px 0"></div>
+      <div class="progress" id="prog3"></div>
+      <div class="step-title">Any issues today?</div>
+      <p class="step-sub">Log delays, problems, or add photos.</p>
+      <div class="issue-cats">
+        <button class="issue-cat" onclick="openModal('delay')"><span class="ico">⏰</span>Delays</button>
+        <button class="issue-cat" onclick="openModal('problem')"><span class="ico">⚠️</span>Problems</button>
+        <button class="issue-cat" onclick="openModal('photo')"><span class="ico">📸</span>Photos</button>
+      </div>
+      <div id="issuesList"></div>
+      <div id="photoGrid" class="photo-grid"></div>
+      <button class="btn btn-secondary mb-16" onclick="goStep(4)" style="background:var(--success);color:#fff;border:none">✓ Skip — No Issues</button>
+      <div class="nav-buttons"><button class="btn btn-secondary" onclick="goStep(2)">← Back</button><button class="btn btn-primary" onclick="goStep(4)">Next →</button></div>
+    </div>
+    <div class="page hidden" id="step4"><div class="proj-name-bar" style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:4px;padding:4px 0"></div>
+      <div class="progress" id="prog4"></div>
+      <div class="step-title">Tomorrow's plan</div>
+      <p class="step-sub">Optional — what's happening next?</p>
+      <div class="quick-btns" id="planBtns"></div>
+      <textarea id="tomorrowNotes" placeholder="What's the plan for tomorrow?"></textarea>
+      <div class="nav-buttons"><button class="btn btn-secondary" onclick="goStep(3)">← Back</button><button class="btn btn-primary" onclick="goStep(5)">Next →</button></div>
+    </div>
+    <div class="page hidden" id="step5">
+      <div class="progress" id="prog5"></div>
+      <div class="step-title">Review & Submit</div>
+      <p class="step-sub">Make sure everything looks right.</p>
+      <div id="reviewContent"></div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:24px;margin-top:16px">
+        <button class="btn btn-primary" onclick="submitReport()" style="font-size:18px;padding:18px">✅ Submit Report</button>
+        <button class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+      </div>
+    </div>
+    <div class="page hidden" id="successPage">
+      <div class="success-screen">
+        <div class="check">✓</div>
+        <h2>Report Submitted!</h2>
+        <p>Sent to Project Manager</p>
+        <div class="success-btns">
+          <button class="btn btn-secondary" onclick="downloadPDF()">📄 Download PDF</button>
+          <button class="btn btn-secondary" onclick="emailReport()">📧 Email Report</button>
+          <button class="btn btn-primary" onclick="newReport()">🆕 New Report</button>
+        </div>
+      </div>
+    </div>
+    <div class="page hidden" id="historyPage">
+      <div class="step-title mb-16">Report History</div>
+      <div id="historyList"></div>
+    </div>
+    <div class="page hidden" id="punchPage">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="step-title">Punchlist</div>
+        <button class="btn btn-small" style="background:var(--accent);color:#fff" onclick="exportPunchPDF()">Export PDF</button>
+      </div>
+      <button class="add-btn" onclick="openModal('punch')">+ Add Punchlist Item</button>
+      <div id="punchList"></div>
+    </div>
+    <div class="page hidden" id="overviewPage">
+      <div class="step-title mb-16">Overview</div>
+      <div class="stat-grid" id="statGrid"></div>
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Delay Breakdown</h3>
+        <div id="delayBreakdown"></div>
+      </div>
+      <div class="card mt-12">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:12px">Crew Performance</h3>
+        <div id="subScores"></div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav" id="bottomNav" style="display:none">
+    <button onclick="navTo('report')" data-tab="report"><span class="ico">📝</span>New Report</button>
+    <button onclick="navTo('history')" data-tab="history"><span class="ico">📋</span>History</button>
+    <button onclick="navTo('punch')" data-tab="punch"><span class="ico">🔨</span>Punchlist</button>
+    <button onclick="navTo('overview')" data-tab="overview"><span class="ico">📊</span>Overview</button>
+  </div>
+</div>
+<div class="modal-bg hidden" id="modalBg" onclick="closeModal()">
+  <div class="modal" id="modalContent" onclick="event.stopPropagation()"></div>
+</div>
+<script>
+let S={demo:false,step:1,pin:'',crewTypes:[],phases:[],voiceClips:[],issues:[],photos:[],planTags:[],reports:[],punchItems:[],projects:[]};
+const PHASES=['Scaffold','Lath','Gun Crew','Scratch Coat','Brown Coat','Finish','Touch Up','Masking','Siding','Veneer','Clean Up','Inspections'];
+const PLAN_OPTS=['Continue per schedule','Waiting on inspection','Weather dependent','Need materials','Waiting on other trades'];
+
+function demoData(){
+  S.projects=[
+    {id:1,name:'Riverside Apartments — Bldg A-C',crewTypes:[
+      {type:'Scaffold',namedCrews:[
+        {name:'Gomez',count:4,hours:8,members:['Mike R.','Jose L.','Dave K.','Tommy S.']},
+        {name:'Rivera',count:3,hours:8,members:[]}
+      ]},
+      {type:'Lath',namedCrews:[
+        {name:'Martinez',count:6,hours:8,members:['Carlos M.','Miguel A.','Pedro G.','Juan R.','Luis H.','Marco T.']}
+      ]},
+      {type:'Gun Crew',namedCrews:[
+        {name:'Delgado',count:3,hours:10,members:['Danny F.','Ray P.','Chris B.']},
+        {name:'Santos',count:4,hours:8,members:[]}
+      ]},
+      {type:'Finish',namedCrews:[]},
+      {type:'Touch Up',namedCrews:[]},
+      {type:'Clean Up',namedCrews:[]},
+      {type:'Masking',namedCrews:[]}
+    ]},
+    {id:2,name:'Oak Valley Townhomes — Phase 2',crewTypes:[
+      {type:'Siding',namedCrews:[
+        {name:'Hernandez',count:5,hours:10,members:[]}
+      ]},
+      {type:'Scaffold',namedCrews:[
+        {name:'Reyes',count:3,hours:8,members:[]}
+      ]},
+      {type:'Lath',namedCrews:[]},
+      {type:'Veneer',namedCrews:[]},
+      {type:'Clean Up',namedCrews:[]},
+      {type:'Masking',namedCrews:[]}
+    ]}
+  ];
+  S.reports=[
+    {id:1,project:'Riverside Apartments',date:'2026-03-02',crew:[
+      {type:'Scaffold',namedCrews:[{name:'Gomez',count:4,hours:8},{name:'Rivera',count:3,hours:8}]},
+      {type:'Lath',namedCrews:[{name:'Martinez',count:6,hours:8}]},
+      {type:'Gun Crew',namedCrews:[{name:'Delgado',count:3,hours:10}]}
+    ],work:'Scaffold set on Building B east side. Lath crew hung 2nd floor units 201-208. Gun crew shot scratch coat on Building A 1st floor.',issues:[{type:'delay',who:'Scaffold — Gomez',duration:'2h',note:'Waiting on material delivery — scaffold planks short'}],tomorrow:'Continue lath Building B. Gun crew moves to 2nd floor Building A.'},
+    {id:2,project:'Riverside Apartments',date:'2026-03-01',crew:[
+      {type:'Finish',namedCrews:[{name:'Lopez',count:8,hours:8}]},
+      {type:'Clean Up',namedCrews:[{name:'Vargas',count:3,hours:6}]}
+    ],work:'Finish crew completed brown coat on Building A units 101-108. Cleanup cleared debris and prepped Building B staging area.',issues:[],tomorrow:'Continue finish on 2nd floor. Cleanup move to Building C.'},
+    {id:3,project:'Oak Valley Townhomes',date:'2026-03-02',crew:[
+      {type:'Siding',namedCrews:[{name:'Hernandez',count:5,hours:10}]},
+      {type:'Scaffold',namedCrews:[{name:'Reyes',count:3,hours:8}]}
+    ],work:'Siding crew installed HardiePlank on units 5-8 front elevation. Scaffold set up on units 9-12.',issues:[{type:'problem',text:'Siding material color mismatch — wrong lot number on 2 pallets',severity:'Medium'}],tomorrow:'Continue siding units 9-12. Scaffold move to rear elevation.'},
+    {id:4,project:'Oak Valley Townhomes',date:'2026-02-28',crew:[
+      {type:'Veneer',namedCrews:[{name:'Castillo',count:4,hours:8}]},
+      {type:'Masking',namedCrews:[{name:'Ortiz',count:2,hours:8}]}
+    ],work:'Veneer stone installed on units 1-4 entry columns. Masking crew prepped windows and doors on units 5-8.',issues:[{type:'delay',who:'Masking — Ortiz',duration:'3h',note:'Rain delay — stopped exterior masking work'}],tomorrow:'Weather dependent for masking. Continue veneer if dry.'}
+  ];
+  S.punchItems=[
+    {id:1,desc:'Scratch coat crack above unit 103 window',location:'Unit 103, east wall',sub:'Gun Crew — Delgado',status:'open',photo:null},
+    {id:2,desc:'Lath overlap gap at corner bead',location:'Unit 201, NW corner',sub:'Lath — Martinez',status:'progress',photo:null},
+    {id:3,desc:'Touch up needed on finish coat — trowel marks',location:'Building A, stairwell 2',sub:'Touch Up',status:'open',photo:null},
+    {id:4,desc:'Scaffold brace loose on 3rd floor',location:'Building B, south side',sub:'Scaffold — Gomez',status:'complete',photo:null},
+    {id:5,desc:'Siding gap at J-channel transition',location:'Unit 8, rear elevation',sub:'Siding — Hernandez',status:'open',photo:null}
+  ];
+}
+
+function init(){buildNumpad();buildPhases();buildPlanBtns()}
+
+function buildNumpad(){
+  const np=document.getElementById('numpad');
+  for(let i=1;i<=9;i++){const b=document.createElement('button');b.textContent=i;b.onclick=()=>pinInput(i);np.appendChild(b)}
+  const del=document.createElement('button');del.textContent='⌫';del.onclick=pinClear;np.appendChild(del);
+  const z=document.createElement('button');z.textContent='0';z.onclick=()=>pinInput(0);np.appendChild(z);
+  const empty=document.createElement('div');np.appendChild(empty);
+}
+
+function pinInput(n){
+  if(S.pin.length>=4)return;
+  S.pin+=n;updatePinDots();
+  if(S.pin.length===4){
+    if(S.pin==='1234'){enterDemo()}
+    else{S.pin='';updatePinDots();document.getElementById('pinDots').style.animation='shake .3s';setTimeout(()=>document.getElementById('pinDots').style.animation='',300)}
+  }
+}
+function pinClear(){S.pin=S.pin.slice(0,-1);updatePinDots()}
+function updatePinDots(){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.classList.toggle('filled',i<S.pin.length);d.textContent=i<S.pin.length?'●':''})}
+
+function enterDemo(){
+  S.demo=true;demoData();
+  document.getElementById('bottomNav').style.display='flex';
+  showPage('step1');initStep1();setActiveTab('report');
+}
+
+function setActiveTab(t){document.querySelectorAll('.bottom-nav button').forEach(b=>{b.classList.toggle('active',b.dataset.tab===t)})}
+
+function navTo(t){
+  setActiveTab(t);
+  if(t==='report'){showPage('step'+S.step);if(S.step===1)initStep1()}
+  else if(t==='history'){showPage('historyPage');renderHistory()}
+  else if(t==='punch'){showPage('punchPage');renderPunch()}
+  else if(t==='overview'){showPage('overviewPage');renderOverview()}
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>{if(p.id!==id)p.classList.add('hidden')});
+  const pg=document.getElementById(id);
+  pg.classList.remove('hidden','slide-left','slide-right');
+  pg.scrollTop=0;
+}
+
+function goStep(n){
+  S.step=n;
+  if(n<=4)showPage('step'+n);
+  else if(n===5){renderReview();showPage('step5')}
+  updateAllProgress();
+}
+
+function updateAllProgress(){
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('prog'+i);if(!el)continue;
+    let html='';
+    for(let s=1;s<=5;s++){
+      const cls=s<S.step?'done':s===S.step?'active':'';
+      const label=s===5?'✓':s;
+      html+='<div class="step-ind '+cls+'">'+(s<S.step?'✓':label)+'</div>';
+      if(s<5)html+='<div class="line '+(s<S.step?'done':'')+'"></div>';
+    }
+    el.innerHTML=html;
+  }
+}
+
+function initStep1(){
+  const sel=document.getElementById('projectSelect');
+  sel.innerHTML=S.projects.map(p=>'<option value="'+p.id+'">'+p.name+'</option>').join('');
+  sel.onchange=loadProjectCrews;
+  loadProjectCrews();updateAllProgress();
+}
+
+function loadProjectCrews(){
+  const pid=+document.getElementById('projectSelect').value;
+  const proj=S.projects.find(p=>p.id===pid);if(!proj)return;
+  S.crewTypes=JSON.parse(JSON.stringify(proj.crewTypes));
+  renderSubs();
+}
+
+/* --- helpers to get flat crew lists for dropdowns --- */
+function getActiveCrewLabels(){
+  const labels=[];
+  S.crewTypes.forEach(ct=>{
+    ct.namedCrews.forEach(nc=>{
+      if(nc.count>0) labels.push(ct.type+' — '+nc.name);
+    });
+  });
+  return labels;
+}
+function getAllCrewTypeNames(){
+  return [...new Set(S.projects.flatMap(p=>p.crewTypes.map(ct=>ct.type)))];
+}
+function totalForType(ct){return ct.namedCrews.reduce((a,nc)=>a+nc.count,0)}
+
+/* --- 3-level crew rendering --- */
+function renderSubs(){
+  const el=document.getElementById('subsList');
+  el.innerHTML=S.crewTypes.map((ct,ti)=>{
+    const total=totalForType(ct);
+    let h='<div class="sub-row">';
+    h+='<div class="sub-row-main">';
+    h+='<button class="crew-toggle'+(ct._open?' open':'')+'" onclick="toggleType('+ti+')">▶</button>';
+    h+='<div class="name">'+ct.type+'</div>';
+    h+='<span class="total-badge">'+total+' ppl</span>';
+    h+='</div>';
+    h+='<div class="type-children'+(ct._open?' open':'')+'">';
+    ct.namedCrews.forEach((nc,ni)=>{
+      h+='<div class="named-crew">';
+      h+='<div class="named-crew-header">';
+      h+='<button class="crew-toggle'+(nc._open?' open':'')+'" onclick="toggleNamedCrew('+ti+','+ni+')">▶</button>';
+      h+='<div class="nc-name">'+nc.name+' Crew</div>';
+      h+='<div class="stepper"><button onclick="adjCount('+ti+','+ni+',-1)">−</button><span class="val">'+nc.count+'</span><button onclick="adjCount('+ti+','+ni+',1)">+</button></div>';
+      h+='<select onchange="S.crewTypes['+ti+'].namedCrews['+ni+'].hours=+this.value">';
+      [4,6,8,10].forEach(hr=>{h+='<option value="'+hr+'"'+(nc.hours===hr?' selected':'')+'>'+hr+'h</option>'});
+      h+='</select>';
+      h+='</div>';
+      // members
+      h+='<div class="crew-members'+(nc._open?' open':'')+'">';
+      h+='<div class="crew-members-list">';
+      if(nc.members&&nc.members.length){
+        nc.members.forEach((m,mi)=>{
+          h+='<span class="crew-member">'+m+'<button onclick="removeMember('+ti+','+ni+','+mi+')">×</button></span>';
+        });
+      } else {
+        h+='<span style="color:var(--text2);font-size:13px">No names added</span>';
+      }
+      h+='</div>';
+      h+='<button class="add-member-btn" onclick="addMember('+ti+','+ni+')">+ Add Name</button>';
+      h+='</div></div>';
+    });
+    h+='<button class="add-crew-btn" onclick="addNamedCrew('+ti+')">+ Add '+ct.type+' Crew</button>';
+    h+='</div></div>';
+    return h;
+  }).join('');
+}
+
+function toggleType(ti){S.crewTypes[ti]._open=!S.crewTypes[ti]._open;renderSubs()}
+function toggleNamedCrew(ti,ni){S.crewTypes[ti].namedCrews[ni]._open=!S.crewTypes[ti].namedCrews[ni]._open;renderSubs()}
+function adjCount(ti,ni,d){S.crewTypes[ti].namedCrews[ni].count=Math.max(0,S.crewTypes[ti].namedCrews[ni].count+d);renderSubs()}
+function addNamedCrew(ti){const name=prompt(S.crewTypes[ti].type+' crew name (e.g. last name):');if(name){S.crewTypes[ti].namedCrews.push({name,count:0,hours:8,members:[]});S.crewTypes[ti]._open=true;renderSubs()}}
+function addSubRow(){const name=prompt('Crew type name:');if(name){S.crewTypes.push({type:name,namedCrews:[],_open:true});renderSubs()}}
+function addMember(ti,ni){const name=prompt('Name:');if(name){if(!S.crewTypes[ti].namedCrews[ni].members)S.crewTypes[ti].namedCrews[ni].members=[];S.crewTypes[ti].namedCrews[ni].members.push(name);S.crewTypes[ti].namedCrews[ni]._open=true;renderSubs()}}
+function removeMember(ti,ni,mi){S.crewTypes[ti].namedCrews[ni].members.splice(mi,1);renderSubs()}
+
+function buildPhases(){
+  document.getElementById('phaseScroll').innerHTML=PHASES.map(p=>'<button class="phase-btn" onclick="togglePhase(this)">'+p+'</button>').join('');
+}
+function togglePhase(btn){
+  const p=btn.textContent;
+  const i=S.phases.indexOf(p);
+  if(i>=0){S.phases.splice(i,1);btn.classList.remove('selected')}
+  else{S.phases.push(p);btn.classList.add('selected')}
+  renderPhaseTags();
+}
+function renderPhaseTags(){
+  document.getElementById('phaseTags').innerHTML=S.phases.map((p,i)=>'<span class="tag">'+p+'<button onclick="removePhase('+i+')">×</button></span>').join('');
+}
+function removePhase(i){
+  const p=S.phases[i];S.phases.splice(i,1);renderPhaseTags();
+  document.querySelectorAll('.phase-btn').forEach(b=>{b.classList.toggle('selected',S.phases.includes(b.textContent))});
+}
+
+let mediaRec=null,chunks=[],recStart=0;
+function toggleVoice(){
+  const btn=document.getElementById('voiceBtn');
+  if(mediaRec&&mediaRec.state==='recording'){
+    mediaRec.stop();btn.classList.remove('recording');
+    document.getElementById('voiceLabel').textContent='Tap to record';return;
+  }
+  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+    mediaRec=new MediaRecorder(stream);chunks=[];
+    mediaRec.ondataavailable=e=>chunks.push(e.data);
+    mediaRec.onstop=()=>{
+      const blob=new Blob(chunks,{type:'audio/webm'});
+      const url=URL.createObjectURL(blob);
+      const dur=Math.round((Date.now()-recStart)/1000);
+      S.voiceClips.push({url,dur});renderVoiceClips();
+      stream.getTracks().forEach(t=>t.stop());
+    };
+    mediaRec.start();recStart=Date.now();
+    btn.classList.add('recording');
+    document.getElementById('voiceLabel').textContent='Recording... tap to stop';
+  }).catch(()=>alert('Microphone access needed'));
+}
+function renderVoiceClips(){
+  document.getElementById('voiceClips').innerHTML=S.voiceClips.map((c,i)=>
+    '<span class="voice-clip">🎙️ '+c.dur+'s <button onclick="S.voiceClips.splice('+i+',1);renderVoiceClips()">×</button></span>').join('');
+}
+
+function openModal(type){
+  const m=document.getElementById('modalContent');
+  document.getElementById('modalBg').classList.remove('hidden');
+  const crewLabels=getActiveCrewLabels();
+  const subOpts=crewLabels.map(s=>'<option>'+s+'</option>').join('');
+  if(type==='delay'){
+    m.innerHTML='<h3>⏰ Log a Delay</h3><label>Who caused it?</label><select id="mDelaySub">'+subOpts+'</select><label>How long?</label><div class="dur-btns">'+['1h','2h','3h','4h+'].map(d=>'<button onclick="selDur(this,\''+d+'\')" data-d="'+d+'">'+d+'</button>').join('')+'</div><label>Quick note</label><input id="mDelayNote" placeholder="What happened?"><button class="btn btn-primary mt-12" onclick="addDelay()">Add Delay</button>';
+  }else if(type==='problem'){
+    m.innerHTML='<h3>⚠️ Log a Problem</h3><label>What happened?</label><textarea id="mProbText" placeholder="Describe the issue"></textarea><label>Severity</label><div class="sev-btns">'+['Low','Medium','High'].map(s=>'<button data-s="'+s+'" onclick="selSev(this)">'+s+'</button>').join('')+'</div><button class="btn btn-primary mt-12" onclick="addProblem()">Add Problem</button>';
+  }else if(type==='photo'){
+    m.innerHTML='<h3>📸 Add Photos</h3><p class="text-sm mb-12">Take a photo or choose from gallery.</p><input type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(this.files)" style="margin-bottom:12px"><button class="btn btn-secondary" onclick="closeModal()">Done</button>';
+  }else if(type==='punch'){
+    const allSubs=getAllCrewTypeNames();
+    m.innerHTML='<h3>🔨 New Punchlist Item</h3><label>Photo (required)</label><input type="file" accept="image/*" capture="environment" id="mPunchPhoto"><label>What\'s wrong?</label><input id="mPunchDesc" placeholder="Describe the issue"><label>Where?</label><input id="mPunchLoc" placeholder="Unit / room"><label>Who fixes it?</label><select id="mPunchSub">'+allSubs.map(s=>'<option>'+s+'</option>').join('')+'</select><button class="btn btn-primary mt-12" onclick="addPunchItem()">Add Item</button>';
+  }
+}
+function closeModal(){document.getElementById('modalBg').classList.add('hidden')}
+let selDurVal='',selSevVal='';
+function selDur(btn,v){selDurVal=v;btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected')}
+function selSev(btn){selSevVal=btn.dataset.s;btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected')}
+
+function addDelay(){
+  const who=document.getElementById('mDelaySub').value;
+  const note=document.getElementById('mDelayNote').value;
+  if(!selDurVal){alert('Select duration');return}
+  S.issues.push({type:'delay',who,duration:selDurVal,note});
+  renderIssues();closeModal();selDurVal='';
+}
+function addProblem(){
+  const text=document.getElementById('mProbText').value;
+  if(!text){alert('Describe the problem');return}
+  S.issues.push({type:'problem',text,severity:selSevVal||'Medium'});
+  renderIssues();closeModal();selSevVal='';
+}
+function renderIssues(){
+  document.getElementById('issuesList').innerHTML=S.issues.map((iss,i)=>{
+    if(iss.type==='delay')return'<div class="issue-card"><div class="info"><span class="type-badge" style="background:rgba(245,158,11,0.12);color:var(--warn)">DELAY</span> <strong>'+iss.who+'</strong> · '+iss.duration+'<br><span class="text-sm">'+iss.note+'</span></div><button class="del" onclick="S.issues.splice('+i+',1);renderIssues()">×</button></div>';
+    return'<div class="issue-card"><div class="info"><span class="type-badge" style="background:rgba(239,68,68,0.12);color:var(--danger)">PROBLEM</span> <strong>'+iss.severity+'</strong><br><span class="text-sm">'+iss.text+'</span></div><button class="del" onclick="S.issues.splice('+i+',1);renderIssues()">×</button></div>';
+  }).join('');
+}
+
+function addPhotos(files){
+  for(const f of files){S.photos.push({url:URL.createObjectURL(f),name:f.name})}
+  renderPhotos();
+}
+function renderPhotos(){
+  document.getElementById('photoGrid').innerHTML=S.photos.map((p,i)=>
+    '<div class="photo-thumb"><img src="'+p.url+'"><button class="del-photo" onclick="S.photos.splice('+i+',1);renderPhotos()">×</button></div>').join('');
+}
+
+function buildPlanBtns(){
+  document.getElementById('planBtns').innerHTML=PLAN_OPTS.map(o=>'<button onclick="togglePlan(this)">'+o+'</button>').join('');
+}
+function togglePlan(btn){
+  const o=btn.textContent;
+  const i=S.planTags.indexOf(o);
+  if(i>=0){S.planTags.splice(i,1);btn.classList.remove('selected')}
+  else{S.planTags.push(o);btn.classList.add('selected')}
+  const ta=document.getElementById('tomorrowNotes');
+  if(!ta.value&&S.planTags.length)ta.value=S.planTags.join('. ')+'.';
+}
+
+/* --- flatten crewTypes for review/submit --- */
+function getActiveTypes(){
+  return S.crewTypes.filter(ct=>totalForType(ct)>0);
+}
+function flatCrewCount(){
+  return S.crewTypes.reduce((a,ct)=>a+totalForType(ct),0);
+}
+
+function renderReview(){
+  const activeTypes=getActiveTypes();
+  const totalWorkers=flatCrewCount();
+  const work=(S.phases.length?S.phases.join(', ')+'. ':'')+(document.getElementById('workNotes').value||'');
+  const tomorrow=document.getElementById('tomorrowNotes').value||S.planTags.join('. ');
+  const proj=document.getElementById('projectSelect');
+  const projName=proj.options[proj.selectedIndex].text;
+  let h='<div class="weather-bar"><span class="wicon">☀️</span><span>'+projName+' · '+document.getElementById('weatherText').textContent+'</span></div>';
+  h+='<div class="review-section card"><div class="sec-head"><h3>👷 Crew ('+totalWorkers+' workers)</h3><button class="edit-btn" onclick="goStep(1)">✏️ Edit</button></div>';
+  activeTypes.forEach(ct=>{
+    const activeNc=ct.namedCrews.filter(nc=>nc.count>0);
+    h+='<div style="font-weight:700;font-size:14px;margin-top:8px">'+ct.type+' ('+totalForType(ct)+')</div>';
+    activeNc.forEach(nc=>{
+      h+='<div class="review-item"><span>'+nc.name+' Crew</span><span>'+nc.count+' ppl · '+nc.hours+'h</span></div>';
+    });
+  });
+  h+='</div>';
+  h+='<div class="review-section card"><div class="sec-head"><h3>🔨 Work Completed</h3><button class="edit-btn" onclick="goStep(2)">✏️ Edit</button></div><p style="font-size:14px;padding:4px 0">'+(work||'<em>Nothing entered</em>')+'</p></div>';
+  h+='<div class="review-section card"><div class="sec-head"><h3>⚠️ Issues ('+S.issues.length+')</h3><button class="edit-btn" onclick="goStep(3)">✏️ Edit</button></div>';
+  if(!S.issues.length)h+='<p class="text-sm">No issues — clean day! ✅</p>';
+  S.issues.forEach(iss=>{
+    if(iss.type==='delay')h+='<div class="review-item"><span>⏰ '+iss.who+' — '+iss.duration+'</span><span>'+iss.note+'</span></div>';
+    else h+='<div class="review-item"><span>⚠️ '+iss.severity+'</span><span>'+iss.text+'</span></div>';
+  });
+  h+='</div>';
+  h+='<div class="review-section card"><div class="sec-head"><h3>📅 Tomorrow</h3><button class="edit-btn" onclick="goStep(4)">✏️ Edit</button></div><p style="font-size:14px;padding:4px 0">'+(tomorrow||'<em>Nothing planned</em>')+'</p></div>';
+  document.getElementById('reviewContent').innerHTML=h;
+}
+
+function submitReport(){
+  const activeTypes=getActiveTypes();
+  const proj=document.getElementById('projectSelect');
+  S.reports.unshift({
+    id:S.reports.length+1,project:proj.options[proj.selectedIndex].text,
+    date:new Date().toISOString().slice(0,10),
+    crew:activeTypes.map(ct=>({type:ct.type,namedCrews:ct.namedCrews.filter(nc=>nc.count>0).map(nc=>({name:nc.name,count:nc.count,hours:nc.hours}))})),
+    work:(S.phases.length?S.phases.join(', ')+'. ':'')+(document.getElementById('workNotes').value||''),
+    issues:[...S.issues],
+    tomorrow:document.getElementById('tomorrowNotes').value||S.planTags.join('. ')
+  });
+  showPage('successPage');
+}
+
+function newReport(){
+  S.step=1;S.phases=[];S.voiceClips=[];S.issues=[];S.photos=[];S.planTags=[];
+  document.querySelectorAll('.phase-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('workNotes').value='';
+  document.getElementById('tomorrowNotes').value='';
+  navTo('report');
+}
+function saveDraft(){alert('Draft saved!');newReport()}
+
+function reportCrewTotal(r){
+  return r.crew.reduce((a,ct)=>{
+    if(ct.namedCrews) return a+ct.namedCrews.reduce((b,nc)=>b+nc.count,0);
+    return a+(ct.count||0);
+  },0);
+}
+
+function downloadPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  const proj=document.getElementById('projectSelect');
+  const projName=proj.options[proj.selectedIndex].text;
+  const activeTypes=getActiveTypes();
+  let y=20;
+  doc.setFontSize(20);doc.text('FieldVault Daily Report',20,y);y+=12;
+  doc.setFontSize(12);doc.text('Project: '+projName,20,y);y+=8;
+  doc.text('Date: '+new Date().toLocaleDateString(),20,y);y+=12;
+  doc.setFontSize(14);doc.text('Crew',20,y);y+=8;doc.setFontSize(11);
+  activeTypes.forEach(ct=>{
+    doc.setFontSize(12);doc.text(ct.type+' ('+totalForType(ct)+')',24,y);y+=6;doc.setFontSize(10);
+    ct.namedCrews.filter(nc=>nc.count>0).forEach(nc=>{
+      doc.text(nc.name+' Crew: '+nc.count+' workers, '+nc.hours+'h',30,y);y+=5;
+    });
+    y+=2;
+  });
+  y+=4;doc.setFontSize(14);doc.text('Work Completed',20,y);y+=8;doc.setFontSize(11);
+  const work=(S.phases.join(', ')+'. '+(document.getElementById('workNotes').value||'')).trim();
+  const lines=doc.splitTextToSize(work||'None',170);doc.text(lines,24,y);y+=lines.length*6+6;
+  doc.setFontSize(14);doc.text('Issues',20,y);y+=8;doc.setFontSize(11);
+  if(!S.issues.length){doc.text('No issues',24,y);y+=6}
+  S.issues.forEach(iss=>{
+    if(iss.type==='delay')doc.text('Delay: '+iss.who+' - '+iss.duration+' - '+iss.note,24,y);
+    else doc.text('Problem ('+iss.severity+'): '+iss.text,24,y);y+=6;
+  });
+  y+=6;doc.setFontSize(14);doc.text("Tomorrow's Plan",20,y);y+=8;doc.setFontSize(11);
+  const tmrw=document.getElementById('tomorrowNotes').value||S.planTags.join('. ')||'None';
+  doc.text(doc.splitTextToSize(tmrw,170),24,y);
+  doc.save('FieldVault_'+projName+'_'+new Date().toISOString().slice(0,10)+'.pdf');
+}
+function emailReport(){alert('Email feature coming soon!')}
+
+function renderHistory(){
+  const el=document.getElementById('historyList');
+  if(!S.reports.length){el.innerHTML='<p class="text-sm text-center">No reports yet.</p>';return}
+  el.innerHTML=S.reports.map(r=>
+    '<div class="history-item" onclick="viewReport('+r.id+')"><div><div class="proj">'+r.project+'</div><div class="meta">'+r.date+' · '+reportCrewTotal(r)+' workers</div></div><div style="font-size:20px;color:var(--text2)">›</div></div>').join('');
+}
+function viewReport(id){
+  const r=S.reports.find(x=>x.id===id);if(!r)return;
+  const m=document.getElementById('modalContent');
+  document.getElementById('modalBg').classList.remove('hidden');
+  let h='<h3>'+r.project+'</h3><p class="text-sm mb-12">'+r.date+'</p>';
+  h+='<h4 style="font-size:14px;font-weight:700;margin-bottom:4px">Crew</h4>';
+  r.crew.forEach(ct=>{
+    if(ct.namedCrews){
+      h+='<p style="font-weight:700;font-size:13px;margin-top:6px">'+ct.type+'</p>';
+      ct.namedCrews.forEach(nc=>{
+        h+='<p class="text-sm" style="padding-left:12px">'+nc.name+' Crew: '+nc.count+' workers, '+nc.hours+'h</p>';
+      });
+    } else {
+      h+='<p class="text-sm">'+ct.name+': '+ct.count+' workers, '+ct.hours+'h</p>';
+    }
+  });
+  h+='<h4 style="font-size:14px;font-weight:700;margin:12px 0 4px">Work</h4><p class="text-sm">'+(r.work||'—')+'</p>';
+  h+='<h4 style="font-size:14px;font-weight:700;margin:12px 0 4px">Issues</h4>';
+  if(!r.issues.length)h+='<p class="text-sm">None</p>';
+  r.issues.forEach(iss=>{
+    if(iss.type==='delay')h+='<p class="text-sm">⏰ '+iss.who+' — '+iss.duration+': '+iss.note+'</p>';
+    else h+='<p class="text-sm">⚠️ '+iss.severity+': '+iss.text+'</p>';
+  });
+  h+='<h4 style="font-size:14px;font-weight:700;margin:12px 0 4px">Tomorrow</h4><p class="text-sm">'+(r.tomorrow||'—')+'</p>';
+  h+='<button class="btn btn-secondary mt-12" onclick="closeModal()">Close</button>';
+  m.innerHTML=h;
+}
+
+function renderPunch(){
+  const el=document.getElementById('punchList');
+  if(!S.punchItems.length){el.innerHTML='<p class="text-sm text-center">No punchlist items.</p>';return}
+  el.innerHTML=S.punchItems.map((p,i)=>{
+    const sc=p.status==='open'?'open':p.status==='progress'?'progress':'complete';
+    const sl=p.status==='open'?'Open':p.status==='progress'?'In Progress':'Complete';
+    return'<div class="punch-card"><div class="thumb">'+(p.photo?'<img src="'+p.photo+'">':'📷')+'</div><div class="info"><div class="loc">'+p.location+'</div><div class="desc">'+p.desc+'</div><div class="sub">'+p.sub+'</div></div><button class="punch-status '+sc+'" onclick="cyclePunch('+i+')">'+sl+'</button></div>';
+  }).join('');
+}
+function cyclePunch(i){
+  const p=S.punchItems[i];
+  p.status=p.status==='open'?'progress':p.status==='progress'?'complete':'open';
+  renderPunch();
+}
+function addPunchItem(){
+  const desc=document.getElementById('mPunchDesc').value;
+  const loc=document.getElementById('mPunchLoc').value;
+  const sub=document.getElementById('mPunchSub').value;
+  if(!desc){alert('Describe the issue');return}
+  const photoInput=document.getElementById('mPunchPhoto');
+  let photo=null;
+  if(photoInput.files&&photoInput.files.length)photo=URL.createObjectURL(photoInput.files[0]);
+  S.punchItems.push({id:S.punchItems.length+1,desc,location:loc,sub,status:'open',photo});
+  renderPunch();closeModal();
+}
+function exportPunchPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();let y=20;
+  doc.setFontSize(18);doc.text('FieldVault Punchlist',20,y);y+=12;
+  doc.setFontSize(10);doc.text('Exported: '+new Date().toLocaleDateString(),20,y);y+=10;
+  S.punchItems.forEach((p,i)=>{
+    doc.setFontSize(12);doc.text((i+1)+'. '+p.desc,20,y);y+=6;
+    doc.setFontSize(10);doc.text('   Location: '+p.location+' | Sub: '+p.sub+' | Status: '+p.status,20,y);y+=8;
+    if(y>270){doc.addPage();y=20}
+  });
+  doc.save('FieldVault_Punchlist_'+new Date().toISOString().slice(0,10)+'.pdf');
+}
+
+function renderOverview(){
+  const totalReports=S.reports.length;
+  const totalCrew=S.reports.reduce((a,r)=>a+reportCrewTotal(r),0);
+  const avgCrew=totalReports?Math.round(totalCrew/totalReports):0;
+  const delays=S.reports.reduce((a,r)=>a+r.issues.filter(i=>i.type==='delay').length,0);
+  const hoursLost=S.reports.reduce((a,r)=>a+r.issues.filter(i=>i.type==='delay').reduce((b,d)=>b+parseInt(d.duration)||0,0),0);
+  document.getElementById('statGrid').innerHTML=
+    '<div class="stat-card"><div class="num">'+totalReports+'</div><div class="label">Total Reports</div></div>'+
+    '<div class="stat-card"><div class="num">'+avgCrew+'</div><div class="label">Avg Crew Size</div></div>'+
+    '<div class="stat-card"><div class="num">'+delays+'</div><div class="label">Total Delays</div></div>'+
+    '<div class="stat-card"><div class="num">'+hoursLost+'h</div><div class="label">Hours Lost</div></div>';
+  const delaySubs={};
+  S.reports.forEach(r=>r.issues.filter(i=>i.type==='delay').forEach(d=>{delaySubs[d.who]=(delaySubs[d.who]||0)+1}));
+  const db=document.getElementById('delayBreakdown');
+  if(!Object.keys(delaySubs).length){db.innerHTML='<p class="text-sm">No delays recorded 🎉</p>';}
+  else{const maxD=Math.max(...Object.values(delaySubs));
+    db.innerHTML=Object.entries(delaySubs).sort((a,b)=>b[1]-a[1]).map(([sub,cnt])=>
+      '<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><span style="width:120px;font-size:13px;font-weight:600">'+sub+'</span><div style="flex:1;height:20px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:'+cnt/maxD*100+'%;height:100%;background:var(--warn);border-radius:4px"></div></div><span style="font-size:13px;font-weight:700;width:30px;text-align:right">'+cnt+'</span></div>').join('');}
+  // Crew performance - collect all named crews across reports
+  const allCrewLabels=new Set();
+  S.reports.forEach(r=>r.crew.forEach(ct=>{
+    if(ct.namedCrews) ct.namedCrews.forEach(nc=>allCrewLabels.add(ct.type+' — '+nc.name));
+    else allCrewLabels.add(ct.name);
+  }));
+  const subDelays={};
+  S.reports.forEach(r=>r.issues.filter(i=>i.type==='delay').forEach(d=>{subDelays[d.who]=(subDelays[d.who]||0)+1}));
+  document.getElementById('subScores').innerHTML=[...allCrewLabels].map(sub=>{
+    const d=subDelays[sub]||0;const pct=totalReports?Math.round((1-d/totalReports)*100):100;
+    const color=pct>=80?'var(--success)':pct>=50?'var(--warn)':'var(--danger)';
+    return'<div class="sub-score"><span style="font-size:13px;font-weight:600;width:120px">'+sub+'</span><div class="bar-bg"><div class="bar-fill" style="width:'+pct+'%;background:'+color+'"></div></div><span style="font-size:13px;font-weight:700;width:40px;text-align:right">'+pct+'%</span></div>';
+  }).join('');
+}
+
+init();
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#F8F9FA;--card:#FFFFFF;--text:#1A1D27;--text2:#6B7280;--accent:#FF6B35;--success:#10B981;--warn:#F59E0B;--danger:#EF4444;--border:#E5E7EB;--radius:12px;--shadow:0 2px 8px rgba(0,0,0,0.08)}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button{font-family:inherit;cursor:pointer;border:none;background:none;-webkit-appearance:none}
+input,textarea,select{font-family:inherit;font-size:16px;border:1.5px solid var(--border);border-radius:8px;padding:12px;background:var(--card);color:var(--text);width:100%}
+textarea{resize:vertical;min-height:100px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='2' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+#app{height:100%;display:flex;flex-direction:column}
+.header{background:var(--card);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0;z-index:10}
+.header h1{font-size:20px;font-weight:700}
+.header h1 span{color:var(--accent)}
+.main{flex:1;overflow:hidden;position:relative}
+.bottom-nav{display:flex;background:var(--card);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.bottom-nav button{flex:1;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--text2);min-height:56px}
+.bottom-nav button.active{color:var(--accent)}
+.bottom-nav button .ico{font-size:22px}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:16px;transition:transform .3s ease,opacity .3s ease;will-change:transform;-webkit-overflow-scrolling:touch}
+.page.hidden{display:none}
+.page.slide-left{transform:translateX(-100%);opacity:0}
+.page.slide-right{transform:translateX(100%);opacity:0}
+#loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center}
+#loginPage .logo{font-size:64px}
+#loginPage h2{font-size:28px;font-weight:700}
+#loginPage p{color:var(--text2)}
+.pin-row{display:flex;gap:12px;justify-content:center}
+.pin-dot{width:48px;height:48px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700}
+.pin-dot.filled{border-color:var(--accent);background:rgba(255,107,53,0.1)}
+.numpad{display:grid;grid-template-columns:repeat(3,72px);gap:12px;justify-content:center}
+.numpad button{width:72px;height:56px;font-size:22px;font-weight:600;background:var(--card);border-radius:12px;border:1px solid var(--border)}
+.numpad button:active{background:var(--bg)}
+.btn-demo{width:100%;max-width:300px;padding:16px;background:var(--accent);color:#fff;font-size:17px;font-weight:600;border-radius:var(--radius)}
+.progress{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.progress .step-ind{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;background:var(--border);color:var(--text2);flex-shrink:0}
+.progress .step-ind.active{background:var(--accent);color:#fff}
+.progress .step-ind.done{background:var(--success);color:#fff}
+.progress .line{flex:1;height:3px;background:var(--border);border-radius:2px}
+.progress .line.done{background:var(--success)}
+.step-title{font-size:24px;font-weight:700;margin-bottom:4px}
+.step-sub{color:var(--text2);margin-bottom:16px;font-size:15px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:14px 24px;border-radius:var(--radius);font-size:16px;font-weight:600;min-height:48px;gap:8px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:active{opacity:0.85}
+.btn-secondary{background:var(--bg);color:var(--text);border:1.5px solid var(--border);width:100%}
+.btn-secondary:active{background:var(--border)}
+.btn-small{padding:8px 16px;font-size:14px;border-radius:8px;min-height:40px}
+.btn-ghost{color:var(--accent);font-weight:600;font-size:15px;padding:12px}
+.nav-buttons{display:flex;gap:12px;margin-top:20px;padding-bottom:24px}
+.nav-buttons .btn{flex:1}
+.sub-row{background:var(--card);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow);overflow:hidden}.sub-row-main{display:flex;align-items:center;gap:8px;padding:12px;flex-wrap:wrap}
+.sub-row .name{flex:1;font-weight:600;font-size:15px;min-width:80px}.sub-row .total-badge{font-size:12px;color:var(--text2);font-weight:600;background:var(--bg);padding:3px 8px;border-radius:10px}.crew-toggle{width:28px;height:28px;font-size:11px;color:var(--text2);display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--bg);transition:transform .2s}.crew-toggle.open{transform:rotate(90deg)}.type-children{padding:0 12px 12px;display:none}.type-children.open{display:block}.named-crew{background:var(--bg);border-radius:8px;padding:10px;margin-bottom:6px}.named-crew-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.named-crew .nc-name{flex:1;font-weight:600;font-size:14px;min-width:60px}.crew-members{padding:4px 8px 0;display:none}.crew-members.open{display:block}.crew-members-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.crew-member{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;background:var(--card);border-radius:16px;font-size:13px;color:var(--text)}.crew-member button{font-size:14px;color:var(--text2);padding:0 2px}.add-member-btn{font-size:13px;color:var(--accent);font-weight:600;padding:4px 0}.add-crew-btn{font-size:13px;color:var(--accent);font-weight:600;padding:6px 0;display:block}
+.stepper{display:flex;align-items:center;gap:0;background:var(--bg);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.stepper button{width:40px;height:40px;font-size:20px;font-weight:700;color:var(--accent);display:flex;align-items:center;justify-content:center}
+.stepper button:active{background:var(--border)}
+.stepper .val{width:32px;text-align:center;font-weight:700;font-size:16px}
+.sub-row select{width:70px;padding:8px;font-size:14px}
+.phase-scroll{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;-webkit-overflow-scrolling:touch}
+.phase-scroll::-webkit-scrollbar{display:none}
+.phase-btn{padding:10px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:20px;font-size:14px;font-weight:500;white-space:nowrap;min-height:40px}
+.phase-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(255,107,53,0.12);color:var(--accent);border-radius:16px;font-size:13px;font-weight:600}
+.tag button{font-size:16px;color:var(--accent);padding:0 2px}
+.voice-area{text-align:center;margin:20px 0}
+.voice-btn{width:88px;height:88px;border-radius:50%;background:var(--accent);color:#fff;font-size:36px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(255,107,53,0.35)}
+.voice-btn.recording{background:var(--danger);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 16px rgba(239,68,68,0)}}
+.voice-clips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.voice-clip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:13px}
+.voice-clip button{color:var(--danger);font-size:16px}
+.issue-cats{display:flex;gap:10px;margin-bottom:16px}
+.issue-cat{flex:1;padding:16px 8px;background:var(--card);border:2px solid var(--border);border-radius:var(--radius);text-align:center;font-size:14px;font-weight:600;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.issue-cat .ico{font-size:28px}
+.issue-cat:active{border-color:var(--accent)}
+.issue-card{background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:8px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:start;gap:8px}
+.issue-card .info{flex:1}
+.issue-card .type-badge{font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;text-transform:uppercase}
+.issue-card .del{color:var(--danger);font-size:20px;padding:4px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+.modal-bg.hidden{display:none}
+.modal{background:var(--card);border-radius:20px 20px 0 0;padding:24px 16px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:16px}
+.modal label{display:block;font-size:14px;font-weight:600;color:var(--text2);margin-bottom:6px;margin-top:12px}
+.dur-btns{display:flex;gap:8px}
+.dur-btns button{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:8px;font-weight:600;font-size:15px;min-height:48px}
+.dur-btns button.selected{border-color:var(--accent);background:rgba(255,107,53,0.1);color:var(--accent)}
+.sev-btns{display:flex;gap:8px}
+.sev-btns button{flex:1;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-weight:600;font-size:14px;min-height:44px}
+.sev-btns button[data-s="Low"].selected{border-color:var(--success);background:rgba(16,185,129,0.1);color:var(--success)}
+.sev-btns button[data-s="Medium"].selected{border-color:var(--warn);background:rgba(245,158,11,0.1);color:var(--warn)}
+.sev-btns button[data-s="High"].selected{border-color:var(--danger);background:rgba(239,68,68,0.1);color:var(--danger)}
+.quick-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.quick-btns button{padding:10px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:14px;background:var(--card);min-height:40px}
+.quick-btns button.selected{border-color:var(--accent);background:rgba(255,107,53,0.1);color:var(--accent)}
+.review-section{margin-bottom:16px}
+.review-section .sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.review-section h3{font-size:16px;font-weight:700}
+.review-section .edit-btn{color:var(--accent);font-size:14px;font-weight:600}
+.review-item{padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;display:flex;justify-content:space-between}
+.review-item:last-child{border:none}
+.success-screen{text-align:center;padding:60px 16px}
+.success-screen .check{width:100px;height:100px;border-radius:50%;background:var(--success);color:#fff;font-size:52px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.success-screen h2{font-size:24px;margin-bottom:8px}
+.success-screen p{color:var(--text2);margin-bottom:24px}
+.success-btns{display:flex;flex-direction:column;gap:10px;max-width:300px;margin:0 auto}
+.history-item{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--card);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow)}
+.history-item .meta{font-size:13px;color:var(--text2)}
+.history-item .proj{font-weight:600;font-size:15px}
+.punch-card{background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:10px;box-shadow:var(--shadow);display:flex;gap:12px;align-items:start}
+.punch-card .thumb{width:64px;height:64px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;overflow:hidden}
+.punch-card .thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.punch-card .info{flex:1}
+.punch-card .info .loc{font-size:12px;color:var(--text2)}
+.punch-card .info .desc{font-weight:600;font-size:14px;margin:2px 0}
+.punch-card .info .sub{font-size:12px;color:var(--text2)}
+.punch-status{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;min-height:32px;display:inline-flex;align-items:center;white-space:nowrap;flex-shrink:0}
+.punch-status.open{background:rgba(239,68,68,0.12);color:var(--danger)}
+.punch-status.progress{background:rgba(245,158,11,0.12);color:var(--warn)}
+.punch-status.complete{background:rgba(16,185,129,0.12);color:var(--success)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:16px;text-align:center;box-shadow:var(--shadow)}
+.stat-card .num{font-size:28px;font-weight:700;color:var(--accent)}
+.stat-card .label{font-size:12px;color:var(--text2);margin-top:2px}
+.sub-score{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.sub-score .bar-bg{width:100px;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;flex-shrink:0}
+.sub-score .bar-fill{height:100%;border-radius:4px}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.photo-grid .photo-thumb{aspect-ratio:1;border-radius:8px;background:var(--bg);overflow:hidden;position:relative}
+.photo-grid .photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-grid .photo-thumb .del-photo{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+.weather-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--card);border-radius:var(--radius);margin-bottom:16px;box-shadow:var(--shadow);font-size:14px;color:var(--text2)}
+.weather-bar .wicon{font-size:24px}
+.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}.mt-12{margin-top:12px}
+.text-center{text-align:center}
+.text-sm{font-size:13px;color:var(--text2)}
+.add-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border:2px dashed var(--border);border-radius:var(--radius);color:var(--text2);font-weight:600;font-size:14px;margin-bottom:12px;min-height:48px}
+.add-btn:active{background:var(--bg)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <h1>⛑️ <span>Field</span>Vault</h1>
+    <div id="headerRight"></div>
+  </div>
+  <div class="main" id="mainArea">
+    <div class="page" id="loginPage">
+      <div class="logo">⛑️</div>
+      <h2>FieldVault</h2>
+      <p>Daily reports, done fast.</p>
+      <div class="pin-row" id="pinDots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+      <div class="numpad" id="numpad"></div>
+      <button class="btn-demo" onclick="enterDemo()">Enter Demo</button>
+    </div>
+    <div class="page hidden" id="step1">
+      <div class="progress" id="prog1"></div>
+      <select id="projectSelect" style="margin-bottom:12px" onchange="updateProjectHeader()"></select>
+      <div id="projectHeader" style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:8px;padding:4px 0"></div>
+      <div class="weather-bar" id="weatherBar"><span class="wicon">☀️</span><span id="weatherText">Mon Mar 3 · 72°F Sunny · Oceanside</span></div>
+      <div class="step-title">Who's on site today?</div>
+      <p class="step-sub">Tap + or − to set headcount for each sub.</p>
+      <div id="subsList"></div>
+      <button class="add-btn" onclick="addSubRow()">+ Add Crew Type</button>
       <div class="nav-buttons"><div style="flex:1"></div><button class="btn btn-primary" onclick="goStep(2)">Next →</button></div>
     </div>
     <div class="page hidden" id="step2"><div class="proj-name-bar" style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:4px;padding:4px 0"></div>

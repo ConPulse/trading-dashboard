@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Dashboard</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Pull to Refresh */
+.ptr-indicator { 
+  text-align: center; padding: 0; height: 0; overflow: hidden; 
+  transition: height 0.2s, padding 0.2s; background: var(--bg); 
+  color: var(--teal); font-size: 14px; font-weight: 600;
+}
+.ptr-indicator.pulling { height: 50px; padding: 14px 0; }
+.ptr-indicator.refreshing { height: 50px; padding: 14px 0; }
+.ptr-spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+:root {
+  --bg: #0d1117; --bg2: #161b22; --bg3: #1a1a2e; --bg4: #16213e;
+  --border: #30363d; --teal: #4ecdc4; --red: #e94560; --green: #2ea043;
+  --yellow: #d29922; --blue: #58a6ff;
+  --text: #e6edf3; --dim: #8b949e; --bright: #fff;
+}
+body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Header */
+.hdr { background: var(--bg4); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.hdr h1 { font-size: 20px; color: var(--teal); font-weight: 700; }
+.hdr-sub { font-size: 13px; color: var(--dim); margin-top: 2px; }
+.hdr-right { text-align: right; }
+.badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 8px; }
+.badge-trial { background: var(--yellow); color: #000; }
+.badge-paper { background: rgba(46,160,67,0.2); color: var(--green); border: 1px solid rgba(46,160,67,0.3); }
+.hdr-time { font-size: 12px; color: var(--dim); margin-top: 4px; }
+
+/* Summary Strip */
+.strip { display: flex; gap: 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.strip-item { flex: 1; min-width: 120px; padding: 12px 16px; border-right: 1px solid var(--border); text-align: center; }
+.strip-item:last-child { border-right: none; }
+.strip-label { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.strip-val { font-size: 20px; font-weight: 700; margin-top: 2px; }
+.strip-sub { font-size: 11px; margin-top: 1px; }
+.pos { color: var(--green); } .neg { color: var(--red); } .tl { color: var(--teal); }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; background: var(--bg2); border-bottom: 2px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tab { padding: 14px 24px; font-size: 14px; font-weight: 600; color: var(--dim); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; user-select: none; }
+.tab:hover { color: var(--text); background: rgba(78,205,196,0.05); }
+.tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+/* Tab Content */
+.tab-content { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* Cards */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; }
+.ch { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.ch h2 { font-size: 16px; font-weight: 600; }
+.ch-badge { font-size: 12px; padding: 3px 10px; border-radius: 4px; font-weight: 600; }
+.cb { padding: 18px; }
+
+/* Big Stats Grid */
+.big-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.big-stat { background: var(--bg3); padding: 16px; border-radius: 8px; }
+.big-stat-label { font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+.big-stat-val { font-size: 28px; font-weight: 700; margin-top: 4px; }
+.big-stat-sub { font-size: 12px; color: var(--dim); margin-top: 2px; }
+
+/* Detail Grid */
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
+
+/* Detail Rows */
+.drow { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1c2129; font-size: 14px; }
+.drow:last-child { border-bottom: none; }
+.drow-label { color: var(--dim); }
+.drow-val { font-weight: 600; }
+
+/* Price Bar */
+.pbar-wrap { padding: 20px 0; }
+.pbar-labels { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+.pbar { height: 32px; background: linear-gradient(90deg, var(--red) 0%, var(--bg3) 18%, var(--bg3) 82%, var(--green) 100%); border-radius: 16px; position: relative; }
+.pbar-marker { position: absolute; top: -5px; width: 4px; height: 42px; border-radius: 2px; transform: translateX(-50%); }
+.pbar-marker.current { background: var(--bright); box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+.pbar-marker.entry { background: var(--yellow); opacity: 0.6; }
+.pbar-mlabel { position: absolute; transform: translateX(-50%); font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+/* Score Visual */
+.score-visual { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1c2129; }
+.score-visual:last-child { border-bottom: none; }
+.score-name { width: 120px; font-size: 14px; color: var(--dim); }
+.score-dots { display: flex; gap: 6px; }
+.score-dot { width: 24px; height: 24px; border-radius: 50%; background: #1c2129; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.score-dot.on { background: var(--teal); color: #000; }
+.score-total { font-size: 28px; font-weight: 700; padding: 16px; text-align: center; border-top: 1px solid var(--border); }
+
+/* Watchlist Table */
+.wl-table { width: 100%; border-collapse: collapse; }
+.wl-table th { text-align: left; padding: 10px 14px; color: var(--dim); font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.wl-table td { padding: 12px 14px; border-bottom: 1px solid #1c2129; font-size: 14px; }
+.wl-table tr:hover td { background: rgba(78,205,196,0.03); }
+.tkr { font-weight: 700; color: var(--teal); font-size: 15px; }
+.wl-status { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+.wl-status.active { background: rgba(78,205,196,0.15); color: var(--teal); }
+.wl-status.triggered { background: rgba(46,160,67,0.15); color: var(--green); }
+.wl-status.watching { background: rgba(210,153,34,0.1); color: var(--yellow); }
+
+/* Gauge */
+.gauge { margin-bottom: 16px; }
+.gauge-header { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; }
+.gauge-bar { height: 12px; background: var(--bg3); border-radius: 6px; overflow: hidden; }
+.gauge-fill { height: 100%; border-radius: 6px; transition: width 0.5s; }
+
+/* Sentiment item */
+.sent-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1c2129; font-size: 14px; }
+
+/* Thesis */
+.thesis { background: var(--bg3); padding: 16px; border-radius: 8px; font-size: 14px; line-height: 1.7; border-left: 4px solid var(--teal); }
+
+/* Catalyst list */
+.catalyst { padding: 10px 0; border-bottom: 1px solid #1c2129; font-size: 14px; display: flex; gap: 10px; align-items: flex-start; }
+.catalyst-icon { font-size: 18px; }
+
+/* Rules */
+.rule { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #1c2129; font-size: 14px; }
+.rule:last-child { border-bottom: none; }
+.rule-name { color: var(--dim); }
+.rule-val { font-weight: 600; }
+
+/* Checklist */
+.check-item { padding: 8px 0; font-size: 15px; border-bottom: 1px solid #1c2129; }
+.check-item:last-child { border-bottom: none; }
+
+/* Lesson card */
+.lesson { background: var(--bg3); padding: 14px 16px; border-radius: 8px; border-left: 4px solid var(--yellow); margin-bottom: 12px; font-size: 14px; line-height: 1.6; }
+.lesson:last-child { margin-bottom: 0; }
+
+/* Conditional */
+.cond-card { background: var(--bg3); border-radius: 8px; padding: 16px; margin-bottom: 12px; border-left: 4px solid var(--green); }
+.cond-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.cond-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; font-size: 13px; }
+.cond-label { color: var(--dim); font-size: 11px; text-transform: uppercase; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .hdr { flex-direction: column; text-align: center; gap: 8px; }
+  .hdr-right { text-align: center; }
+  .strip-item { min-width: 100px; padding: 10px 8px; }
+  .strip-val { font-size: 16px; }
+  .tab { padding: 12px 16px; font-size: 13px; }
+  .big-stat-val { font-size: 22px; }
+  .cb { padding: 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="ptr-indicator" id="ptrIndicator">↓ Pull to refresh</div>
+
+<!-- Header -->
+<div class="hdr">
+  <div>
+    <h1>📊 IRA Trading Dashboard</h1>
+    <div class="hdr-sub">Breakout + Holy Grail · IRA (Tax-Free) · Verified +169% / 5yr</div>
+  </div>
+  <div class="hdr-right">
+    <span class="badge badge-trial" id="trialBadge" style="background:var(--teal);color:#000;">IRA</span>
+    <span class="badge badge-paper">● PAPER</span>
+    <div class="hdr-time" id="lastUpdated"></div>
+  </div>
+</div>
+
+<!-- Quick Summary Strip -->
+<div class="strip">
+  <div class="strip-item">
+    <div class="strip-label">Portfolio</div>
+    <div class="strip-val pos">$10,075</div>
+    <div class="strip-sub pos">+0.76%</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Open P&L</div>
+    <div class="strip-val pos">+$75.64</div>
+    <div class="strip-sub">IGV +3.1%</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Account</div>
+    <div class="strip-val tl" id="stripAfterTax">IRA</div>
+    <div class="strip-sub pos">0% tax</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Cash</div>
+    <div class="strip-val">$7,569</div>
+    <div class="strip-sub">75.7%</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Regime</div>
+    <div class="strip-val" style="color:var(--yellow);">NEUTRAL</div>
+    <div class="strip-sub">75% sizing</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Fear & Greed</div>
+    <div class="strip-val neg">11</div>
+    <div class="strip-sub neg">Extreme Fear</div>
+  </div>
+  <div class="strip-item">
+    <div class="strip-label">Positions</div>
+    <div class="strip-val tl">1 / 3</div>
+    <div class="strip-sub">$2,506 invested</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('portfolio')">💰 Portfolio</div>
+  <div class="tab" onclick="showTab('trade')">📋 IGV Trade</div>
+  <div class="tab" onclick="showTab('watchlist')">👁 Watchlist</div>
+  <div class="tab" onclick="showTab('sentiment')">🧠 Sentiment</div>
+  <div class="tab" onclick="showTab('conditional')">⚡ Triggers</div>
+  <div class="tab" onclick="showTab('macro')">🏛 42 Macro</div>
+  <div class="tab" onclick="showTab('rules')">📏 Rules</div>
+  <div class="tab" onclick="showTab('history')">📖 History</div>
+</div>
+
+<!-- TAB: Portfolio -->
+<div class="tab-content active" id="tab-portfolio">
+  <div class="card">
+    <div class="ch"><h2>Portfolio Overview</h2><span id="dayCount" style="font-size:13px;color:var(--teal);"></span></div>
+    <div class="cb">
+      <div class="big-stats">
+        <div class="big-stat"><div class="big-stat-label">Starting Capital</div><div class="big-stat-val">$10,000</div></div>
+        <div class="big-stat"><div class="big-stat-label">Current Value</div><div class="big-stat-val tl">$10,075.64</div><div class="big-stat-sub pos">+$75.64 (+0.76%)</div></div>
+        <div class="big-stat"><div class="big-stat-label">Cash Available</div><div class="big-stat-val">$7,569.29</div><div class="big-stat-sub">75.7% cash</div></div>
+        <div class="big-stat"><div class="big-stat-label">Total Invested</div><div class="big-stat-val">$2,506.35</div><div class="big-stat-sub">1 position open</div></div>
+        <div class="big-stat"><div class="big-stat-label">After-Tax P&L</div><div class="big-stat-val pos" id="afterTaxPL">$0</div><div class="big-stat-sub" id="afterTaxRate">~50% CA+Fed tax</div></div>
+        <div class="big-stat"><div class="big-stat-label">Max Drawdown</div><div class="big-stat-val">0.0%</div><div class="big-stat-sub">Limit: 20%</div></div>
+        <div class="big-stat"><div class="big-stat-label">Days Remaining</div><div class="big-stat-val tl" id="daysLeft">27</div><div class="big-stat-sub">Go-live if profitable</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h2>Open Positions</h2></div>
+    <div class="cb" style="overflow-x:auto;">
+      <table class="wl-table">
+        <thead><tr><th>Ticker</th><th>Direction</th><th>Entry</th><th>Current</th><th>Shares</th><th>P&L</th><th>After Tax</th><th>Stop</th><th>Target</th><th>R:R</th><th>Score</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="tkr">IGV</td>
+            <td class="pos">LONG</td>
+            <td>$78.41</td>
+            <td><strong>$80.85</strong></td>
+            <td>31</td>
+            <td class="pos"><strong>+$75.64 (+3.1%)</strong></td>
+            <td class="pos" id="posAfterTax"><strong>+$37.82</strong></td>
+            <td class="neg">$75.50</td>
+            <td class="pos">$92.00</td>
+            <td>4.7:1</td>
+            <td class="pos"><strong>8/10</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h2>Market Overview</h2><span style="font-size:13px;color:var(--dim);">Feb 25 Close</span></div>
+    <div class="cb">
+      <div class="big-stats">
+        <div class="big-stat"><div class="big-stat-label">S&P 500 (SPY)</div><div class="big-stat-val pos" style="font-size:22px;">$693.15</div><div class="big-stat-sub pos">+0.84%</div></div>
+        <div class="big-stat"><div class="big-stat-label">Nasdaq (QQQ)</div><div class="big-stat-val pos" style="font-size:22px;">$616.68</div><div class="big-stat-sub pos">+1.45%</div></div>
+        <div class="big-stat"><div class="big-stat-label">Semis (SMH)</div><div class="big-stat-val pos" style="font-size:22px;">$426.16</div><div class="big-stat-sub pos">+1.67%</div></div>
+        <div class="big-stat"><div class="big-stat-label">Bitcoin</div><div class="big-stat-val pos" style="font-size:22px;">$68,191</div><div class="big-stat-sub pos">+4.27%</div></div>
+        <div class="big-stat"><div class="big-stat-label">NVDA</div><div class="big-stat-val pos" style="font-size:22px;">$195.56</div><div class="big-stat-sub pos">+1.41% (beat Q4)</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Trade Detail -->
+<div class="tab-content" id="tab-trade">
+  <div class="card">
+    <div class="ch"><h2>Trade #1: IGV</h2><div class="ch-badge pos" style="background:rgba(46,160,67,0.15);">● OPEN +3.1%</div></div>
+    <div class="cb">
+      <div class="detail-grid">
+        <div>
+          <div class="drow"><span class="drow-label">Full Name</span><span class="drow-val">iShares Expanded Tech-Software ETF</span></div>
+          <div class="drow"><span class="drow-label">Direction</span><span class="drow-val pos">LONG</span></div>
+          <div class="drow"><span class="drow-label">Entry Date</span><span class="drow-val">Feb 25, 2026</span></div>
+          <div class="drow"><span class="drow-label">Days Held</span><span class="drow-val">1</span></div>
+          <div class="drow"><span class="drow-label">Recommended Range</span><span class="drow-val">$78.00 – $79.50</span></div>
+          <div class="drow"><span class="drow-label">Actual Entry</span><span class="drow-val">$78.41 ✓</span></div>
+        </div>
+        <div>
+          <div class="drow"><span class="drow-label">Stop Loss</span><span class="drow-val neg">$75.50 (-3.7%)</span></div>
+          <div class="drow"><span class="drow-label">Target</span><span class="drow-val pos">$92.00 (+17.3%)</span></div>
+          <div class="drow"><span class="drow-label">R:R Ratio</span><span class="drow-val tl">4.7 : 1</span></div>
+          <div class="drow"><span class="drow-label">$ at Risk</span><span class="drow-val neg">-$90.21</span></div>
+          <div class="drow"><span class="drow-label">$ Reward</span><span class="drow-val pos">+$421.39</span></div>
+          <div class="drow"><span class="drow-label">Current P&L</span><span class="drow-val pos">+$75.64 (+3.1%)</span></div>
+          <div class="drow"><span class="drow-label">After-Tax P&L</span><span class="drow-val pos" id="tradeAfterTax">+$37.82</span></div>
+          <div class="drow"><span class="drow-label">Est. Tax Rate</span><span class="drow-val neg" id="tradeTaxInfo">~50% (Short-term, CA+Fed)</span></div>
+        </div>
+      </div>
+
+      <!-- Price Bar -->
+      <div class="pbar-wrap">
+        <div class="pbar-labels"><span class="neg">⛔ STOP $75.50</span><span style="color:var(--dim);">6.6% above stop · 13.8% to target</span><span class="pos">🎯 TARGET $92.00</span></div>
+        <div class="pbar" style="margin-top:24px;margin-bottom:28px;">
+          <div class="pbar-marker entry" style="left:17.6%;"><div class="pbar-mlabel" style="color:var(--yellow);top:44px;">Entry $78.41</div></div>
+          <div class="pbar-marker current" style="left:32.4%;"><div class="pbar-mlabel" style="color:var(--bright);top:-22px;">$80.85</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Score Breakdown -->
+  <div class="card">
+    <div class="ch"><h2>Conviction Score Breakdown</h2></div>
+    <div class="cb">
+      <div class="score-visual"><span class="score-name">Technical</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot on">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">RSI bouncing from 18, +3.1% today</span></div>
+      <div class="score-visual"><span class="score-name">Macro/Sentiment</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">Neutral regime, tariff overhang</span></div>
+      <div class="score-visual"><span class="score-name">Risk/Reward</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot on">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">4.7:1 R:R, clear stop level</span></div>
+      <div class="score-visual"><span class="score-name">Catalyst</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot on">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">NVDA beat earnings +3.7%</span></div>
+      <div class="score-visual"><span class="score-name">Timing</span><div class="score-dots"><div class="score-dot on">1</div><div class="score-dot">2</div></div><span style="margin-left:8px;font-size:13px;color:var(--dim);">Good entry in range, not chasing</span></div>
+    </div>
+    <div class="score-total">Total: <span class="pos">8 / 10</span></div>
+  </div>
+
+  <!-- Thesis -->
+  <div class="card">
+    <div class="ch"><h2>Thesis</h2></div>
+    <div class="cb">
+      <div class="thesis">
+        <strong>"SaaSpocalypse" overreaction bounce.</strong> Software sector lost $2T in market cap — IGV dropped 32%, RSI hit 18 (most oversold since 1990). Panic selling exhausted. JPMorgan/Jefferies coined scary names, retail dumped everything. We're buying their capitulation. AI needs software to run — the "AI replaces software" narrative is logically broken.
+      </div>
+      <div style="margin-top:16px;">
+        <div class="catalyst"><span class="catalyst-icon">✅</span><div><strong>NVDA Earnings Beat</strong> — $1.62 vs $1.56 est (+3.7%). AI capex confirmed strong. Software benefits.</div></div>
+        <div class="catalyst"><span class="catalyst-icon">✅</span><div><strong>RSI Recovery</strong> — Bounced from 18 → 30.5 → rising. +3.1% on entry day.</div></div>
+        <div class="catalyst"><span class="catalyst-icon">🧠</span><div><strong>Human Nature Edge</strong> — Retail capitulation at 15-20% drawdown creates forced sellers. We bought their panic.</div></div>
+        <div class="catalyst"><span class="catalyst-icon">🎯</span><div><strong>Target Logic</strong> — 50-day MA at $92.00 is the mean-reversion magnet. Historically reliable.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Watchlist -->
+<div class="tab-content" id="tab-watchlist">
+  <div class="card">
+    <div class="ch"><h2>Full Watchlist</h2><span style="font-size:13px;color:var(--dim);">Live prices as of close</span></div>
+    <div class="cb" style="overflow-x:auto;">
+      <table class="wl-table">
+        <thead><tr><th>Ticker</th><th>Price</th><th>Change</th><th>Sector</th><th>Status</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="tkr">IGV</td><td>$80.85</td><td class="pos">+3.11%</td><td>Software</td><td><span class="wl-status active">OPEN</span></td><td>Active position — Day 1</td></tr>
+          <tr><td class="tkr">NVDA</td><td>$195.56</td><td class="pos">+1.41%</td><td>AI/Semi</td><td><span class="wl-status watching">WATCHING</span></td><td>Beat Q4 earnings +3.7%</td></tr>
+          <tr><td class="tkr">AMD</td><td>$210.86</td><td class="neg">-1.39%</td><td>AI/Semi</td><td><span class="wl-status triggered">TRIGGERED</span></td><td>NVDA beat → entry unlocked</td></tr>
+          <tr><td class="tkr">MSTR</td><td>$135.65</td><td class="pos">+8.86%</td><td>Crypto</td><td><span class="wl-status triggered">TRIGGERED</span></td><td>BTC broke $67K → $68.1K</td></tr>
+          <tr><td class="tkr">AVGO</td><td>$332.31</td><td class="pos">+2.10%</td><td>AI/Semi</td><td><span class="wl-status watching">WATCHING</span></td><td>AI networking leader</td></tr>
+          <tr><td class="tkr">PLTR</td><td>$134.19</td><td class="pos">+4.15%</td><td>AI/Software</td><td><span class="wl-status watching">WATCHING</span></td><td>Government + enterprise AI</td></tr>
+          <tr><td class="tkr">META</td><td>$653.69</td><td class="pos">+2.25%</td><td>Big Tech</td><td><span class="wl-status watching">WATCHING</span></td><td>AI ad revenue + Llama</td></tr>
+          <tr><td class="tkr">COIN</td><td>$183.94</td><td class="pos">+13.52%</td><td>Crypto</td><td><span class="wl-status watching">WATCHING</span></td><td>BTC rally beneficiary</td></tr>
+          <tr><td class="tkr">ARM</td><td>$131.74</td><td class="pos">+2.81%</td><td>AI/Semi</td><td><span class="wl-status watching">WATCHING</span></td><td>AI chip architecture</td></tr>
+          <tr><td class="tkr">SPY</td><td>$693.15</td><td class="pos">+0.84%</td><td>Index</td><td><span class="wl-status watching">WATCHING</span></td><td>Tariff uncertainty caps upside</td></tr>
+          <tr><td class="tkr">QQQ</td><td>$616.68</td><td class="pos">+1.45%</td><td>Index</td><td><span class="wl-status watching">WATCHING</span></td><td>Tech-heavy, NVDA earnings lift</td></tr>
+          <tr><td class="tkr">SMH</td><td>$426.16</td><td class="pos">+1.67%</td><td>Semis</td><td><span class="wl-status watching">WATCHING</span></td><td>Semiconductor ETF</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Sentiment -->
+<div class="tab-content" id="tab-sentiment">
+  <div class="card">
+    <div class="ch"><h2>Market Regime</h2><span style="font-size:14px;color:var(--green);font-weight:700;">🏛 42 Macro: GOLDILOCKS — 75% Position Sizing</span></div>
+    <div class="cb">
+      <div class="gauge">
+        <div class="gauge-header"><span>Crypto Fear & Greed</span><span class="neg" style="font-weight:700;">11 — Extreme Fear</span></div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:11%;background:var(--red);"></div></div>
+      </div>
+      <div class="gauge">
+        <div class="gauge-header"><span>CBOE Put/Call Ratio</span><span class="pos" style="font-weight:700;">0.62 — Slightly Bullish</span></div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:62%;background:var(--green);"></div></div>
+      </div>
+      <div class="gauge">
+        <div class="gauge-header"><span>VIX (Fear Index)</span><span style="font-weight:700;color:var(--yellow);">~19 — Elevated</span></div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:48%;background:var(--yellow);"></div></div>
+      </div>
+      <div style="margin-top:12px;font-size:14px;color:var(--dim);line-height:1.6;">
+        <strong>Interpretation:</strong> Extreme crypto fear (contrarian buy signal for BTC), put/call mildly bullish, VIX elevated but not panicking. Mixed signals = NEUTRAL regime. Don't go all-in, but opportunities exist for oversold bounces.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h2>Reddit Trending Stocks</h2><span style="font-size:13px;color:var(--dim);">via ApeWisdom</span></div>
+    <div class="cb">
+      <div class="sent-item"><div><span class="tkr">NVDA</span><span style="margin-left:8px;color:var(--dim);">NVIDIA</span></div><div>1,844 mentions <span class="pos" style="font-weight:700;">↑401%</span></div></div>
+      <div class="sent-item"><div><span class="tkr">SPY</span><span style="margin-left:8px;color:var(--dim);">S&P 500 ETF</span></div><div>538 mentions <span class="pos">↑41%</span></div></div>
+      <div class="sent-item"><div><span class="tkr">MSFT</span><span style="margin-left:8px;color:var(--dim);">Microsoft</span></div><div>207 mentions <span class="neg">↓29%</span></div></div>
+      <div class="sent-item"><div><span class="tkr">QQQ</span><span style="margin-left:8px;color:var(--dim);">Nasdaq ETF</span></div><div>151 mentions <span class="pos">↑32%</span></div></div>
+      <div class="sent-item"><div><span class="tkr">AMD</span><span style="margin-left:8px;color:var(--dim);">AMD</span></div><div>149 mentions <span class="neg">↓52%</span></div></div>
+      <div class="sent-item" style="background:rgba(233,69,96,0.05);padding:10px;border-radius:6px;">
+        <div><span class="tkr" style="color:var(--red);">🔥 LUNR</span><span style="margin-left:8px;color:var(--dim);">Intuitive Machines</span></div>
+        <div>81 mentions <span class="pos" style="font-weight:700;">↑1,925%</span></div>
+      </div>
+      <div style="font-size:13px;color:var(--dim);margin-top:10px;padding:10px;background:var(--bg3);border-radius:6px;">
+        ⚡ <strong>LUNR Alert:</strong> Mentions jumped from 4 → 81 in 24h. Massive spike. Worth investigating for potential catalyst play.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Conditional Trades -->
+<div class="tab-content" id="tab-conditional">
+  <div class="card">
+    <div class="ch"><h2>Conditional Trades — Trigger Status</h2></div>
+    <div class="cb">
+      <div class="cond-card">
+        <div class="cond-header">
+          <div><span class="tkr" style="font-size:20px;">AMD</span><span class="pos" style="margin-left:8px;font-weight:700;">✓ TRIGGERED</span></div>
+          <span style="font-size:14px;color:var(--yellow);font-weight:700;">Score: 6/10 — WAIT</span>
+        </div>
+        <div style="font-size:14px;color:var(--dim);margin-bottom:10px;"><strong>Condition:</strong> NVDA beats earnings → ✅ Beat by 3.7%</div>
+        <div class="cond-grid">
+          <div><div class="cond-label">Entry Zone</div><div style="font-weight:600;">$200 – $215</div></div>
+          <div><div class="cond-label">Current</div><div style="font-weight:600;">$210.86</div></div>
+          <div><div class="cond-label">Stop</div><div style="font-weight:600;color:var(--red);">$190</div></div>
+          <div><div class="cond-label">Target</div><div style="font-weight:600;color:var(--green);">$250</div></div>
+          <div><div class="cond-label">R:R</div><div style="font-weight:600;">1.7:1</div></div>
+          <div><div class="cond-label">Action</div><div style="font-weight:600;color:var(--yellow);">Wait for pullback</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--dim);margin-top:10px;">⚠️ Score only 6/10 — R:R below 2:1 minimum. Wait for better entry or thesis improvement.</div>
+      </div>
+
+      <div class="cond-card" style="border-left-color:var(--yellow);">
+        <div class="cond-header">
+          <div><span class="tkr" style="font-size:20px;">MSTR</span><span style="margin-left:8px;font-weight:700;color:var(--yellow);">⏳ WATCHING</span></div>
+          <span style="font-size:14px;color:var(--yellow);font-weight:700;">Score: 5/10 — NOT READY</span>
+        </div>
+        <div style="font-size:14px;color:var(--dim);margin-bottom:10px;"><strong>Condition:</strong> BTC breaks AND HOLDS $67K → ⏳ BTC bounced but hasn't held</div>
+        <div class="cond-grid">
+          <div><div class="cond-label">Entry Zone</div><div style="font-weight:600;">$120 – $135</div></div>
+          <div><div class="cond-label">Current</div><div style="font-weight:600;">$135.65</div></div>
+          <div><div class="cond-label">Stop</div><div style="font-weight:600;color:var(--red);">$110</div></div>
+          <div><div class="cond-label">Target</div><div style="font-weight:600;color:var(--green);">$165</div></div>
+          <div><div class="cond-label">R:R</div><div style="font-weight:600;">2.4:1</div></div>
+          <div><div class="cond-label">Action</div><div style="font-weight:600;color:var(--green);">Evaluate at open</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--dim);margin-top:10px;">⏳ BTC touched $68K but hasn't held above $67K cleanly. Need sustained break before entry.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: 42 Macro -->
+<div class="tab-content" id="tab-macro">
+  <div class="detail-grid">
+    <div class="card">
+      <div class="ch"><h2>🎯 Swing Trade Signals</h2><span style="font-size:13px;color:var(--dim);" id="kissDate">From 42 Macro · Updated Feb 21</span></div>
+      <div class="big-stat-grid" id="kissGrid">
+        <div class="big-stat"><div class="big-stat-label">Stocks VAMS</div><div class="big-stat-val pos" style="font-size:22px;">🟢 BULLISH</div><div class="big-stat-sub">Full swing size OK</div></div>
+        <div class="big-stat"><div class="big-stat-label">Gold VAMS</div><div class="big-stat-val" style="font-size:22px;color:var(--yellow);">🟢 BULLISH</div><div class="big-stat-sub">Strongest momentum signal</div></div>
+        <div class="big-stat"><div class="big-stat-label">Bitcoin VAMS</div><div class="big-stat-val neg" style="font-size:22px;">🔴 BEARISH</div><div class="big-stat-sub">Headwind — tighter stops</div></div>
+        <div class="big-stat"><div class="big-stat-label">VIX VAMS</div><div class="big-stat-val" style="font-size:22px;color:var(--yellow);">🟢 BULLISH</div><div class="big-stat-sub">⚠️ Expect vol — reduce size</div></div>
+      </div>
+      <div style="text-align:center;margin-top:15px;padding:12px;background:rgba(78,205,196,0.06);border-radius:8px;">
+        <span style="font-size:13px;color:var(--dim);">KISS Portfolio (long-term context): VT 60% · GLDM 30% · FBTC 0% · Cash 10% — Institutional money is max long stocks & gold, zero crypto</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>📊 Market Regime</h2></div>
+      <div style="text-align:center;padding:20px;">
+        <div style="font-size:36px;font-weight:800;color:var(--green);" id="regimeLabel">GOLDILOCKS</div>
+        <div style="font-size:14px;color:var(--dim);margin-top:5px;">Growth ↑ Rising · Inflation ↓ Falling</div>
+        <div style="font-size:13px;color:var(--green);margin-top:10px;">70% probability risk-on sustains</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:15px;">
+        <div style="padding:10px;border-radius:8px;text-align:center;background:rgba(46,160,67,0.15);border:2px solid var(--green);">
+          <div style="font-size:11px;color:var(--dim);">Goldilocks</div>
+          <div style="font-size:14px;font-weight:700;color:var(--green);">● ACTIVE</div>
+        </div>
+        <div style="padding:10px;border-radius:8px;text-align:center;background:rgba(255,255,255,0.03);">
+          <div style="font-size:11px;color:var(--dim);">Reflation</div>
+          <div style="font-size:14px;color:var(--dim);">—</div>
+        </div>
+        <div style="padding:10px;border-radius:8px;text-align:center;background:rgba(255,255,255,0.03);">
+          <div style="font-size:11px;color:var(--dim);">Inflation</div>
+          <div style="font-size:14px;color:var(--dim);">—</div>
+        </div>
+        <div style="padding:10px;border-radius:8px;text-align:center;background:rgba(255,255,255,0.03);">
+          <div style="font-size:11px;color:var(--dim);">Deflation</div>
+          <div style="font-size:14px;color:var(--dim);">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:15px;">
+    <div class="ch"><h2>📡 VAMS Momentum Signals — Swing Trade Filter</h2><span style="font-size:13px;color:var(--dim);">Bullish VAMS = ride the wave (2-6 wk holds) · Bearish = headwind (tighter stops, quicker exits)</span></div>
+    <table class="wl-table" style="width:100%;">
+      <thead><tr><th>Asset</th><th>Ticker</th><th>VAMS</th><th>Dr. Mo</th><th>Impact on Us</th></tr></thead>
+      <tbody id="vamsTable">
+        <tr><td>S&P 500</td><td class="tkr">SPY</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Risk-on confirmed</td></tr>
+        <tr><td>Nasdaq</td><td class="tkr">QQQ</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Tech improving</td></tr>
+        <tr><td>Technology</td><td class="tkr">XLK</td><td style="color:var(--yellow);">🟡 NEUTRAL</td><td>Long: Half</td><td>IGV caution — half size sector</td></tr>
+        <tr><td>Small Caps</td><td class="tkr">IWM</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Potential trade idea</td></tr>
+        <tr><td>Gold</td><td class="tkr">GLD</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td style="color:var(--green);font-weight:700;">🎯 HIGH CONVICTION — 30% KISS allocation</td></tr>
+        <tr><td>Gold Miners</td><td class="tkr">GDX</td><td class="pos">🟢 BULLISH</td><td>—</td><td style="color:var(--green);font-weight:700;">🎯 Leveraged gold play</td></tr>
+        <tr><td>Silver</td><td class="tkr">SLV</td><td class="pos">🟢 BULLISH</td><td>—</td><td>Industrial + precious metals</td></tr>
+        <tr><td>Silver Miners</td><td class="tkr">SIL</td><td class="pos">🟢 BULLISH</td><td>—</td><td>Leveraged silver play</td></tr>
+        <tr><td>Uranium</td><td class="tkr">SRUUF</td><td class="pos">🟢 BULLISH</td><td>—</td><td>Nuclear renaissance — AI power demand</td></tr>
+        <tr><td>Bitcoin</td><td class="tkr">BTC</td><td class="neg">🔴 BEARISH</td><td>No Position</td><td style="color:var(--red);">⚠️ HEADWIND for MSTR/COIN/MARA</td></tr>
+        <tr><td>Ethereum</td><td class="tkr">ETH</td><td class="neg">🔴 BEARISH</td><td>No Position</td><td>Avoid crypto trades</td></tr>
+        <tr><td>US Dollar</td><td class="tkr">DXY</td><td class="neg">🔴 BEARISH</td><td>—</td><td style="color:var(--green);">Weak dollar = bullish gold/intl</td></tr>
+        <tr><td>VIX</td><td class="tkr">VIX</td><td class="pos">🟢 BULLISH</td><td>—</td><td style="color:var(--yellow);">⚠️ Expect rising volatility</td></tr>
+        <tr><td>Energy</td><td class="tkr">XLE</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Bullish for LNG/EQT</td></tr>
+        <tr><td>Industrials</td><td class="tkr">XLI</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Bullish for CAT/URI</td></tr>
+        <tr><td>Real Estate</td><td class="tkr">XLRE</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Bullish for homebuilders</td></tr>
+        <tr><td>Materials</td><td class="tkr">XLB</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Bullish for VMC/MLM</td></tr>
+        <tr><td>Financials</td><td class="tkr">XLF</td><td style="color:var(--yellow);">🟡 NEUTRAL</td><td>Long: Half</td><td>Half position only</td></tr>
+        <tr><td>Cons. Disc.</td><td class="tkr">XLY</td><td style="color:var(--yellow);">🟡 NEUTRAL</td><td>Long: Half</td><td>Half position only</td></tr>
+        <tr><td>Long Bonds</td><td class="tkr">TLT</td><td class="pos">🟢 BULLISH</td><td>No Position</td><td>Bonds improving but Dr. Mo says no</td></tr>
+        <tr><td>Crude Oil</td><td class="tkr">USO</td><td style="color:var(--yellow);">🟡 NEUTRAL</td><td>Long: Half</td><td>Nat gas separate from crude</td></tr>
+        <tr><td>Emerging Mkts</td><td class="tkr">EEM</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>International diversification</td></tr>
+        <tr><td>Base Metals</td><td class="tkr">DBB</td><td class="pos">🟢 BULLISH</td><td>Long: Max</td><td>Industrial metals strong</td></tr>
+        <tr><td>Agriculture</td><td class="tkr">DBA</td><td class="neg">🔴 BEARISH</td><td>No Position</td><td>Avoid</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="detail-grid" style="margin-top:15px;">
+    <div class="card">
+      <div class="ch"><h2>🎯 Swing Trade Ideas — VAMS Tailwinds</h2></div>
+      <div style="padding:10px;">
+        <div style="padding:12px;background:rgba(255,215,0,0.08);border-left:3px solid var(--yellow);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;font-size:16px;color:var(--yellow);">🥇 GOLD (GLD/GDX/SLV)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;"><strong>VAMS: Bullish</strong> · <strong>Dr. Mo: Max Position</strong> · Dollar VAMS bearish = gold tailwind. Look for 2-5 day pullback entry on GDX for leveraged play. Score at next briefing.</div>
+        </div>
+        <div style="padding:12px;background:rgba(46,160,67,0.08);border-left:3px solid var(--green);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;font-size:16px;color:var(--green);">🥈 SMALL CAPS (IWM)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;"><strong>VAMS: Bullish</strong> · <strong>Dr. Mo: Max Position</strong> · RSI 55 = not overbought. Goldilocks = SMID > Large Cap rotation. Wait for pullback to 20 EMA for entry.</div>
+        </div>
+        <div style="padding:12px;background:rgba(46,160,67,0.08);border-left:3px solid var(--green);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;font-size:16px;color:var(--green);">🥉 URANIUM (URA/CCJ)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;"><strong>VAMS: Bullish (SRUUF)</strong> · Nuclear renaissance catalyst (AI power demand). Need to check technicals for clean entry setup.</div>
+        </div>
+        <div style="padding:12px;background:rgba(78,205,196,0.08);border-left:3px solid var(--teal);border-radius:6px;">
+          <div style="font-weight:700;font-size:16px;color:var(--teal);">🏠 HOMEBUILDERS (DHI/LEN)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;"><strong>VAMS: Bullish (XLRE)</strong> · Housing starts accelerating. DC easing housing regs. Rate-cut play. Wait for earnings catalyst or breakout.</div>
+        </div>
+        <div style="margin-top:15px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid var(--border);">
+          <div style="font-size:12px;color:var(--dim);line-height:1.6;">
+            <strong style="color:var(--teal);">TRADE TYPE GUIDE:</strong><br>
+            🟢 <strong>MOMENTUM HOLD (2-6 wk)</strong> — Score 8+, VAMS bullish, trail at 21 EMA, exit when VAMS flips. Default for most trades.<br>
+            ⚡ <strong>SHORT-TERM (2-10 day)</strong> — Score 9+, clear catalyst, take profit at target. For obvious setups that scream.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>⚠️ 42 Macro Warnings</h2></div>
+      <div style="padding:10px;">
+        <div style="padding:12px;background:rgba(233,69,96,0.08);border-left:3px solid var(--red);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;color:var(--red);">🔴 BITCOIN — BEARISH VAMS</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">0% KISS allocation. Mean 21-day max drawdown when bearish = -11.8%. MSTR/COIN/MARA carry headwind. Tradeable but swim upstream with caution.</div>
+        </div>
+        <div style="padding:12px;background:rgba(233,69,96,0.08);border-left:3px solid var(--red);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;color:var(--red);">🔴 DOLLAR (DXY) — BEARISH</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">Dollar weakness supports gold, commodities, and international equities. Bearish for UUP. Monitor if reversal begins.</div>
+        </div>
+        <div style="padding:12px;background:rgba(255,215,0,0.08);border-left:3px solid var(--yellow);border-radius:6px;margin-bottom:10px;">
+          <div style="font-weight:700;color:var(--yellow);">⚡ VIX — BULLISH (Expect Rising Vol)</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">VIX at 19.09 with bullish VAMS = 42 Macro expects volatility to increase. Tighter stops, smaller positions if VIX breaks 25.</div>
+        </div>
+        <div style="padding:12px;background:rgba(255,215,0,0.08);border-left:3px solid var(--yellow);border-radius:6px;">
+          <div style="font-weight:700;color:var(--yellow);">⚠️ TECH (XLK) — NEUTRAL ONLY</div>
+          <div style="font-size:13px;color:var(--dim);margin-top:5px;">Half position per Dr. Mo. Our IGV is in tech sector — this is a caution flag, not a stop sign. Monitor for upgrade to bullish.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:15px;">
+    <div class="ch"><h2>📖 Key 42 Macro Principles</h2></div>
+    <div style="padding:15px;font-size:13px;color:var(--dim);line-height:1.7;">
+      <strong style="color:var(--teal);">Rule #1:</strong> Don't lose money. A 50% drawdown needs 100% to recover.<br>
+      <strong style="color:var(--teal);">Rule #2:</strong> Don't invest money you can't afford to lose. BTC is -20% off highs 74% of the time.<br>
+      <strong style="color:var(--teal);">Rule #3:</strong> The journey matters more than the destination. Consistency beats volatility drag.<br>
+      <strong style="color:var(--teal);">KISS:</strong> Keep It Simple, Stupid. 60/30/10 trend-following with VAMS overlay.<br>
+      <strong style="color:var(--teal);">Dr. Mo:</strong> Position sizing based on regime + VAMS. Max/Half/No Position.<br>
+      <strong style="color:var(--teal);">VAMS:</strong> Volatility-Adjusted Momentum Signal. Bullish/Neutral/Bearish per asset. Updates with each ATH.<br>
+      <strong style="color:var(--teal);">Bayesian:</strong> 42 Macro responds to observations, not predictions. Regime changes ~2.3x/year.
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Rules -->
+<div class="tab-content" id="tab-rules">
+  <div class="detail-grid">
+    <div class="card">
+      <div class="ch"><h2>Trading Rules</h2></div>
+      <div class="cb">
+        <div class="rule"><span class="rule-name">Account</span><span class="rule-val tl">IRA (0% Tax)</span></div>
+        <div class="rule"><span class="rule-name">Strategy</span><span class="rule-val">Breakout + Holy Grail</span></div>
+        <div class="rule"><span class="rule-name">Entry</span><span class="rule-val">Next-day market open (MOO)</span></div>
+        <div class="rule"><span class="rule-name">Position Size</span><span class="rule-val">35% of capital</span></div>
+        <div class="rule"><span class="rule-name">Max Positions</span><span class="rule-val">2 concurrent</span></div>
+        <div class="rule"><span class="rule-name">Max Deployed</span><span class="rule-val">70% (30% cash reserve)</span></div>
+        <div class="rule"><span class="rule-name">Initial Stop</span><span class="rule-val neg">Entry − 3 × ATR(14)</span></div>
+        <div class="rule"><span class="rule-name">Trail (Days 1-10)</span><span class="rule-val">13 EMA (ratchet up only)</span></div>
+        <div class="rule"><span class="rule-name">Trail (Days 11+)</span><span class="rule-val">21 EMA (ratchet up only)</span></div>
+        <div class="rule"><span class="rule-name">Time Stop</span><span class="rule-val neg">Day 10+, if close &lt; entry → sell</span></div>
+        <div class="rule"><span class="rule-name">Trend Death</span><span class="rule-val neg">ADX &lt; 15 after day 10 → sell</span></div>
+        <div class="rule"><span class="rule-name">Gap-Through</span><span class="rule-val neg">Open &lt; stop → sell at OPEN</span></div>
+        <div class="rule"><span class="rule-name">ADX Min (Breakout)</span><span class="rule-val">15</span></div>
+        <div class="rule"><span class="rule-name">ADX Min (Holy Grail)</span><span class="rule-val">30</span></div>
+        <div class="rule"><span class="rule-name">Backtest (5yr)</span><span class="rule-val pos">+169% ($10K→$26,923)</span></div>
+        <div class="rule"><span class="rule-name">SPY Comparison</span><span class="rule-val">+76% (Alpha: +93%)</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="ch"><h2>Scoring Rubric (5 Dimensions)</h2></div>
+        <div class="cb">
+          <div class="rule"><span class="rule-name">Technical (0-2)</span><span class="rule-val">RSI, MACD, MAs, volume, pattern</span></div>
+          <div class="rule"><span class="rule-name">Macro/Sentiment (0-2)</span><span class="rule-val">42 Macro VAMS + regime + VIX + F&G</span></div>
+          <div class="rule"><span class="rule-name">Risk/Reward (0-2)</span><span class="rule-val">R:R ratio, clear stop</span></div>
+          <div class="rule"><span class="rule-name">Catalyst (0-2)</span><span class="rule-val">Earnings, news, options flow</span></div>
+          <div class="rule"><span class="rule-name">Timing (0-2)</span><span class="rule-val">Entry quality, not chasing</span></div>
+          <div class="rule" style="border-top:2px solid var(--border);padding-top:12px;margin-top:4px;"><span class="rule-name" style="font-weight:700;">MIN TO TRADE</span><span class="rule-val tl" style="font-size:20px;">≥ 8/10 (momentum) · ≥ 9/10 (short-term)</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch"><h2>No-Emotion Checklist</h2></div>
+        <div class="cb">
+          <div class="check-item">☐ Does it score ≥ 8/10 (momentum) or ≥ 9/10 (short-term)?</div>
+          <div class="check-item">☐ Is R:R ≥ 2:1?</div>
+          <div class="check-item">☐ Within position size limits?</div>
+          <div class="check-item">☐ Is this a PLAN or a REACTION?</div>
+          <div class="check-item">☐ Is market regime favorable?</div>
+          <div class="check-item">☐ Exit set BEFORE entering?</div>
+          <div class="check-item">☐ Would I take this if down 5% this week?</div>
+          <div class="check-item">☐ Am I adding to a loser? (NEVER)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: History -->
+<div class="tab-content" id="tab-history">
+  <div class="card">
+    <div class="ch"><h2>Closed Trades</h2><span style="font-size:13px;color:var(--dim);">0 trades closed</span></div>
+    <div class="cb" style="text-align:center;padding:40px;color:var(--dim);font-size:15px;">
+      No closed trades yet. IGV is your first position — still open.<br>
+      Trade history will populate as positions close.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h2>Lessons Learned</h2></div>
+    <div class="cb">
+      <div class="lesson" style="border-left-color:var(--yellow);">
+        <strong>Day 1 — Feb 23:</strong> Best trade is no trade when conditions don't meet the rules. Tariff chaos, BTC crashed, everything risk-off. Sat on hands. Discipline > activity.
+      </div>
+      <div class="lesson" style="border-left-color:var(--green);">
+        <strong>Day 3 — Feb 25:</strong> Patience rewarded. Waited for chaos to settle, entered IGV at our planned price ($78.41 in the $78-$79.50 range). Up 3.1% day one. The system works — stick to the plan.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FINNHUB_KEY = 'd6frbcpr01qqnmbpo9sgd6frbcpr01qqnmbpo9t0';
+const STATUS_URL = 'https://raw.githubusercontent.com/ConPulse/trading-dashboard/main/TRADE-STATUS.json';
+
+// Defaults (overwritten by TRADE-STATUS.json on load)
+let POSITIONS = [
+  { ticker: 'IGV', shares: 31, entry: 78.41, stop: 75.50, target: 92.00, direction: 'LONG', date: '2026-02-25', score: 8 }
+];
+let CASH = 7569.29;
+let START_CAPITAL = 10000;
+let CONDITIONALS = [];
+let REGIME = {};
+
+// Tax rate: CA + Federal + NIIT for high-income CA resident, short-term gains (all our trades)
+const TAX_RATE = 0.50;  // ~50% combined (32-37% fed + 9.3-13.3% CA + 3.8% NIIT)
+
+// Load single source of truth
+async function loadTradeStatus() {
+  try {
+    const r = await fetch(STATUS_URL + '?t=' + Date.now());
+    const d = await r.json();
+    POSITIONS = (d.openPositions || []).map(p => ({
+      ticker: p.ticker, shares: p.shares, entry: p.entry, stop: p.stop,
+      target: p.target, direction: p.direction || 'LONG', date: p.entryDate, score: p.score,
+      type: p.type || 'MOMENTUM_HOLD',
+      confirmation: p.confirmation || null,
+      trailingStop: p.trailingStop || null,
+      vams: p.vams || null
+    }));
+    CASH = d.portfolioTracking?.cashAvailable || 7569.29;
+    START_CAPITAL = d.portfolio?.starting || 10000;
+    CONDITIONALS = (d.conditionalTrades || []).map(c => ({
+      ticker: c.ticker, status: c.status, condition: c.condition,
+      conditionMet: c.conditionMet, score: c.score,
+      type: c.type || 'WATCHING',
+      entry: c.entry, stop: c.stop, target: c.target,
+      entryZone: [c.entry || 0, c.entry || 0],
+      rr: c.rr || '?',
+      note: c.note || '', action: c.note || '',
+      vams: c.vams || '',
+      confirmation: c.confirmation || null,
+      minScore: (c.type === 'SHORT_TERM' || c.type === 'MAX_CONVICTION') ? 9 : 8
+    }));
+    REGIME = d.regime || {};
+    document.getElementById('lastUpdated').textContent = 'Status loaded · Fetching prices...';
+    return true;
+  } catch (e) {
+    console.error('TRADE-STATUS.json load failed:', e);
+    const warn = document.createElement('div');
+    warn.style.cssText = 'background:var(--red);color:#fff;text-align:center;padding:10px;font-weight:700;font-size:14px;';
+    warn.textContent = '⚠️ TRADE STATUS DATA STALE — JSON failed to load. Showing cached defaults.';
+    document.body.insertBefore(warn, document.body.firstChild);
+    return false;
+  }
+}
+
+// Watchlist tickers + metadata (47 tickers, 13 sectors)
+const WATCHLIST = [
+  // Gold/Silver — #1 backtest sector, 42 Macro BULLISH
+  { ticker: 'GLD', sector: 'Gold/Silver', notes: 'Gold ETF — inflation/fear hedge' },
+  { ticker: 'GDX', sector: 'Gold/Silver', notes: 'Gold miners ETF' },
+  { ticker: 'GDXJ', sector: 'Gold/Silver', notes: 'Junior gold miners — more volatile' },
+  { ticker: 'SLV', sector: 'Gold/Silver', notes: '★ #1 ticker — +12.2% avg, 88% WR' },
+  { ticker: 'NEM', sector: 'Gold/Silver', notes: 'Newmont — largest gold miner' },
+  { ticker: 'GOLD', sector: 'Gold/Silver', notes: 'Barrick Gold' },
+  // AI/Semi
+  { ticker: 'NVDA', sector: 'AI/Semi', notes: 'AI capex leader' },
+  { ticker: 'AMD', sector: 'AI/Semi', notes: 'GPU + data center' },
+  { ticker: 'AVGO', sector: 'AI/Semi', notes: '★ +6.9% avg — AI networking' },
+  { ticker: 'MRVL', sector: 'AI/Semi', notes: 'Marvell — custom AI silicon' },
+  { ticker: 'TSM', sector: 'AI/Semi', notes: 'TSMC — fab everything' },
+  { ticker: 'ARM', sector: 'AI/Semi', notes: 'AI chip architecture' },
+  { ticker: 'SMCI', sector: 'AI/Semi', notes: 'Super Micro — AI servers' },
+  // Big Tech
+  { ticker: 'MSFT', sector: 'Big Tech', notes: 'Azure + Copilot' },
+  { ticker: 'GOOGL', sector: 'Big Tech', notes: 'Search + Gemini' },
+  { ticker: 'META', sector: 'Big Tech', notes: '★ +4.8% avg — AI + ads' },
+  { ticker: 'AMZN', sector: 'Big Tech', notes: 'AWS + e-commerce' },
+  { ticker: 'AAPL', sector: 'Big Tech', notes: 'Apple Intelligence' },
+  { ticker: 'PLTR', sector: 'Big Tech', notes: '★ +21.9% avg — Gov + enterprise AI' },
+  // Construction
+  { ticker: 'CAT', sector: 'Construction', notes: 'Caterpillar — infrastructure' },
+  { ticker: 'VMC', sector: 'Construction', notes: 'Vulcan Materials — aggregates' },
+  { ticker: 'MLM', sector: 'Construction', notes: 'Martin Marietta — aggregates' },
+  { ticker: 'DE', sector: 'Construction', notes: 'Deere — ag + construction' },
+  { ticker: 'URI', sector: 'Construction', notes: 'United Rentals — equipment' },
+  { ticker: 'BLDR', sector: 'Construction', notes: 'Builders FirstSource — building products' },
+  // Crypto
+  { ticker: 'MSTR', sector: 'Crypto', notes: 'MicroStrategy — BTC proxy' },
+  { ticker: 'COIN', sector: 'Crypto', notes: '★ +20.9% avg — Coinbase' },
+  { ticker: 'MARA', sector: 'Crypto', notes: 'Marathon Digital — BTC miner' },
+  { ticker: 'SQ', sector: 'Crypto', notes: 'Block — fintech + BTC' },
+  // ETFs
+  { ticker: 'SPY', sector: 'ETFs', notes: 'S&P 500 (market filter)' },
+  { ticker: 'QQQ', sector: 'ETFs', notes: 'Nasdaq 100' },
+  { ticker: 'SMH', sector: 'ETFs', notes: 'Semiconductor ETF' },
+  { ticker: 'XLI', sector: 'ETFs', notes: 'Industrials ETF' },
+  { ticker: 'TLT', sector: 'ETFs', notes: '20+ yr Treasury bonds' },
+  { ticker: 'UUP', sector: 'ETFs', notes: 'US Dollar index' },
+  { ticker: 'IGV', sector: 'ETFs', notes: 'Software ETF' },
+  { ticker: 'IWM', sector: 'ETFs', notes: 'Russell 2000 small cap' },
+  { ticker: 'EEM', sector: 'ETFs', notes: 'Emerging markets' },
+  // Homebuilders
+  { ticker: 'DHI', sector: 'Homebuilders', notes: 'D.R. Horton — #1 US builder' },
+  { ticker: 'LEN', sector: 'Homebuilders', notes: 'Lennar — #2 US builder' },
+  { ticker: 'KBH', sector: 'Homebuilders', notes: 'KB Home' },
+  { ticker: 'TOL', sector: 'Homebuilders', notes: 'Toll Brothers — luxury' },
+  // Uranium
+  { ticker: 'URA', sector: 'Uranium', notes: 'Uranium miners ETF' },
+  { ticker: 'UUUU', sector: 'Uranium', notes: 'Energy Fuels — rare earth + uranium' },
+  // Nat Gas
+  { ticker: 'UNG', sector: 'Nat Gas', notes: 'Natural gas ETF' },
+  { ticker: 'LNG', sector: 'Nat Gas', notes: 'Cheniere — LNG export leader' },
+  { ticker: 'EQT', sector: 'Nat Gas', notes: 'EQT Corp — largest US nat gas producer' },
+  // Commodities
+  { ticker: 'COPX', sector: 'Commodities', notes: 'Copper miners — electrification play' },
+  { ticker: 'XME', sector: 'Commodities', notes: 'Metals & mining ETF' },
+  // Cybersecurity
+  { ticker: 'CRWD', sector: 'Cyber', notes: 'CrowdStrike — #1 endpoint security' },
+  { ticker: 'PANW', sector: 'Cyber', notes: 'Palo Alto — platform security' },
+  // Data Center
+  { ticker: 'IREN', sector: 'Data Center', notes: 'Iris Energy — AI/BTC data centers' },
+  { ticker: 'VRT', sector: 'Data Center', notes: 'Vertiv — data center cooling/power' },
+  // Power
+  { ticker: 'CEG', sector: 'Power', notes: 'Constellation Energy — nuclear power' },
+  { ticker: 'VST', sector: 'Power', notes: 'Vistra — power generation + nuclear' },
+];
+
+// Market overview tickers
+const MARKET_TICKERS = ['SPY', 'QQQ', 'SMH', 'NVDA'];
+
+// Fetch a single Finnhub quote
+async function fetchQuote(symbol) {
+  const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`);
+  const d = await r.json();
+  return { symbol, price: d.c, change: d.dp, prevClose: d.pc, high: d.h, low: d.l, open: d.o };
+}
+
+// Staggered batch fetch (respect 30/sec limit)
+async function fetchAll(symbols) {
+  const results = {};
+  const batches = [];
+  for (let i = 0; i < symbols.length; i += 10) {
+    batches.push(symbols.slice(i, i + 10));
+  }
+  for (const batch of batches) {
+    const promises = batch.map(s => fetchQuote(s).catch(() => ({ symbol: s, price: 0, change: 0 })));
+    const res = await Promise.all(promises);
+    res.forEach(r => results[r.symbol] = r);
+    if (batches.indexOf(batch) < batches.length - 1) await new Promise(r => setTimeout(r, 400));
+  }
+  return results;
+}
+
+// Format helpers
+const fmt$ = (n) => n >= 1000 ? '$' + n.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0}) : '$' + n.toFixed(2);
+const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const fmtPL = (n) => (n >= 0 ? '+' : '') + '$' + Math.abs(n).toFixed(2);
+const posNeg = (n) => n >= 0 ? 'pos' : 'neg';
+
+function updateDashboard(quotes) {
+  // --- Portfolio calcs ---
+  let totalInvested = 0, totalPL = 0;
+  POSITIONS.forEach(p => {
+    const q = quotes[p.ticker];
+    if (!q || !q.price) return;
+    const currentVal = q.price * p.shares;
+    const entryVal = p.entry * p.shares;
+    const pl = currentVal - entryVal;
+    const plPct = ((q.price - p.entry) / p.entry) * 100;
+    totalInvested += entryVal;
+    totalPL += pl;
+    p._current = q.price;
+    p._pl = pl;
+    p._plPct = plPct;
+  });
+  const portfolioVal = CASH + totalInvested + totalPL;
+  const portfolioPct = ((portfolioVal - START_CAPITAL) / START_CAPITAL) * 100;
+  const cashPct = (CASH / portfolioVal) * 100;
+  const drawdown = Math.min(0, portfolioPct);
+
+  // --- After-Tax Calculations ---
+  // Determine hold period for each position
+  let afterTaxPL = 0;
+  POSITIONS.forEach(p => {
+    if (!p._pl) return;
+    p._afterTaxPL = p._pl * (1 - TAX_RATE);
+    afterTaxPL += p._afterTaxPL;
+  });
+
+  // --- Summary Strip ---
+  const stripItems = document.querySelectorAll('.strip-item');
+  // Portfolio
+  stripItems[0].querySelector('.strip-val').textContent = fmt$(portfolioVal);
+  stripItems[0].querySelector('.strip-val').className = 'strip-val ' + posNeg(portfolioPct);
+  stripItems[0].querySelector('.strip-sub').textContent = fmtPct(portfolioPct);
+  stripItems[0].querySelector('.strip-sub').className = 'strip-sub ' + posNeg(portfolioPct);
+  // Open P&L
+  stripItems[1].querySelector('.strip-val').textContent = fmtPL(totalPL);
+  stripItems[1].querySelector('.strip-val').className = 'strip-val ' + posNeg(totalPL);
+  if (POSITIONS[0]?._plPct !== undefined) {
+    stripItems[1].querySelector('.strip-sub').textContent = 'IGV ' + fmtPct(POSITIONS[0]._plPct);
+  }
+  // After-Tax P&L (strip)
+  const stripAT = document.getElementById('stripAfterTax');
+  if (stripAT) {
+    stripAT.textContent = fmtPL(afterTaxPL);
+    stripAT.className = 'strip-val ' + posNeg(afterTaxPL);
+  }
+  // Cash
+  stripItems[3].querySelector('.strip-val').textContent = fmt$(CASH);
+  stripItems[3].querySelector('.strip-sub').textContent = cashPct.toFixed(1) + '%';
+  // Invested
+  stripItems[6].querySelector('.strip-sub').textContent = fmt$(totalInvested + totalPL) + ' invested';
+
+  // --- Portfolio Tab: Overview ---
+  const bigStats = document.querySelectorAll('#tab-portfolio .big-stat');
+  // Current Value
+  bigStats[1].querySelector('.big-stat-val').textContent = fmt$(portfolioVal);
+  bigStats[1].querySelector('.big-stat-sub').textContent = fmtPL(totalPL) + ' (' + fmtPct(portfolioPct) + ')';
+  bigStats[1].querySelector('.big-stat-sub').className = 'big-stat-sub ' + posNeg(totalPL);
+  // After-Tax P&L (big stat)
+  const atPLEl = document.getElementById('afterTaxPL');
+  if (atPLEl) {
+    atPLEl.textContent = fmtPL(afterTaxPL);
+    atPLEl.className = 'big-stat-val ' + posNeg(afterTaxPL);
+  }
+  const atRateEl = document.getElementById('afterTaxRate');
+  if (atRateEl) {
+    atRateEl.textContent = '~50% short-term (CA+Fed)';
+  }
+  // Max Drawdown
+  bigStats[5].querySelector('.big-stat-val').textContent = drawdown.toFixed(1) + '%';
+
+  // --- Portfolio Tab: Open Positions Table ---
+  const posRow = document.querySelector('#tab-portfolio .wl-table tbody tr');
+  if (posRow && POSITIONS[0]?._current) {
+    const p = POSITIONS[0];
+    const cells = posRow.querySelectorAll('td');
+    cells[3].innerHTML = '<strong>' + fmt$(p._current) + '</strong>';
+    cells[5].innerHTML = '<strong>' + fmtPL(p._pl) + ' (' + fmtPct(p._plPct) + ')</strong>';
+    cells[5].className = posNeg(p._pl);
+    // After-tax cell
+    const atCell = document.getElementById('posAfterTax');
+    if (atCell && p._afterTaxPL !== undefined) {
+      atCell.innerHTML = '<strong>' + fmtPL(p._afterTaxPL) + '</strong>';
+      atCell.className = posNeg(p._afterTaxPL);
+    }
+  }
+
+  // --- Portfolio Tab: Market Overview ---
+  const marketStats = document.querySelectorAll('#tab-portfolio .card:last-child .big-stat');
+  const marketMap = { SPY: 0, QQQ: 1, SMH: 2, NVDA: 4 };
+  Object.entries(marketMap).forEach(([sym, idx]) => {
+    const q = quotes[sym];
+    if (!q || !q.price || !marketStats[idx]) return;
+    const valEl = marketStats[idx].querySelector('.big-stat-val');
+    const subEl = marketStats[idx].querySelector('.big-stat-sub');
+    valEl.textContent = sym === 'NVDA' ? fmt$(q.price) : fmt$(q.price);
+    valEl.className = 'big-stat-val ' + posNeg(q.change) + ' ' + (marketStats[idx].querySelector('.big-stat-val').style.fontSize ? '' : '');
+    valEl.style.fontSize = '22px';
+    if (subEl) {
+      subEl.textContent = fmtPct(q.change);
+      subEl.className = 'big-stat-sub ' + posNeg(q.change);
+    }
+  });
+
+  // --- Trade Detail Tab ---
+  if (POSITIONS[0]?._current) {
+    const p = POSITIONS[0];
+    // Update current P&L in detail grid
+    const drows = document.querySelectorAll('#tab-trade .drow');
+    drows.forEach(row => {
+      const label = row.querySelector('.drow-label');
+      if (!label) return;
+      if (label.textContent === 'Current P&L') {
+        const val = row.querySelector('.drow-val');
+        val.textContent = fmtPL(p._pl) + ' (' + fmtPct(p._plPct) + ')';
+        val.className = 'drow-val ' + posNeg(p._pl);
+      }
+      if (label.textContent === 'After-Tax P&L' && p._afterTaxPL !== undefined) {
+        const val = row.querySelector('.drow-val');
+        val.textContent = fmtPL(p._afterTaxPL);
+        val.className = 'drow-val ' + posNeg(p._afterTaxPL);
+      }
+      if (label.textContent === 'Est. Tax Rate') {
+        const val = row.querySelector('.drow-val');
+        val.textContent = '~50% Short-term (CA+Fed+NIIT)';
+        val.className = 'drow-val neg';
+      }
+    });
+    // Days held
+    const entryDate = new Date(p.date);
+    const daysHeld = Math.floor((new Date() - entryDate) / 86400000);
+    drows.forEach(row => {
+      const label = row.querySelector('.drow-label');
+      if (label && label.textContent === 'Days Held') {
+        row.querySelector('.drow-val').textContent = daysHeld;
+      }
+    });
+
+    // Update price bar
+    const range = p.target - p.stop;
+    const currentPct = ((p._current - p.stop) / range) * 100;
+    const entryPct = ((p.entry - p.stop) / range) * 100;
+    const currentMarker = document.querySelector('.pbar-marker.current');
+    if (currentMarker) {
+      currentMarker.style.left = Math.min(98, Math.max(2, currentPct)) + '%';
+      currentMarker.querySelector('.pbar-mlabel').textContent = fmt$(p._current);
+    }
+    // Update price bar subtitle
+    const pbarLabels = document.querySelector('.pbar-labels');
+    if (pbarLabels) {
+      const aboveStop = ((p._current - p.stop) / p.stop * 100).toFixed(1);
+      const toTarget = ((p.target - p._current) / p._current * 100).toFixed(1);
+      pbarLabels.children[1].textContent = aboveStop + '% above stop · ' + toTarget + '% to target';
+    }
+
+    // Update trade header badge
+    const tradeBadge = document.querySelector('#tab-trade .ch-badge');
+    if (tradeBadge) {
+      tradeBadge.textContent = '● OPEN ' + fmtPct(p._plPct);
+      tradeBadge.className = 'ch-badge ' + posNeg(p._pl);
+      tradeBadge.style.background = p._pl >= 0 ? 'rgba(46,160,67,0.15)' : 'rgba(233,69,96,0.15)';
+    }
+  }
+
+  // --- Watchlist Tab ---
+  const wlBody = document.querySelector('#tab-watchlist .wl-table tbody');
+  if (wlBody) {
+    wlBody.innerHTML = '';
+    WATCHLIST.forEach(w => {
+      const q = quotes[w.ticker];
+      const price = q?.price || 0;
+      const change = q?.change || 0;
+      const isOpen = POSITIONS.some(p => p.ticker === w.ticker);
+      const cond = CONDITIONALS.find(c => c.ticker === w.ticker);
+  const isTriggered = cond && (cond.status === 'CONDITION_MET' || cond.status === 'ACTIONABLE');
+      let statusClass = 'watching', statusText = 'WATCHING';
+      if (isOpen) { statusClass = 'active'; statusText = 'OPEN'; }
+      else if (isTriggered) { statusClass = 'triggered'; statusText = 'TRIGGERED'; }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="tkr">${w.ticker}</td>
+        <td>${price ? fmt$(price) : '—'}</td>
+        <td class="${posNeg(change)}">${price ? fmtPct(change) : '—'}</td>
+        <td>${w.sector}</td>
+        <td><span class="wl-status ${statusClass}">${statusText}</span></td>
+        <td>${w.notes}</td>
+      `;
+      wlBody.appendChild(tr);
+    });
+  }
+
+  // --- Conditional Trades: Render from TRADE-STATUS.json ---
+  const condContainer = document.querySelector('#tab-conditional .cb');
+  if (condContainer && CONDITIONALS.length) {
+    condContainer.innerHTML = '';
+    CONDITIONALS.forEach(c => {
+      const q = quotes[c.ticker];
+      const price = q?.price ? fmt$(q.price) : '—';
+      const statusColors = {
+        'ACTIONABLE': { border: 'var(--green)', color: 'var(--green)', icon: '✅', label: 'ACTIONABLE' },
+        'CONDITION_MET': { border: 'var(--green)', color: 'var(--yellow)', icon: '⚡', label: 'CONDITION MET' },
+        'WATCHING': { border: 'var(--yellow)', color: 'var(--yellow)', icon: '⏳', label: 'WATCHING' },
+        'KILLED': { border: 'var(--red)', color: 'var(--red)', icon: '❌', label: 'KILLED' }
+      };
+      const s = statusColors[c.status] || statusColors['WATCHING'];
+      const scoreColor = c.score >= 8 ? 'var(--green)' : c.score >= 6 ? 'var(--yellow)' : 'var(--red)';
+      const conf = c.confirmation;
+      const finalScore = conf ? conf.finalScore : c.score;
+      const isMaxConv = conf && finalScore >= 9.5;
+      const card = document.createElement('div');
+      card.className = 'cond-card';
+      card.style.borderLeftColor = isMaxConv ? 'var(--teal)' : s.border;
+      if (isMaxConv) card.style.boxShadow = '0 0 12px rgba(45,212,191,0.15)';
+      
+      // Build confirmation display
+      let confHtml = '';
+      if (conf) {
+        const confirms = (conf.confirming || []).map(s => '✅ ' + s).join('<br>');
+        const contradicts = (conf.contradicting || []).map(s => '❌ ' + s).join('<br>');
+        confHtml = '<div style="margin-top:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:12px;">' +
+          '<div style="font-weight:700;margin-bottom:6px;color:var(--teal);">Confirmation: +' + conf.bonus.toFixed(2) + ' (' + (conf.confirming||[]).length + '✅ / ' + (conf.contradicting||[]).length + '❌ = net ' + conf.net + ')</div>' +
+          '<div style="color:var(--dim);line-height:1.6;">' + confirms + (contradicts ? '<br>' + contradicts : '') + '</div>' +
+          (conf.attentionPhase ? '<div style="margin-top:4px;color:var(--dim);">Attention: Phase ' + conf.attentionPhase + '</div>' : '') +
+          '</div>';
+      }
+      
+      const rr = c.stop && c.entry ? ((c.target - c.entry) / (c.entry - c.stop)).toFixed(1) : c.rr || '?';
+      
+      card.innerHTML = `
+        <div class="cond-header">
+          <div><span class="tkr" style="font-size:20px;">${c.ticker}</span><span style="margin-left:8px;font-weight:700;color:${s.color};">${s.icon} ${s.label}</span>${isMaxConv ? '<span style="margin-left:8px;background:var(--teal);color:#000;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">MAX CONVICTION</span>' : ''}</div>
+          <span style="font-size:14px;color:${scoreColor};font-weight:700;">Score: ${finalScore}/10${conf ? ' (' + c.score + ' + ' + conf.bonus.toFixed(1) + ')' : ''}</span>
+        </div>
+        <div style="font-size:14px;color:var(--dim);margin-bottom:10px;"><strong>Condition:</strong> ${c.condition} → ${c.conditionMet ? '✅ Met' : '⏳ Pending'}</div>
+        <div class="cond-grid">
+          <div><div class="cond-label">Entry</div><div style="font-weight:600;">${c.entry ? '$' + c.entry : '—'}</div></div>
+          <div><div class="cond-label">Current</div><div style="font-weight:600;">${price}</div></div>
+          <div><div class="cond-label">Stop</div><div style="font-weight:600;color:var(--red);">${c.stop ? '$' + c.stop : '—'}</div></div>
+          <div><div class="cond-label">Target</div><div style="font-weight:600;color:var(--green);">${c.target ? '$' + c.target : '—'}</div></div>
+          <div><div class="cond-label">R:R</div><div style="font-weight:600;">${rr}:1</div></div>
+          <div><div class="cond-label">Type</div><div style="font-weight:600;color:${isMaxConv ? 'var(--teal)' : s.color};">${isMaxConv ? 'MAX CONVICTION' : c.type || 'WATCHING'}</div></div>
+        </div>
+        ${confHtml}
+        <div style="font-size:13px;color:var(--dim);margin-top:10px;">${c.note}</div>
+      `;
+      condContainer.appendChild(card);
+    });
+  }
+
+  // Update timestamp
+  document.getElementById('lastUpdated').textContent = 'Live · Updated: ' + fmt.format(new Date()) + ' PT';
+}
+
+// --- Sentiment: Fetch Crypto Fear & Greed ---
+async function fetchFearGreed() {
+  try {
+    const r = await fetch('https://api.alternative.me/fng/?limit=1');
+    const d = await r.json();
+    const val = parseInt(d.data[0].value);
+    const cls = d.data[0].value_classification;
+    const gauge = document.querySelector('#tab-sentiment .gauge');
+    if (gauge) {
+      gauge.querySelector('.gauge-header span:last-child').textContent = val + ' — ' + cls;
+      gauge.querySelector('.gauge-header span:last-child').className = val <= 25 ? 'neg' : val >= 60 ? 'pos' : '';
+      gauge.querySelector('.gauge-fill').style.width = val + '%';
+      gauge.querySelector('.gauge-fill').style.background = val <= 25 ? 'var(--red)' : val <= 45 ? 'var(--yellow)' : 'var(--green)';
+    }
+    // Update strip
+    const stripItems = document.querySelectorAll('.strip-item');
+    stripItems[4].querySelector('.strip-val').textContent = val;
+    stripItems[4].querySelector('.strip-val').className = 'strip-val ' + (val <= 25 ? 'neg' : val >= 60 ? 'pos' : '');
+    stripItems[4].querySelector('.strip-sub').textContent = cls;
+    stripItems[4].querySelector('.strip-sub').className = 'strip-sub ' + (val <= 25 ? 'neg' : val >= 60 ? 'pos' : '');
+  } catch (e) { console.log('F&G fetch failed:', e); }
+}
+
+// --- Bitcoin via CoinGecko (free, no key) ---
+async function fetchBTC() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+    const d = await r.json();
+    const price = d.bitcoin.usd;
+    const change = d.bitcoin.usd_24h_change;
+    // Update market overview BTC stat (index 3)
+    const marketStats = document.querySelectorAll('#tab-portfolio .card:last-child .big-stat');
+    if (marketStats[3]) {
+      const valEl = marketStats[3].querySelector('.big-stat-val');
+      const subEl = marketStats[3].querySelector('.big-stat-sub');
+      valEl.textContent = '$' + price.toLocaleString('en-US', {maximumFractionDigits: 0});
+      valEl.className = 'big-stat-val ' + posNeg(change);
+      valEl.style.fontSize = '22px';
+      subEl.textContent = fmtPct(change);
+      subEl.className = 'big-stat-sub ' + posNeg(change);
+    }
+  } catch (e) { console.log('BTC fetch failed:', e); }
+}
+
+// Tab switching
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Trial day counter
+const start = new Date('2026-02-23'), now = new Date();
+const day = Math.floor((now - start) / 86400000) + 1;
+document.getElementById('dayCount').textContent = 'Day ' + day + ' of 30';
+document.getElementById('daysLeft').textContent = Math.max(0, 30 - day);
+document.getElementById('trialBadge').textContent = 'DAY ' + day + '/30';
+const fmt = new Intl.DateTimeFormat('en-US', {timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+document.getElementById('lastUpdated').textContent = 'Loading live data...';
+
+// --- Refresh all data ---
+async function refreshAll() {
+  await loadTradeStatus();
+  const allTickers = [...new Set([...POSITIONS.map(p => p.ticker), ...WATCHLIST.map(w => w.ticker), ...MARKET_TICKERS, ...CONDITIONALS.map(c => c.ticker)])];
+  try {
+    const quotes = await fetchAll(allTickers);
+    updateDashboard(quotes);
+  } catch (e) {
+    console.error('Quote fetch failed:', e);
+    document.getElementById('lastUpdated').textContent = 'Live data failed — showing cached';
+  }
+  fetchFearGreed();
+  fetchBTC();
+}
+
+// --- Pull to Refresh ---
+(function() {
+  const ptr = document.getElementById('ptrIndicator');
+  let startY = 0, pulling = false;
+  
+  document.addEventListener('touchstart', (e) => {
+    if (window.scrollY === 0) {
+      startY = e.touches[0].clientY;
+      pulling = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!pulling) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 60 && window.scrollY === 0) {
+      ptr.className = 'ptr-indicator pulling';
+      ptr.textContent = '↑ Release to refresh';
+    } else if (dy > 10 && window.scrollY === 0) {
+      ptr.className = 'ptr-indicator pulling';
+      ptr.textContent = '↓ Pull to refresh';
+    } else {
+      ptr.className = 'ptr-indicator';
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', async () => {
+    if (!pulling) return;
+    pulling = false;
+    if (ptr.textContent === '↑ Release to refresh') {
+      ptr.className = 'ptr-indicator refreshing';
+      ptr.innerHTML = '<span class="ptr-spinner">⟳</span> Refreshing...';
+      await refreshAll();
+      ptr.className = 'ptr-indicator';
+    } else {
+      ptr.className = 'ptr-indicator';
+    }
+  });
+})();
+
+// --- Init ---
+refreshAll();
+</script>
+</body>
+</html>

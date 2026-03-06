@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--dim:#8b949e;--green:#3fb950;--red:#f85149;--blue:#58a6ff;--yellow:#d29922;--orange:#db6d28;--purple:#bc8cff}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#010409;border-bottom:1px solid var(--border)}
+.header h1{font-size:18px;font-weight:600}
+.market-status{font-size:13px;padding:4px 10px;border-radius:12px;font-weight:500}
+.market-open{background:#238636;color:#fff}
+.market-closed{background:#6e7681;color:#fff}
+.last-updated{font-size:11px;color:var(--dim);margin-top:2px;text-align:right}
+.tabs{display:flex;background:#010409;border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{padding:10px 20px;cursor:pointer;font-size:14px;font-weight:500;color:var(--dim);border-bottom:2px solid transparent;white-space:nowrap;user-select:none}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--orange)}
+.content{padding:16px;max-width:1400px;margin:0 auto}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px}
+.card h3{font-size:14px;color:var(--dim);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.card .val{font-size:24px;font-weight:700}
+.card .sub{font-size:12px;color:var(--dim);margin-top:4px}
+.pos{color:var(--green)}.neg{color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:500;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase}
+td{padding:8px 10px;border-bottom:1px solid var(--border)}
+tr:hover{background:#1c2128}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.badge-green{background:#238636;color:#fff}
+.badge-red{background:#da3633;color:#fff}
+.badge-yellow{background:#9e6a03;color:#fff}
+.dd-meter{background:#21262d;border-radius:6px;height:28px;position:relative;overflow:hidden;margin:8px 0}
+.dd-fill{height:100%;border-radius:6px;transition:width .5s}
+.alloc-bar{display:flex;height:24px;border-radius:6px;overflow:hidden;margin:8px 0}
+.alloc-seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff}
+.sector-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px}
+.sector-card h4{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between}
+.ticker-grid{display:flex;flex-wrap:wrap;gap:6px}
+.ticker-chip{background:#21262d;border-radius:4px;padding:4px 8px;font-size:11px;min-width:70px}
+.ticker-chip .sym{font-weight:600;margin-right:4px}
+.rule-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px}
+.rule-card h3{font-size:15px;font-weight:600;margin-bottom:10px;color:var(--blue)}
+.rule-card ul{list-style:none;padding:0}
+.rule-card li{padding:4px 0;font-size:13px}
+.rule-card li::before{content:'→ ';color:var(--orange)}
+.stats-row{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+.stat-box{flex:1;min-width:100px;background:#21262d;border-radius:6px;padding:10px;text-align:center}
+.stat-box .n{font-size:18px;font-weight:700}
+.stat-box .l{font-size:11px;color:var(--dim)}
+.kill-criteria{background:#2d1215;border:1px solid #f8514933;border-radius:8px;padding:12px;margin:12px 0;font-size:13px;color:var(--red)}
+.loading{color:var(--dim);font-style:italic;font-size:12px}
+@media(max-width:600px){.content{padding:10px}.card .val{font-size:18px}.grid-2{grid-template-columns:1fr}.tab{padding:8px 14px;font-size:13px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>📊 Trading Dashboard</h1>
+  <div>
+    <span id="marketStatus" class="market-status market-closed">CLOSED</span>
+    <div id="lastUpdated" class="last-updated"></div>
+  </div>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('portfolio')">Portfolio</div>
+  <div class="tab" onclick="switchTab('watchlist')">Watchlist</div>
+  <div class="tab" onclick="switchTab('rules')">IRA Rules</div>
+  <div class="tab" onclick="switchTab('catalyst')">🔥 Catalyst</div>
+</div>
+<div class="content">
+
+<div id="portfolio" class="tab-content active">
+  <div class="grid grid-2" style="margin-bottom:16px">
+    <div class="card"><h3>Portfolio Value</h3><div class="val" id="pVal">—</div><div class="sub" id="pCash"></div></div>
+    <div class="card"><h3>Unrealized P/L</h3><div class="val" id="pUPL">—</div><div class="sub" id="pRPL"></div></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>Drawdown Meter</h3>
+    <div class="dd-meter"><div class="dd-fill" id="ddFill" style="width:0%;background:var(--green)"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim)"><span>0%</span><span>5% Review</span><span>10% Stop</span><span>15% Full Review</span><span>20% Overhaul</span></div>
+    <div class="sub" id="ddLabel">Current drawdown: 0%</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>Regime & Allocation</h3>
+    <div style="margin-bottom:8px">Macro Regime: <span class="badge badge-green" id="regimeBadge">GOLDILOCKS</span></div>
+    <div style="font-size:12px;color:var(--dim);margin-bottom:4px">42 Macro KISS Allocation</div>
+    <div class="alloc-bar">
+      <div class="alloc-seg" style="width:30%;background:#58a6ff">VT 30%</div>
+      <div class="alloc-seg" style="width:30%;background:#d29922">GLDM 30%</div>
+      <div class="alloc-seg" style="width:40%;background:#8b949e">USFR 40%</div>
+    </div>
+  </div>
+  <div class="card"><h3>Open Positions</h3><div style="overflow-x:auto"><table>
+    <thead><tr><th>Ticker</th><th>Shares</th><th>Entry</th><th>Current</th><th>P/L $</th><th>P/L %</th><th>Days</th><th>Stop</th><th>Trail</th></tr></thead>
+    <tbody id="posTable"><tr><td colspan="9" class="loading">Loading...</td></tr></tbody>
+  </table></div></div>
+</div>
+
+<div id="watchlist" class="tab-content">
+  <div id="sectorGrid" class="grid grid-3"><div class="card loading">Loading watchlist...</div></div>
+</div>
+
+<div id="rules" class="tab-content">
+  <div class="card" style="margin-bottom:16px">
+    <div class="stats-row">
+      <div class="stat-box"><div class="n pos">$26,923</div><div class="l">From $10K (+169.2%)</div></div>
+      <div class="stat-box"><div class="n">48%</div><div class="l">Win Rate</div></div>
+      <div class="stat-box"><div class="n">2.6:1</div><div class="l">R:R Ratio</div></div>
+      <div class="stat-box"><div class="n">30</div><div class="l">Trades/Year</div></div>
+      <div class="stat-box"><div class="n neg">-11.1%</div><div class="l">Max Drawdown</div></div>
+    </div>
+  </div>
+  <div class="grid grid-2">
+    <div class="rule-card"><h3>📥 Entry Rules</h3><ul>
+      <li>Execute at next-day market open</li><li>ADX ≥ 15 for breakout setups</li><li>ADX ≥ 30 for Holy Grail setups</li>
+      <li>Score ≥ 8 → momentum hold</li><li>Score ≥ 9 → short-term trade</li><li>Score ≥ 9.5 → MAX CONVICTION</li>
+    </ul></div>
+    <div class="rule-card"><h3>🛑 Stop Rules</h3><ul>
+      <li>Initial stop: Entry − 3 × ATR(14)</li><li>Days 1–10: Trail 13 EMA</li><li>Days 11+: Trail 21 EMA</li><li>Hard floors on select positions</li>
+    </ul></div>
+    <div class="rule-card"><h3>⏱️ Time & Trend Stops</h3><ul>
+      <li>Day 10+ and losing → EXIT</li><li>ADX drops below 15 after day 10 → EXIT</li><li>Trend death = no edge remaining</li>
+    </ul></div>
+    <div class="rule-card"><h3>📐 Position Sizing</h3><ul>
+      <li>Max position: 35% of portfolio</li><li>Max concurrent: 2 positions</li><li>Size to risk, not to conviction</li><li>Never exceed max allocation</li>
+    </ul></div>
+  </div>
+</div>
+
+<div id="catalyst" class="tab-content">
+  <div class="card" style="margin-bottom:16px">
+    <h3>News Catalyst Strategy</h3>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <span class="badge badge-yellow" id="catStatus">PAPER_TRADING</span>
+      <span style="font-size:12px;color:var(--dim)">Mar 3–18 · $10K Capital</span>
+    </div>
+    <div class="kill-criteria">⚠️ Kill Criteria: WR &lt; 45% OR PF &lt; 1.0 OR DD &gt; 8% → KILL</div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="n" id="catTrades">—</div><div class="l">Total Trades</div></div>
+      <div class="stat-box"><div class="n pos" id="catWins">—</div><div class="l">Wins</div></div>
+      <div class="stat-box"><div class="n neg" id="catLosses">—</div><div class="l">Losses</div></div>
+      <div class="stat-box"><div class="n" id="catPL">—</div><div class="l">P/L</div></div>
+      <div class="stat-box"><div class="n" id="catDD">—</div><div class="l">Max DD</div></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h3>Alerts Log</h3>
+    <div style="overflow-x:auto;max-height:300px;overflow-y:auto"><table>
+      <thead><tr><th>Time</th><th>Ticker</th><th>Action</th><th>Details</th></tr></thead>
+      <tbody id="alertsTable"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+    </table></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card"><h3>Open Positions</h3><div style="overflow-x:auto"><table>
+      <thead><tr><th>Ticker</th><th>Entry</th><th>Shares</th><th>Current</th><th>P/L</th></tr></thead>
+      <tbody id="catOpenTable"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+    </table></div></div>
+    <div class="card"><h3>Closed Trades</h3><div style="overflow-x:auto;max-height:300px;overflow-y:auto"><table>
+      <thead><tr><th>Ticker</th><th>Entry</th><th>Exit</th><th>P/L</th></tr></thead>
+      <tbody id="catClosedTable"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+    </table></div></div>
+  </div>
+</div>
+
+</div>
+<script>
+const FK='d6frbcpr01qqnmbpo9sgd6frbcpr01qqnmbpo9t0',QC={};let LFT=0;
+const SECTORS={'AI/Semi':['NVDA','AVGO','MRVL','AMD','TSM','ARM','SMCI'],'Big Tech':['MSFT','GOOGL','META','AMZN','AAPL','PLTR'],'Construction':['CAT','VMC','MLM','DE','URI','BLDR'],'Crypto':['MSTR','COIN','MARA','SQ'],'ETFs':['SPY','QQQ','SMH','XLI','TLT','GLD','UUP','IGV','IWM','EEM'],'Homebuilders':['DHI','LEN','KBH','TOL'],'Gold/Silver':['SLV','NEM','GDX','GOLD','GDXJ'],'Uranium':['URA','UUUU'],'Nat Gas':['UNG','LNG','EQT'],'Commodities':['COPX','XME'],'Cyber':['CRWD','PANW'],'Data Center':['IREN','VRT'],'Power':['CEG','VST']};
+const POS=[{ticker:'IGV',shares:31,entry:78.41,stop:75.50,trail:'21 EMA',entryDate:'2026-02-25'},{ticker:'GDX',shares:30,entry:115.75,stop:98.00,trail:'Hard floor',entryDate:'2026-02-20'}];
+const PF={cash:6564.84,startValue:10000,realizedPL:0};
+
+function switchTab(id){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab')[['portfolio','watchlist','rules','catalyst'].indexOf(id)].classList.add('active');
+}
+
+function isMktOpen(){const n=new Date(),e=new Date(n.toLocaleString('en-US',{timeZone:'America/New_York'})),d=e.getDay(),m=e.getHours()*60+e.getMinutes();return d>=1&&d<=5&&m>=570&&m<960}
+
+function updMktStatus(){const e=document.getElementById('marketStatus');if(isMktOpen()){e.textContent='MARKET OPEN';e.className='market-status market-open'}else{e.textContent='MARKET CLOSED';e.className='market-status market-closed'}}
+
+async function fq(s){const n=Date.now();if(QC[s]&&n-QC[s].ts<60000)return QC[s].d;try{const r=await fetch('https://finnhub.io/api/v1/quote?symbol='+s+'&token='+FK),d=await r.json();if(d.c){QC[s]={d,ts:n}}return d}catch(e){return QC[s]?.d||null}}
+
+async function fetchBatch(syms){const R={};for(let i=0;i<syms.length;i+=8){const b=syms.slice(i,i+8);await Promise.all(b.map(async s=>{const q=await fq(s);if(q)R[s]=q}));if(i+8<syms.length)await new Promise(r=>setTimeout(r,500))}LFT=Date.now();updLU();return R}
+
+function updLU(){const e=document.getElementById('lastUpdated');if(!LFT){e.textContent='';return}const a=Math.round((Date.now()-LFT)/1000);e.textContent=a<5?'Just updated':'Updated '+a+'s ago'}
+setInterval(updLU,5000);
+
+function fmt$(v){return(v<0?'-$':'$')+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtP(v){return(v>=0?'+':'')+v.toFixed(2)+'%'}
+function daysB(d1,d2){return Math.floor((d2-d1)/864e5)}
+
+async function loadPortfolio(){
+  const qs=await fetchBatch(POS.map(p=>p.ticker));let dep=0,upl=0;
+  const rows=POS.map(p=>{const q=qs[p.ticker],c=q?q.c:p.entry,pl=(c-p.entry)*p.shares,pp=((c-p.entry)/p.entry)*100;dep+=p.entry*p.shares;upl+=pl;const d=daysB(new Date(p.entryDate),new Date()),cls=pl>=0?'pos':'neg';return'<tr><td><strong>'+p.ticker+'</strong></td><td>'+p.shares+'</td><td>$'+p.entry.toFixed(2)+'</td><td>$'+c.toFixed(2)+'</td><td class="'+cls+'">'+fmt$(pl)+'</td><td class="'+cls+'">'+fmtP(pp)+'</td><td>'+d+'</td><td>$'+p.stop.toFixed(2)+'</td><td>'+p.trail+'</td></tr>'}).join('');
+  document.getElementById('posTable').innerHTML=rows||'<tr><td colspan="9">No positions</td></tr>';
+  const tv=PF.cash+dep+upl;
+  document.getElementById('pVal').textContent=fmt$(tv);
+  document.getElementById('pCash').textContent='Cash: '+fmt$(PF.cash)+' · Deployed: '+fmt$(dep);
+  document.getElementById('pUPL').className='val '+(upl>=0?'pos':'neg');
+  document.getElementById('pUPL').textContent=fmt$(upl);
+  document.getElementById('pRPL').textContent='Realized P/L: '+fmt$(PF.realizedPL);
+  const dd=Math.max(0,(PF.startValue-tv)/PF.startValue*100),ddP=Math.min(dd/20*100,100),f=document.getElementById('ddFill');
+  f.style.width=ddP+'%';f.style.background=dd<5?'var(--green)':dd<10?'var(--yellow)':dd<15?'var(--orange)':'var(--red)';
+  document.getElementById('ddLabel').textContent='Current drawdown: '+dd.toFixed(1)+'%';
+}
+
+async function loadWatchlist(){
+  const all=[...new Set(Object.values(SECTORS).flat())],qs=await fetchBatch(all);
+  document.getElementById('sectorGrid').innerHTML=Object.entries(SECTORS).map(([nm,tks])=>{let tp=0,ct=0;const chips=tks.map(t=>{const q=qs[t];if(!q||!q.c)return'<div class="ticker-chip"><span class="sym">'+t+'</span> <span style="color:var(--dim)">—</span></div>';const p=q.dp||((q.c-q.pc)/q.pc*100);tp+=p;ct++;const cl=p>=0?'var(--green)':'var(--red)';return'<div class="ticker-chip"><span class="sym">'+t+'</span> <span style="font-size:10px;color:var(--dim)">$'+(q.c>500?q.c.toFixed(0):q.c.toFixed(2))+'</span> <span style="color:'+cl+'">'+fmtP(p)+'</span></div>'}).join('');const av=ct?tp/ct:0,ac=av>=0?'var(--green)':'var(--red)';return'<div class="sector-card"><h4><span>'+nm+'</span><span style="color:'+ac+';font-size:12px">'+fmtP(av)+'</span></h4><div class="ticker-grid">'+chips+'</div></div>'}).join('');
+}
+
+async function loadCatalyst(){
+  try{
+    const r=await fetch('NEWS-CATALYST-TRADES.json'),d=await r.json();
+    const al=d.alerts||[];
+    document.getElementById('alertsTable').innerHTML=al.length?al.map(a=>'<tr><td style="white-space:nowrap">'+(a.time||a.date||'—')+'</td><td><strong>'+(a.ticker||a.symbol||'—')+'</strong></td><td>'+(a.action||a.type||'—')+'</td><td style="font-size:12px">'+(a.details||a.reason||a.headline||'—')+'</td></tr>').join(''):'<tr><td colspan="4">No alerts yet</td></tr>';
+    const tr=d.trades||d.closed_trades||[],op=d.open_positions||d.open||[];
+    const w=tr.filter(t=>(t.pl||t.pnl||0)>0).length,l=tr.filter(t=>(t.pl||t.pnl||0)<=0).length,tpl=tr.reduce((s,t)=>s+(t.pl||t.pnl||0),0);
+    document.getElementById('catTrades').textContent=tr.length+op.length;
+    document.getElementById('catWins').textContent=w;
+    document.getElementById('catLosses').textContent=l;
+    document.getElementById('catPL').textContent=fmt$(tpl);document.getElementById('catPL').className='n '+(tpl>=0?'pos':'neg');
+    document.getElementById('catDD').textContent=d.max_drawdown?fmtP(-d.max_drawdown):'—';
+    if(d.status)document.getElementById('catStatus').textContent=d.status;
+    document.getElementById('catOpenTable').innerHTML=op.length?op.map(p=>'<tr><td><strong>'+(p.ticker||p.symbol)+'</strong></td><td>$'+(p.entry||p.entry_price||0).toFixed(2)+'</td><td>'+(p.shares||p.qty||'—')+'</td><td>—</td><td>—</td></tr>').join(''):'<tr><td colspan="5">None</td></tr>';
+    document.getElementById('catClosedTable').innerHTML=tr.length?tr.map(t=>{const p=t.pl||t.pnl||0;return'<tr><td><strong>'+(t.ticker||t.symbol)+'</strong></td><td>$'+(t.entry||t.entry_price||0).toFixed(2)+'</td><td>$'+(t.exit||t.exit_price||0).toFixed(2)+'</td><td class="'+(p>=0?'pos':'neg')+'">'+fmt$(p)+'</td></tr>'}).join(''):'<tr><td colspan="4">None yet</td></tr>';
+  }catch(e){
+    document.getElementById('alertsTable').innerHTML='<tr><td colspan="4" style="color:var(--dim)">Could not load NEWS-CATALYST-TRADES.json</td></tr>';
+    document.getElementById('catOpenTable').innerHTML='<tr><td colspan="5">—</td></tr>';
+    document.getElementById('catClosedTable').innerHTML='<tr><td colspan="4">—</td></tr>';
+  }
+}
+
+async function loadTS(){try{const r=await fetch('TRADE-STATUS.json'),d=await r.json();if(d.cash!==undefined)PF.cash=d.cash;if(d.realized_pl!==undefined)PF.realizedPL=d.realized_pl;if(d.start_value!==undefined)PF.startValue=d.start_value}catch(e){}}
+
+async function init(){updMktStatus();setInterval(updMktStatus,60000);await loadTS();loadPortfolio();loadCatalyst();setTimeout(loadWatchlist,2000);setInterval(()=>{if(isMktOpen()){loadPortfolio();if(document.querySelector('.tab-content.active')?.id==='watchlist')loadWatchlist()}},60000)}
+init();
+</script>
+</body>
+</html>

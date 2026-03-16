@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ice Box Command Center</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧊</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --surface: #111827;
+  --surface-2: #1a2235;
+  --surface-3: #232d42;
+  --border: #2a3550;
+  --text: #e2e8f0;
+  --text-muted: #8896b3;
+  --text-dim: #5a6a8a;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.15);
+  --green: #10b981;
+  --green-bg: rgba(16, 185, 129, 0.1);
+  --yellow: #f59e0b;
+  --yellow-bg: rgba(245, 158, 11, 0.1);
+  --red: #ef4444;
+  --red-bg: rgba(239, 68, 68, 0.1);
+  --blue: #3b82f6;
+  --blue-bg: rgba(59, 130, 246, 0.1);
+  --purple: #8b5cf6;
+  --purple-bg: rgba(139, 92, 246, 0.1);
+  --orange: #f97316;
+  --orange-bg: rgba(249, 115, 22, 0.1);
+  --cyan: #06b6d4;
+  --cyan-bg: rgba(6, 182, 212, 0.1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.noise {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.logo-sub {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.header-right {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.pulse-dot {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+}
+
+.status-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--green);
+}
+
+.last-updated {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Stats Bar */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.stat-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  margin-top: 48px;
+}
+
+.section-header h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover, .filter-btn.active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Project Cards */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .projects-grid { grid-template-columns: 1fr; }
+}
+
+.project-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 14px 14px 0 0;
+}
+
+.project-card[data-status="active"]::before { background: var(--green); }
+.project-card[data-status="blocked"]::before { background: var(--yellow); }
+.project-card[data-status="paused"]::before { background: var(--orange); }
+.project-card[data-status="done"]::before { background: var(--blue); }
+.project-card[data-status="idea"]::before { background: var(--purple); }
+
+.project-card:hover {
+  border-color: var(--surface-3);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+}
+
+.project-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.project-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.project-category {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.cat-trading { background: var(--green-bg); color: var(--green); }
+.cat-business { background: var(--blue-bg); color: var(--blue); }
+.cat-app { background: var(--purple-bg); color: var(--purple); }
+.cat-infra { background: var(--cyan-bg); color: var(--cyan); }
+.cat-content { background: var(--orange-bg); color: var(--orange); }
+
+.project-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.progress-container {
+  margin-bottom: 12px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.progress-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.progress-pct {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.progress-bar {
+  height: 6px;
+  background: var(--surface-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 20px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2));
+  border-radius: 0 3px 3px 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.badge-active { background: var(--green-bg); color: var(--green); }
+.badge-blocked { background: var(--yellow-bg); color: var(--yellow); }
+.badge-paused { background: var(--orange-bg); color: var(--orange); }
+.badge-done { background: var(--blue-bg); color: var(--blue); }
+.badge-idea { background: var(--purple-bg); color: var(--purple); }
+
+.next-step {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+}
+
+.next-step-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.next-step-text {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+/* Cron Jobs Section */
+.cron-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .cron-grid { grid-template-columns: 1fr; }
+}
+
+.cron-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s;
+}
+
+.cron-card:hover {
+  border-color: var(--surface-3);
+  background: var(--surface-2);
+}
+
+.cron-card.disabled { opacity: 0.45; }
+
+.cron-status {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cron-status.on { background: var(--green); box-shadow: 0 0 8px rgba(16,185,129,0.4); }
+.cron-status.off { background: var(--text-dim); }
+.cron-status.error { background: var(--red); box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+
+.cron-info { flex: 1; min-width: 0; }
+
+.cron-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cron-schedule {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.cron-meta {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.cron-last {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.cron-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.cron-tag.delivers { background: var(--green-bg); color: var(--green); }
+.cron-tag.silent { background: var(--surface-3); color: var(--text-dim); }
+
+/* Daemons */
+.daemon-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.daemon-indicator {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.daemon-indicator.running { background: var(--green); }
+.daemon-indicator.stopped { background: var(--red); animation: none; }
+
+.daemon-info { flex: 1; }
+
+.daemon-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.daemon-detail {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Footer */
+.footer {
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* Animations */
+.fade-in {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: fadeIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+
+<!-- Header -->
+<div class="header fade-in">
+  <div class="header-left">
+    <div>
+      <div class="logo">🧊 Command Center</div>
+      <div class="logo-sub">Ice Box × El Hefe — All Systems</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="pulse-dot"></div>
+    <span class="status-text">SYSTEMS ONLINE</span>
+    <span class="last-updated" id="last-updated"></span>
+  </div>
+</div>
+
+<!-- Stats Bar -->
+<div class="stats-bar fade-in stagger-1" id="stats-bar"></div>
+
+<!-- Projects -->
+<div class="section-header fade-in stagger-2">
+  <h2>📋 Projects</h2>
+  <div class="section-line"></div>
+  <span class="section-count" id="project-count"></span>
+</div>
+
+<div class="filter-bar fade-in stagger-2" id="filter-bar"></div>
+<div class="projects-grid" id="projects-grid"></div>
+
+<!-- Cron Jobs -->
+<div class="section-header fade-in stagger-3">
+  <h2>⏰ Cron Jobs</h2>
+  <div class="section-line"></div>
+  <span class="section-count" id="cron-count"></span>
+</div>
+<div class="cron-grid" id="cron-grid"></div>
+
+<!-- Daemons -->
+<div class="section-header fade-in stagger-4">
+  <h2>🔧 Background Daemons</h2>
+  <div class="section-line"></div>
+</div>
+<div id="daemons-grid"></div>
+
+<!-- Footer -->
+<div class="footer fade-in stagger-5">
+  <span class="footer-text">Built by Ice Box 🧊 for El Hefe</span>
+  <span class="footer-text" id="footer-time"></span>
+</div>
+
+</div>
+
+<script>
+// ============ DATA ============
+const projects = [
+  {
+    name: "IRA Paper Trading System",
+    category: "trading",
+    status: "active",
+    pct: 75,
+    desc: "Paper trading $10K IRA — scoring system, backtests, 47-ticker watchlist. Record: 1W 1L. Currently all cash ($9,852).",
+    nextStep: "Wait for next high-score signal (≥8) from IRA Daily Scanner. Focus on gold/silver sector.",
+    started: "2026-02-24"
+  },
+  {
+    name: "Alpaca Paper Trading Bots",
+    category: "trading",
+    status: "active",
+    pct: 70,
+    desc: "5 automated strategies on $100K paper account. Wheel, RSI(2), Momentum Breakout, Gold Macro. Auto-runs daily via cron.",
+    nextStep: "Approve Relaxed VIX (30/40) macro filter. Monitor first week's P&L for strategy tuning.",
+    started: "2026-03-13"
+  },
+  {
+    name: "Kalshi BTC Arb Bot",
+    category: "trading",
+    status: "active",
+    pct: 85,
+    desc: "Live daemon trading BTC 15-min prediction markets on Kalshi. RSA-PSS auth, 30s intervals, CF Benchmarks BRTI pricing.",
+    nextStep: "Monitor P&L and win rate. Consider expanding to other Kalshi markets if profitable.",
+    started: "2026-03-10"
+  },
+  {
+    name: "News Catalyst Paper Trader",
+    category: "trading",
+    status: "active",
+    pct: 60,
+    desc: "Scans for breaking news catalysts (FDA, earnings surprises, etc.) and paper-trades RED alerts. Runs every 30 min market hours.",
+    nextStep: "Accumulate 30+ paper trades to validate strategy. Review win rate vs random entries.",
+    started: "2026-03-08"
+  },
+  {
+    name: "Trading Dashboard",
+    category: "trading",
+    status: "done",
+    pct: 100,
+    desc: "Live web dashboard with Finnhub quotes, TRADE-STATUS.json data. Deployed on Cloudflare Workers.",
+    nextStep: "Maintenance only. Add Alpaca bot stats when available.",
+    started: "2026-03-01"
+  },
+  {
+    name: "42 Macro Integration",
+    category: "trading",
+    status: "active",
+    pct: 80,
+    desc: "Automated pull of VAMS, KISS Portfolio, Dr. Mo, regime data via GraphQL API. Powers morning briefing.",
+    nextStep: "Integrate Around The Horn weekly report when Kevin forwards it.",
+    started: "2026-02-26"
+  },
+  {
+    name: "LeaseIQ — Lease Accounting Engine",
+    category: "app",
+    status: "blocked",
+    pct: 55,
+    desc: "ASC 842 lease accounting to replace FinQuery ($25K+/yr). 65 leases, Phase 1+2 built, full audit passed (PV penny-accurate).",
+    nextStep: "⏳ Waiting on CFO: footnote disclosures, entity list, sprinkler lease doc. Then multi-entity support.",
+    started: "2026-03-12"
+  },
+  {
+    name: "PlanSwift AI Takeoff",
+    category: "app",
+    status: "blocked",
+    pct: 15,
+    desc: "AI agent for automated construction takeoffs. Lath & plaster first, then siding. Est. $46K / 3-5 months.",
+    nextStep: "⏳ Waiting on: API key approval, 3-5 past takeoff samples, SkillForge workflow recording.",
+    started: "2026-02-14"
+  },
+  {
+    name: "ConPulse AI — Consulting Business",
+    category: "business",
+    status: "paused",
+    pct: 35,
+    desc: "AI consulting for small construction subs. Website built, research complete, cheatsheet CTA live.",
+    nextStep: "Resume content publishing. Need Substack login + Twitter API access to automate.",
+    started: "2026-02-21"
+  },
+  {
+    name: "Substack + Twitter Automation",
+    category: "content",
+    status: "blocked",
+    pct: 20,
+    desc: "Fully automated newsletter + Twitter. 8-week content calendar created. Waiting on platform credentials.",
+    nextStep: "⏳ Waiting on: Substack login, Twitter @handle + API keys from Kevin.",
+    started: "2026-02-17"
+  },
+  {
+    name: "conpulseai.com Website",
+    category: "content",
+    status: "done",
+    pct: 95,
+    desc: "Hero redesign, cheatsheet CTA, article cards, Substack embed. Still on GoDaddy DNS.",
+    nextStep: "Migrate DNS to Cloudflare (pending since Feb 24). Then done-done.",
+    started: "2026-02-24"
+  },
+  {
+    name: "CAD Drawing / Floor Plans",
+    category: "app",
+    status: "paused",
+    pct: 50,
+    desc: "Programmatic architectural floor plans via Python + matplotlib. V3: black walls, fixtures, dimension lines.",
+    nextStep: "Continue iterating on quality when Kevin wants to pick this back up. Potential for ADU plans.",
+    started: "2026-03-08"
+  },
+  {
+    name: "Fibbage Party Game",
+    category: "app",
+    status: "done",
+    pct: 95,
+    desc: "Full Jackbox-style party game. WebSocket, TV host + phone controllers, 55 questions, 10 categories, music.",
+    nextStep: "Redeploy to Render if needed for next party. Otherwise complete.",
+    started: "2026-02-24"
+  },
+  {
+    name: "Cloudflare DNS Migration",
+    category: "infra",
+    status: "blocked",
+    pct: 10,
+    desc: "Move conpulseai.com from GoDaddy DNS → Cloudflare. Faster CDN, DDoS protection, analytics.",
+    nextStep: "⏳ Kevin needs to add site in Cloudflare, change nameservers, add A + CNAME records.",
+    started: "2026-02-24"
+  },
+  {
+    name: "Morning Briefing System",
+    category: "infra",
+    status: "active",
+    pct: 90,
+    desc: "4:00 AM integrity check → 4:15 AM briefing → 4:45 AM watchdog (sleep/health). All automated.",
+    nextStep: "Maintenance. Fine-tune content sections based on feedback.",
+    started: "2026-02-14"
+  }
+];
+
+const cronJobs = [
+  { name: "Pre-Briefing Integrity Check", schedule: "4:00 AM PT daily", enabled: true, delivers: false, lastOk: true },
+  { name: "Morning Briefing", schedule: "4:15 AM PT daily", enabled: true, delivers: true, lastOk: true },
+  { name: "Briefing Watchdog (Sleep/Health)", schedule: "4:45 AM PT daily", enabled: true, delivers: true, lastOk: true },
+  { name: "News Catalyst Paper Trader", schedule: "Every 30m, 6AM-1PM M-F", enabled: true, delivers: false, lastOk: true },
+  { name: "News Catalyst Nightly Recap", schedule: "7:00 PM PT M-F", enabled: true, delivers: true, lastOk: true },
+  { name: "System Health Check", schedule: "Every 6 hours", enabled: true, delivers: true, lastOk: true },
+  { name: "Alpaca Paper Trading — Daily Run", schedule: "12:50 PM PT M-F", enabled: true, delivers: false, lastOk: true },
+  { name: "IRA Daily Scanner", schedule: "9:10 PM PT M-F", enabled: true, delivers: true, lastOk: true },
+  { name: "Nightly Knowledge Review", schedule: "10:00 PM PT daily", enabled: true, delivers: false, lastOk: true },
+  { name: "Nightly GitHub Backup", schedule: "11:00 PM PT daily", enabled: true, delivers: false, lastOk: true },
+  { name: "Weekly Trading Review", schedule: "Sun 6:00 PM PT", enabled: true, delivers: true, lastOk: true },
+  { name: "Monthly Trading Review", schedule: "1st of month", enabled: true, delivers: true, lastOk: true },
+  { name: "Data Broker Monitor", schedule: "Quarterly (1st of quarter)", enabled: true, delivers: true, lastOk: null },
+  { name: "GitHub Token Expiry Reminder", schedule: "May 25, 2026 (one-shot)", enabled: true, delivers: true, lastOk: null },
+  { name: "News Catalyst Scanner (old)", schedule: "Disabled", enabled: false, delivers: true, lastOk: true },
+  { name: "Kalshi Bot Watchdog", schedule: "Disabled (heartbeat now)", enabled: false, delivers: true, lastOk: true },
+  { name: "PGA DFS Trackers (3)", schedule: "Disabled (event over)", enabled: false, delivers: true, lastOk: false },
+];
+
+const daemons = [
+  { name: "Kalshi BTC Arb Daemon", running: true, pid: 136745, uptime: "Mar 13", detail: "30s intervals • KXBTC15M • CF Benchmarks BRTI" }
+];
+
+// ============ RENDER ============
+function render() {
+  // Last updated
+  document.getElementById('last-updated').textContent = new Date().toLocaleString('en-US', {
+    timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+  });
+
+  // Stats
+  const activeCount = projects.filter(p => p.status === 'active').length;
+  const blockedCount = projects.filter(p => p.status === 'blocked').length;
+  const doneCount = projects.filter(p => p.status === 'done').length;
+  const enabledCrons = cronJobs.filter(c => c.enabled).length;
+  const avgProgress = Math.round(projects.reduce((s,p) => s + p.pct, 0) / projects.length);
+
+  document.getElementById('stats-bar').innerHTML = [
+    { label: 'Total Projects', value: projects.length, sub: `${activeCount} active, ${blockedCount} blocked, ${doneCount} done`, color: 'var(--text)' },
+    { label: 'Avg Progress', value: avgProgress + '%', sub: 'Across all projects', color: avgProgress > 60 ? 'var(--green)' : 'var(--yellow)' },
+    { label: 'Active Crons', value: enabledCrons, sub: `${cronJobs.length - enabledCrons} disabled`, color: 'var(--cyan)' },
+    { label: 'Daemons Running', value: daemons.filter(d => d.running).length, sub: daemons.map(d => d.name.replace(' Daemon','')).join(', '), color: 'var(--green)' },
+  ].map(s => `
+    <div class="stat-card">
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-value" style="color:${s.color}">${s.value}</div>
+      <div class="stat-sub">${s.sub}</div>
+    </div>
+  `).join('');
+
+  // Project count
+  document.getElementById('project-count').textContent = projects.length + ' total';
+
+  // Filter bar
+  const categories = ['all', ...new Set(projects.map(p => p.category))];
+  const statuses = ['all', 'active', 'blocked', 'paused', 'done'];
+  document.getElementById('filter-bar').innerHTML =
+    statuses.map(s => `<button class="filter-btn ${s === 'all' ? 'active' : ''}" data-filter="${s}">${s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}</button>`).join('');
+
+  renderProjects('all');
+
+  // Filter clicks
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderProjects(btn.dataset.filter);
+    });
+  });
+
+  // Crons
+  document.getElementById('cron-count').textContent = enabledCrons + ' active / ' + cronJobs.length + ' total';
+  document.getElementById('cron-grid').innerHTML = cronJobs.map(c => `
+    <div class="cron-card ${c.enabled ? '' : 'disabled'}">
+      <div class="cron-status ${!c.enabled ? 'off' : c.lastOk === false ? 'error' : 'on'}"></div>
+      <div class="cron-info">
+        <div class="cron-name">${c.name}</div>
+        <div class="cron-schedule">${c.schedule}</div>
+      </div>
+      <div class="cron-meta">
+        <span class="cron-tag ${c.delivers ? 'delivers' : 'silent'}">${c.delivers ? '📬 Delivers' : '🔇 Silent'}</span>
+      </div>
+    </div>
+  `).join('');
+
+  // Daemons
+  document.getElementById('daemons-grid').innerHTML = daemons.map(d => `
+    <div class="daemon-row">
+      <div class="daemon-indicator ${d.running ? 'running' : 'stopped'}"></div>
+      <div class="daemon-info">
+        <div class="daemon-name">${d.name}</div>
+        <div class="daemon-detail">PID ${d.pid} • Up since ${d.uptime} • ${d.detail}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Footer time
+  document.getElementById('footer-time').textContent = 'Generated ' + new Date().toLocaleString('en-US', {
+    timeZone: 'America/Los_Angeles', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+  });
+}
+
+function renderProjects(filter) {
+  const filtered = filter === 'all' ? projects : projects.filter(p => p.status === filter);
+
+  const statusColors = {
+    active: 'var(--green)', blocked: 'var(--yellow)',
+    paused: 'var(--orange)', done: 'var(--blue)', idea: 'var(--purple)'
+  };
+
+  const catLabels = {
+    trading: 'Trading', business: 'Business', app: 'App/Tool', infra: 'Infra', content: 'Content'
+  };
+
+  document.getElementById('projects-grid').innerHTML = filtered.map(p => `
+    <div class="project-card" data-status="${p.status}">
+      <div class="project-top">
+        <div class="project-name">${p.name}</div>
+        <span class="project-category cat-${p.category}">${catLabels[p.category] || p.category}</span>
+      </div>
+      <div class="project-desc">${p.desc}</div>
+      <div class="progress-container">
+        <div class="progress-header">
+          <span class="status-badge badge-${p.status}">
+            <span>${{active:'🟢',blocked:'🟡',paused:'🟠',done:'✅',idea:'💡'}[p.status]}</span>
+            ${p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+          </span>
+          <span class="progress-pct" style="color:${statusColors[p.status]}">${p.pct}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${p.pct}%;background:${statusColors[p.status]}"></div>
+        </div>
+      </div>
+      <div class="next-step">
+        <div class="next-step-label">Next Step</div>
+        <div class="next-step-text">${p.nextStep}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+render();
+</script>
+</body>
+</html>
